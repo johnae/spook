@@ -1,6 +1,6 @@
 ### Spook
 
-Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and almost doesn't work. Don't use it right now basically.
+Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and may not work.
 
 Building it should be as straightforward as:
 
@@ -66,4 +66,17 @@ string.split = (str, sep) ->
 
   print "mapped to: #{file}"
   file
+```
+
+## Notifications
+
+Notifications are very simple right now. The basics would be to create a file called .spook-notifier in your application directory. It should be
+written in moonscript and is expected to return a function taking one argument - the exit status. Something like this:
+
+```moonscript
+(status) ->
+  if status == 0
+    print "All tests passed"
+  else
+    print "Tests failed"
 ```

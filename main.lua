@@ -3,24 +3,38 @@ local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
 require("moonscript")
 local to_lua = require("moonscript.base").to_lua
-local status, filter = pcall(function()
-  local f = io.open(".spook", "rb")
-  local content = f:read("*all")
-  f:close()
-  local lua_code, line_table = to_lua(content)
-  local chunk, err = loadstring(lua_code)
-  if err ~= nil then
-    print("Error in .spook file, rules are not applied")
-    print(err)
-  end
-  return chunk()
-end)
 
+local function load_moonscript(file)
+  local status, ms = pcall(function()
+    local f = io.open(file, "rb")
+    local content = f:read("*all")
+    f:close()
+    local lua_code, line_table = to_lua(content)
+    local chunk, err = loadstring(lua_code)
+    if err ~= nil then
+      print("Error in " .. file .. " file")
+      print(err)
+    end
+    return chunk()
+  end)
+  return status, ms
+end
+
+-- loading the .spook file here
+local status, mapper = load_moonscript(".spook")
 if not status then
-  filter = function(file)
+  mapper = function(file)
     return file
   end
 end
+
+-- loading the .notifier file here
+local status, notifier = load_moonscript(".spook-notifier")
+if not status then
+  notifier = function(status)
+  end
+end
+
 local uv = require("uv")
 
 local watch_dirs = {}
@@ -40,16 +54,17 @@ local function run_utility(changed_file)
     io.stdout:write("No utility to run, please supply it via arguments", "\n")
     return false
   end
-  local output = io.popen(utility..' ' .. filter(changed_file))
+  local output = io.popen(utility..' ' .. mapper(changed_file))
   local line
   while true do
-    local line = output:read()
+    line = output:read()
     if line == nil then break end
     io.write(line)
     io.write("\n")
     io.flush()
   end
-  output:close()
+  local rc = {output:close()}
+  notifier(rc[3])
 end
 
 local last_changed_file = {"", true, 1}
