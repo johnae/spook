@@ -1,9 +1,11 @@
 PREFIX ?= /usr/local
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
+ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA51COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 else
+ENABLE_LUA52COMPAT = sed -i 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl,-E
 EXTRAS =
 endif
@@ -37,7 +39,7 @@ ${LIBLUV_DEPS}:
 ${LUAJIT}:
 	git submodule update --init deps/luajit
 	cd deps/luajit/src && \
-		sed -i 's/^#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/' Makefile
+		$(ENABLE_LUA52COMPAT) Makefile
 	cd deps/luajit && \
 		$(MAKE) PREFIX=${TOOLS}/luajit && \
 		$(MAKE) install PREFIX=${TOOLS}/luajit
