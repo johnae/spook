@@ -15,24 +15,19 @@ TOOLS=$(realpath tools)
 LUAJIT_BIN = $(realpath ${LUAJIT})
 LIBLUV = deps/luv
 LIBLUV_DEPS = ${LIBLUV}/build/libluv.a ${LIBLUV}/build/libuv.a
-#LIBLUV_DEPS = ${LIBLUV}/build/libluv.so
 LIBLUV_INCLUDE = deps/luv/src
 LIBUV_INCLUDE = deps/luv/deps/libuv/include
 ARCHIVES = $(LUAJIT_ARCHIVE)
 OBJECTS = main lib
 
-#gcc -O2 -Wall -o app app.c main.o lib.o -I /usr/local/include/luajit-2.0 -Ixx -Lxx -llibuv -llibluv -lluajit-5.1 -lm -ldl -pagezero_size 10000 -image_base 100000000
-
 all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
-#-pagezero_size 10000 -image_base 100000000
 spook:
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 ${LIBLUV_DEPS}:
 	git submodule update --init deps/luv
 	cd deps/luv && \
-		cmake && \
 		BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF $(MAKE)
 
 ${LUAJIT}:

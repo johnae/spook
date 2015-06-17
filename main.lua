@@ -23,9 +23,6 @@ local function run_utility(changed_file)
   end
   local output = io.popen(utility..' '..changed_file)
   local line
-  --for line in output:lines() do
-  --  io.write(line)
-  --end
   while true do
     local line = output:read()
     if line == nil then break end
