@@ -39,4 +39,4 @@ Eg. a hidden file. This file should be written as [moonscript](https://github.co
    changed_file
 ```
 
-The above just returns the file it was given but obviously there's alot of flexibility there.
+The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
