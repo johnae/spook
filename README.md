@@ -64,11 +64,10 @@ string.split = (str, sep) ->
   else
     elems = changed_file\split("/")
     file = table.remove(elems)
-    table.remove(elems, 1)
-    table.remove(elems, 1)
-    name = file\split(".")[1]
+    filename = file\split(".")[1]
+    elems = [item for i, item in ipairs(elems) when i > 2]
     path = table.concat(elems, "/")
-    "spec/#{path}/#{name}_spec.moon"
+    "spec/#{path}/#{filename}_spec.moon"
 
   print "mapped to: #{file}"
   file
@@ -85,4 +84,49 @@ written in moonscript and is expected to return a function taking one argument -
     print "All tests passed"
   else
     print "Tests failed"
+```
+
+A more complex notification example for tmux might look like this:
+
+```moonscript
+{:P, :C, :Ct, :match} = require "lpeg"
+
+uv = require "uv"
+
+ffi = require "ffi"
+ffi.cdef [[
+char *getcwd(char *buf, size_t size);
+]]
+
+string.split = (str, sep) ->
+  sep = P(sep)
+  elem = C((1-sep)^0)
+  p = Ct(elem * (sep * elem)^0)
+  match(p,str)
+
+getcwd = ->
+   buf = ffi.new("char[?]", 1024)
+   ffi.C.getcwd(buf, 1024)
+   ffi.string(buf)
+
+project = ->
+   cwd = getcwd!\split("/")
+   cwd[#cwd]
+
+tmux_set_status = (status) ->
+  os.execute "tmux set status-right '#{status}' > /dev/null"
+
+tmux_default_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0)'
+tmux_fail_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=red] FAIL: ' .. project!
+tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=green] PASS: ' .. project!
+
+(status) ->
+  if status == 0
+    tmux_set_status(tmux_pass_status)
+  else
+    tmux_set_status(tmux_fail_status)
+
+  timer = uv.new_timer!
+  timer\start 5000, 0, ->
+    tmux_set_status(tmux_default_status)
 ```
