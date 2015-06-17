@@ -1,0 +1,5 @@
+*.o
+build
+tools/luajit
+lib.lua
+spook
