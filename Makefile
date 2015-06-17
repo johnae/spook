@@ -1,3 +1,4 @@
+PREFIX ?= /usr/local
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 CFLAGS = -Wall -O2 -Wl
@@ -24,6 +25,9 @@ all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+
+install: all
+	cp spook $(PREFIX)/bin
 
 ${LIBLUV_DEPS}:
 	git submodule update --init deps/luv
