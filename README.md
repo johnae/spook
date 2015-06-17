@@ -8,6 +8,12 @@ Building it should be as straightforward as:
 make
 ```
 
+Installation is as straightforward as:
+
+```
+PREFIX=/usr/local make install
+```
+
 After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
 
 ## Running it
