@@ -40,3 +40,30 @@ Eg. a hidden file. This file should be written as [moonscript](https://github.co
 ```
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
+
+A more functional example of mapping (via the .spook file) might be:
+
+```moonscript
+{:P, :C, :Ct, :match} = require "lpeg"
+
+string.split = (str, sep) ->
+  sep = P(sep)
+  elem = C((1-sep)^0)
+  p = Ct(elem * (sep * elem)^0)
+  match(p,str)
+
+(changed_file) ->
+  file = if changed_file\match '.*%_spec%..*$'
+    changed_file
+  else
+    elems = changed_file\split("/")
+    file = table.remove(elems)
+    table.remove(elems, 1)
+    table.remove(elems, 1)
+    name = file\split(".")[1]
+    path = table.concat(elems, "/")
+    "spec/#{path}/#{name}_spec.moon"
+
+  print "mapped to: #{file}"
+  file
+```
