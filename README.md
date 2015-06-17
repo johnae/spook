@@ -126,6 +126,7 @@ tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colo
   else
     tmux_set_status(tmux_fail_status)
 
+  uv.update_time!
   timer = uv.new_timer!
   timer\start 5000, 0, ->
     tmux_set_status(tmux_default_status)
