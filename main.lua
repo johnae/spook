@@ -2,6 +2,20 @@ require("lib")
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
 require("moonscript")
+local to_lua = require("moonscript.base").to_lua
+local status, filter = pcall(function()
+  local f = io.open(".spook", "rb")
+  local content = f:read("*all")
+  f:close()
+  local lua_code, line_table = to_lua(content)
+  local chunk = loadstring(lua_code)
+  return chunk()
+end)
+if not status then
+  filter = function(file)
+    return file
+  end
+end
 local uv = require("uv")
 
 local watch_dirs = {}
@@ -21,7 +35,7 @@ local function run_utility(changed_file)
     io.stdout:write("No utility to run, please supply it via arguments", "\n")
     return false
   end
-  local output = io.popen(utility..' '..changed_file)
+  local output = io.popen(utility..' ' .. filter(changed_file))
   local line
   while true do
     local line = output:read()
