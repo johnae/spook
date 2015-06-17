@@ -32,9 +32,13 @@ ${LIBLUV_DEPS}:
 
 ${LUAJIT}:
 	git submodule update --init deps/luajit
+	cd deps/luajit/src && \
+		sed -i 's/^#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/' Makefile
 	cd deps/luajit && \
 		$(MAKE) PREFIX=${TOOLS}/luajit && \
 		$(MAKE) install PREFIX=${TOOLS}/luajit
+	cd deps/luajit/src && \
+		git checkout Makefile
 
 lib.lua:
 	cd src && \
