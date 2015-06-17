@@ -10,6 +10,20 @@ make
 
 After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
 
+## Running it
+
+To watch directories you need to provide them on stdin like so:
+
+```
+find lib spec -type d | spook
+```
+
+To also run a utility (eg. rspec or some other test runner) you provide that via command line arguments, all together:
+
+```
+find lib spec -type d | spook bundle exec rspec
+```
+
 ## Mapping files to other files
 
 Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
