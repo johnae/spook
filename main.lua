@@ -8,9 +8,14 @@ local status, filter = pcall(function()
   local content = f:read("*all")
   f:close()
   local lua_code, line_table = to_lua(content)
-  local chunk = loadstring(lua_code)
+  local chunk, err = loadstring(lua_code)
+  if err ~= nil then
+    print("Error in .spook file, rules are not applied")
+    print(err)
+  end
   return chunk()
 end)
+
 if not status then
   filter = function(file)
     return file
@@ -68,8 +73,8 @@ local function create_event_handler(fse)
   end
 end
 
+print("Watching " .. #watch_dirs .. " directories")
 for i, watch_dir in ipairs(watch_dirs) do
-  print("watch_dir: "..watch_dir)
   local fse = uv.new_fs_event()
   fse:start(watch_dir, {recursive = true, stat = true}, create_event_handler(fse))
 end
