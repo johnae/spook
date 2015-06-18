@@ -81,5 +81,6 @@ release-upload: all
 	gzip -c spook > spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
 	$(TOOLS)/github-release-$(UNAME)-$(ARCH) upload \
 		--tag $(GITTAG) \
-		--name "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz \
-		--file "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
+		--name "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz" \
+		--file "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz"
+	rm -f spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
