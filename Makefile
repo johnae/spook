@@ -1,5 +1,6 @@
 PREFIX ?= /usr/local
 UNAME := $(shell uname)
+ARCH := $(shell uname -m)
 ifeq ($(UNAME), Darwin)
 ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA51COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl
@@ -9,6 +10,7 @@ ENABLE_LUA52COMPAT = sed -i 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+
 CFLAGS = -Wall -O2 -Wl,-E
 EXTRAS = -lrt
 endif
+GITTAG = $(shell git tag -l --contains HEAD)
 LUAJIT_SRC = deps/luajit/src
 LUAJIT_LIBS = tools/luajit/lib
 LUAJIT_INCLUDE = tools/luajit/include/luajit-2.0
@@ -22,6 +24,8 @@ LIBLUV_INCLUDE = deps/luv/src
 LIBUV_INCLUDE = deps/luv/deps/libuv/include
 ARCHIVES = $(LUAJIT_ARCHIVE)
 OBJECTS = main lib
+
+.PHONY: release
 
 all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
@@ -64,3 +68,18 @@ clean-deps:
 clean:
 	rm -f spook main.o lib.o lib.lua
 
+release-create:
+	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
+	$(TOOLS)/github-release-$(UNAME)-$(ARCH) release \
+		--tag $(GITTAG) \
+		--name "Release $(GITTAG)" \
+		--description "Release $(GITTAG)" \
+		--pre-release
+
+release-upload: all
+	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
+	gzip -c spook > spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
+	$(TOOLS)/github-release-$(UNAME)-$(ARCH) upload \
+		--tag $(GITTAG) \
+		--name "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz \
+		--file "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
