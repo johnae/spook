@@ -12,21 +12,32 @@ utility = nil
 if #argv >= 1
   utility = concat argv, ' '
 
+file_exists = (path) ->
+  f = io.open(path, "r")
+  if f
+    f\close!
+    true
+  else
+    false
+
 run_utility = (changed_file, mapper, notifier) ->
   unless utility
     print "No utility to run on file changes, please supply it via arguments"
     return false
 
-  output = io.popen "#{utility} #{mapper(changed_file)}"
-  while true do
-    line = output\read!
-    break unless line
-    io.write line
-    io.write "\n"
-    io.flush!
+  mapped_file = mapper(changed_file)
+  -- only runs if there is something returned from the mapper
+  if mapped_file and file_exists mapped_file
+    output = io.popen "#{utility} #{mapper(changed_file)}"
+    while true do
+      line = output\read!
+      break unless line
+      io.write line
+      io.write "\n"
+      io.flush!
 
-  rc = {output\close!}
-  notifier.finish rc[3]
+    rc = {output\close!}
+    notifier.finish rc[3]
 
 last_changed_file = {"", true, 1}
 
