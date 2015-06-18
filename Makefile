@@ -7,7 +7,7 @@ EXTRAS = -pagezero_size 10000 -image_base 100000000
 else
 ENABLE_LUA52COMPAT = sed -i 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl,-E
-EXTRAS =
+EXTRAS = -lrt
 endif
 LUAJIT_SRC = deps/luajit/src
 LUAJIT_LIBS = tools/luajit/lib
@@ -26,7 +26,7 @@ OBJECTS = main lib
 all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
-	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lrt -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 install: all
 	cp spook $(PREFIX)/bin
