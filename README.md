@@ -66,7 +66,7 @@ A more functional example of mapping via the .spook file (a rails app) might be:
 
 If you create a directory called .spook in your home dir and put a file called notifier.moon in there it will be loaded
 and called by spook when certain events take place. Today the only events supported are "start" and "finish".
-Something like this:
+Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
 start = (changed_file) ->
@@ -128,7 +128,7 @@ finish = (status) ->
 
 Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
 
-### Available addition functions in the global scope
+### Available additional functions in the global scope
 
 These can be used in the notifier:
 
