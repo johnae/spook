@@ -26,7 +26,7 @@ OBJECTS = main lib
 all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
-	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lrt -lpthread $(EXTRAS)
 
 install: all
 	cp spook $(PREFIX)/bin
