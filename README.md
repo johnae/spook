@@ -60,7 +60,7 @@ and the values are functions taking the output of the matcher and (probably) tra
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
 
-A more functional example of mapping via the .spook file (a rails app) might be:
+A more functional example of mapping via the .spook file (for a rails app in this case) might be:
 
 ```moonscript
 "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
