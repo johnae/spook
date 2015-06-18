@@ -27,6 +27,11 @@ function scandir (root, path)
     local hndl = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     local content = io.open( file ):read"*a"
     local lua_code, line_table = to_lua(content)
+    if not lua_code then
+      io.stderr:write("Error in: "..file, "\n")
+      io.stderr:write(line_table, "\n")
+      os.exit(1)
+    end
     files[hndl] = lua_code
   end
   for file in luafiles( root..path ) do
