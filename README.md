@@ -93,9 +93,9 @@ tmux_set_status = (status) ->
   os.execute "tmux set status-right '#{status}' > /dev/null"
 
 tmux_default_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0)'
-tmux_fail_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=red] FAIL: ' .. project_name!
-tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=green] PASS: ' .. project_name!
-tmux_test_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=cyan] TEST: ' .. project_name!
+tmux_fail_status = tmux_default_status .. ' | #[fg=white,bg=red] FAIL: ' .. project_name!
+tmux_pass_status = tmux_default_status .. ' | #[fg=white,bg=green] PASS: ' .. project_name!
+tmux_test_status = tmux_default_status .. ' | #[fg=white,bg=cyan] TEST: ' .. project_name!
 
 timer = nil
 stop_timer = ->
