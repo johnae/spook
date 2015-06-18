@@ -73,8 +73,8 @@ matchers = {
 
 ## Notifications
 
-Notifications are very simple right now. The basics would be to create a file called .spook-notifier in your application directory. It should be
-written in moonscript and is expected to return a function taking one argument - the exit status. Something like this:
+The basics would be to create a file called .spook-notifier in your application directory. It should be written in
+moonscript and is expected to return a function taking one argument - the exit status. Something like this:
 
 ```moonscript
 (status) ->
@@ -139,3 +139,5 @@ timer = nil
     timer\close!
     timer = nil
 ```
+
+As you can see all the good ffi stuff is available right there and you can link to any library imaginable.
