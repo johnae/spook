@@ -31,11 +31,17 @@ To watch directories you need to provide them on stdin like so:
 find lib spec -type d | spook
 ```
 
+So basically you're telling spook to watch all files (recursively) in lib and spec. This will be done using whatever method
+your OS provides courtesy of libuv.
+
+
 To also run a utility (eg. rspec or some other test runner) you provide that via command line arguments, all together:
 
 ```
 find lib spec -type d | spook bundle exec rspec
 ```
+
+Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
 
 ## Mapping files to other files
 
