@@ -1,0 +1,9 @@
+language: c
+
+install:
+  - make -j 4
+
+notifications:
+  email:
+    on_success: always
+    on_failure: always
