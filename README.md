@@ -51,10 +51,10 @@ A more functional example of mapping via the .spook file (a rails app) might be:
 
 ```moonscript
 matchers = {
-  "(spec)/(spec_helper.rb)": (a,b) -> "spec",
-  "spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb",
-  "lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb",
-  "app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
+  "^(spec)/(spec_helper%.rb)": (a,b) -> "spec",
+  "^spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb",
+  "^lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb",
+  "^app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
 }
 
 (changed_file) ->
