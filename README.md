@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/johnae/spook.svg)](https://travis-ci.org/johnae/spook)
+
 ### Spook
 
 Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and may not work.
