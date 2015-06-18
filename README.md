@@ -1,6 +1,11 @@
 ### Spook
 
 Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and may not work.
+It is mostly written in [Lua](http://www.lua.org) and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
+binary with no dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. All extensions
+and such should be written in [moonscript](https://github.com/leafo/moonscript).
+
+You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64 and Mac OS X x86_64.
 
 Building it should be as straightforward as:
 
