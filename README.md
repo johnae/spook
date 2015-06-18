@@ -47,30 +47,23 @@ Eg. a hidden file. This file should be written as [moonscript](https://github.co
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
 
-A more functional example of mapping (via the .spook file) might be:
+A more functional example of mapping via the .spook file (a rails app) might be:
 
 ```moonscript
-{:P, :C, :Ct, :match} = require "lpeg"
-
-string.split = (str, sep) ->
-  sep = P(sep)
-  elem = C((1-sep)^0)
-  p = Ct(elem * (sep * elem)^0)
-  match(p,str)
+matchers = {
+  "(spec)/(spec_helper.rb)": (a,b) -> "spec",
+  "spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb",
+  "lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb",
+  "app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
+}
 
 (changed_file) ->
-  file = if changed_file\match '.*%_spec%..*$'
-    changed_file
-  else
-    elems = changed_file\split("/")
-    file = table.remove(elems)
-    filename = file\split(".")[1]
-    elems = [item for i, item in ipairs(elems) when i > 2]
-    path = table.concat(elems, "/")
-    "spec/#{path}/#{filename}_spec.moon"
-
-  print "mapped to: #{file}"
-  file
+  for matcher, mapper in pairs(matchers) do
+    a, b = changed_file\match matcher
+    if a and b
+      file = mapper(a,b)
+      print "mapped to: #{file}"
+      return file
 ```
 
 ## Notifications
@@ -120,15 +113,24 @@ tmux_default_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=c
 tmux_fail_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=red] FAIL: ' .. project!
 tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=green] PASS: ' .. project!
 
+timer = nil
+
 (status) ->
   if status == 0
     tmux_set_status(tmux_pass_status)
   else
     tmux_set_status(tmux_fail_status)
 
+  if timer
+    timer\stop!
+    timer\close!
+    timer = nil
+
   uv.update_time!
   timer = uv.new_timer!
   timer\start 5000, 0, ->
     tmux_set_status(tmux_default_status)
+    timer\stop!
     timer\close!
+    timer = nil
 ```
