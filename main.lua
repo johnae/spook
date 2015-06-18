@@ -2,6 +2,7 @@ require("lib")
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
 require("moonscript")
+require("globals")
 local to_lua = require("moonscript.base").to_lua
 
 local function load_moonscript(file)
@@ -24,19 +25,18 @@ local function load_moonscript(file)
   return status, ms
 end
 
--- loading the .spook file here (the file mapper)
-local status, mapper = load_moonscript(".spook")
+-- loading the Spookfile file here (the file mapper)
+local status, file_mapping = load_moonscript("Spookfile")
 if not status then
-  mapper = function(file)
-    return file
-  end
+  file_mapping = require("default_file_mapping")
 end
 
--- loading the .notifier file here
-local status, notifier = load_moonscript(".spook-notifier")
+local mapper = require("file_mapper")(file_mapping)
+
+-- loading notifier here from ~/.spook/notifier.moon
+local status, notifier = load_moonscript(os.getenv("HOME").."/.spook/notifier.moon")
 if not status then
-  notifier = function(status)
-  end
+  notifier = require("default_notifier")
 end
 
 local spook = require("spook")

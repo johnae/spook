@@ -26,7 +26,7 @@ run_utility = (changed_file, mapper, notifier) ->
     io.flush!
 
   rc = {output\close!}
-  notifier rc[3]
+  notifier.finish rc[3]
 
 last_changed_file = {"", true, 1}
 
@@ -41,7 +41,7 @@ create_event_handler = (fse, mapper, notifier) ->
       event_id = last_changed_file[3]
       last_changed_file[2] = true
       unless event_recorded
-        print changed_file
+        notifier.start changed_file
         run_utility changed_file, mapper, notifier
 
       timer\close!

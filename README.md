@@ -42,14 +42,13 @@ find lib spec -type d | spook bundle exec rspec
 Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
 
 ```
-.spook
+Spookfile
 ```
 
-Eg. a hidden file. This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a function that takes the input file as an argument, eg:
+This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table:
 
 ```moonscript
-(changed_file) ->
-   changed_file
+"(.*)": (m) -> m
 ```
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
@@ -57,89 +56,108 @@ The above just returns the file it was given but obviously there's alot of flexi
 A more functional example of mapping via the .spook file (a rails app) might be:
 
 ```moonscript
-matchers = {
-  "^(spec)/(spec_helper%.rb)": (a,b) -> "spec",
-  "^spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb",
-  "^lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb",
-  "^app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
-}
-
-(changed_file) ->
-  for matcher, mapper in pairs(matchers) do
-    a, b = changed_file\match matcher
-    if a and b
-      file = mapper(a,b)
-      print "mapped to: #{file}"
-      return file
+"^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
+"^spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb"
+"^lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb"
+"^app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
 ```
 
 ## Notifications
 
-The basics would be to create a file called .spook-notifier in your application directory. It should be written in
-moonscript and is expected to return a function taking one argument - the exit status. Something like this:
+If you create a directory called .spook in your home dir and put a file called notifier.moon in there it will be loaded
+and called by spook when certain events take place. Today the only events supported are "start" and "finish".
+Something like this:
 
 ```moonscript
-(status) ->
+start = (changed_file) ->
+  print "Running specs for file: #{changed_file}"
+
+finish = (status) ->
   if status == 0
-    print "All tests passed"
+    print "Tests passed"
   else
     print "Tests failed"
+
+:start, :finish
 ```
+
+You must currently define both of the above functions and export them or things will crash and burn (you CAN skip creating the notifier completely though).
 
 A more complex notification example for tmux might look like this:
 
 ```moonscript
-{:P, :C, :Ct, :match} = require "lpeg"
-
 uv = require "uv"
-
-ffi = require "ffi"
-ffi.cdef [[
-char *getcwd(char *buf, size_t size);
-]]
-
-string.split = (str, sep) ->
-  sep = P(sep)
-  elem = C((1-sep)^0)
-  p = Ct(elem * (sep * elem)^0)
-  match(p,str)
-
-getcwd = ->
-   buf = ffi.new("char[?]", 1024)
-   ffi.C.getcwd(buf, 1024)
-   ffi.string(buf)
-
-project = ->
-   cwd = getcwd!\split("/")
-   cwd[#cwd]
 
 tmux_set_status = (status) ->
   os.execute "tmux set status-right '#{status}' > /dev/null"
 
 tmux_default_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0)'
-tmux_fail_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=red] FAIL: ' .. project!
-tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=green] PASS: ' .. project!
+tmux_fail_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=red] FAIL: ' .. project_name!
+tmux_pass_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=green] PASS: ' .. project_name!
+tmux_test_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0) | #[fg=white,bg=cyan] TEST: ' .. project_name!
 
 timer = nil
-
-(status) ->
-  if status == 0
-    tmux_set_status(tmux_pass_status)
-  else
-    tmux_set_status(tmux_fail_status)
-
+stop_timer = ->
   if timer
     timer\stop!
     timer\close!
     timer = nil
 
+start_reset_timer = ->
+  stop_timer!
   uv.update_time!
   timer = uv.new_timer!
-  timer\start 5000, 0, ->
+  timer\start 7000, 0, ->
     tmux_set_status(tmux_default_status)
-    timer\stop!
-    timer\close!
-    timer = nil
+    stop_timer!
+
+start = (changed_file) ->
+  tmux_set_status tmux_test_status
+  start_reset_timer!
+
+finish = (status) ->
+  if status == 0
+    tmux_set_status(tmux_pass_status)
+  else
+    tmux_set_status(tmux_fail_status)
+
+  start_reset_timer!
+
+:start, :finish
 ```
 
-As you can see all the good ffi stuff is available right there and you can link to any library imaginable.
+Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+
+### Available addition functions in the global scope
+
+These can be used in the notifier:
+
+```moonscript
+getcwd
+```
+
+This returns the current working directory (where you run spook, probably your git checkout of your app).
+
+```moonscript
+project_name
+```
+
+This just returns the directory basename of your checkout - if you're sane it will be your project name.
+
+```moonscript
+git_branch
+```
+
+This gets you the branch you're on.
+
+```moonscript
+git_tag
+```
+
+This gets you the tag you're on or nil if you're not on a tagged commit.
+
+```moonscript
+git_ref
+```
+
+This gets you either the tag (if you're on a tagged commit) or the branch.
