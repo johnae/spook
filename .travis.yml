@@ -1,8 +1,20 @@
 language: c
 
 install:
-  - sudo apt-get update
-  - sudo apt-get install cmake
+  # install cmake
+  - CMAKE_VERSION="3.0.0"
+  - wget "http://www.cmake.org/files/v3.0/cmake-${CMAKE_VERSION}.tar.gz"
+  - openssl sha1 "cmake-${CMAKE_VERSION}.tar.gz"
+  - tar xf "cmake-${CMAKE_VERSION}.tar.gz"
+  - cd "cmake-${CMAKE_VERSION}"
+  - ./bootstrap --prefix=~
+  - make
+  - make install
+  - export PATH="~/bin:${PATH}"
+  - cd ..
+  # verify installed versions
+  - which cmake
+  - cmake --version
   - make
 
 notifications:
