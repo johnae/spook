@@ -3,3 +3,4 @@ build
 tools/luajit
 lib.lua
 spook
+.envrc_user
