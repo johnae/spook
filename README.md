@@ -45,7 +45,8 @@ Normally you'd want a code change to map to some test file. To map files with sp
 Spookfile
 ```
 
-This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table:
+This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table where the keys are matchers (in Luas regex syntax)
+and the values are functions taking the output of the matcher and (probably) transforming it somehow - the functions are only executed if there is an actual match:
 
 ```moonscript
 "(.*)": (m) -> m
