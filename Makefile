@@ -66,7 +66,7 @@ clean-deps:
 		$(MAKE) clean
 
 clean:
-	rm -f spook main.o lib.o lib.lua
+	rm -f spook main.o lib.o lib.lua spook-*.gz
 
 release-create:
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
