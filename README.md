@@ -119,18 +119,28 @@ start_reset_timer = ->
   uv.update_time!
   timer = uv.new_timer!
   timer\start 7000, 0, ->
-    tmux_set_status(tmux_default_status)
+    tmux_set_status tmux_default_status
     stop_timer!
 
 start = (changed_file, mapped_file) ->
   tmux_set_status tmux_test_status
   start_reset_timer!
 
+-- we can use uv:s signal handling to ensure something runs
+-- if you press ctrl-c for example, here we ensure tmux status
+-- line is reset to it's original state before exiting spook
+sigint = uv.new_signal!
+uv.signal_start sigint, "sigint", (signal) ->
+  print "got #{signal}, shutting down"
+  stop_timer!
+  tmux_set_status tmux_default_status
+  os.exit 1
+
 finish = (status, changed_file, mapped_file) ->
   if status == 0
-    tmux_set_status(tmux_pass_status)
+    tmux_set_status tmux_pass_status
   else
-    tmux_set_status(tmux_fail_status)
+    tmux_set_status tmux_fail_status
 
   start_reset_timer!
 
