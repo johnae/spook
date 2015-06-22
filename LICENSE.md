@@ -25,8 +25,8 @@ Spook is is released under the [MIT License](http://opensource.org/licenses/MIT)
 
 ## Embedded software
 
-Spook includes, uses code from, or links with other software. Below follows a
-list of the embedded dependencies with license details:
+Spook incorporates other software, usually by statically linking that software into Spook.
+Below follows a list of the embedded dependencies with license details:
 
 ### [Moonscript](http://www.moonscript.org)
 
