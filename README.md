@@ -81,7 +81,7 @@ Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
 start = (changed_file, mapped_file) ->
-  print "Running specs, #{mapped_file}, for changed file: #{changed_file}"
+  print "#{project_name!}: running specs #{mapped_file} for changes in #{changed_file}"
 
 finish = (status, changed_file, mapped_file) ->
   if status == 0
