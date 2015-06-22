@@ -43,7 +43,7 @@ find lib spec -type d | spook bundle exec rspec
 
 Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
 
-## Mapping files to other files
+## Mapping files to other files via the Spookfile
 
 Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
 
@@ -55,12 +55,14 @@ This file should be written as [moonscript](https://github.com/leafo/moonscript)
 and the values are functions taking the output of the matcher and (probably) transforming it somehow - the functions are only executed if there is an actual match:
 
 ```moonscript
-"(.*)": (m) -> m
+{
+  "(.*)": (m) -> m
+}
 ```
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
 
-A more functional example of mapping via the .spook file (for a rails app in this case) might be:
+A more functional example of mapping via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
 {
@@ -92,7 +94,7 @@ finish = (status, changed_file, mapped_file) ->
 
 You must currently define both of the above functions and export them or things will crash and burn (you CAN skip creating the notifier completely though).
 
-A more complex notification example for tmux might look like this:
+A more complex notification example for tmux might look like this (the uv package comes built in):
 
 ```moonscript
 uv = require "uv"
@@ -136,6 +138,7 @@ finish = (status, changed_file, mapped_file) ->
 ```
 
 Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+
 
 ### Available additional functions in the global scope
 
