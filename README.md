@@ -85,9 +85,9 @@ start = (changed_file, mapped_file) ->
 
 finish = (status, changed_file, mapped_file) ->
   if status == 0
-    print "Tests in #{mapped_file} for changes in #{changed_file} passed"
+    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} passed"
   else
-    print "Tests in #{mapped_file} for changes in #{changed_file} failed"
+    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} failed"
 
 :start, :finish
 ```
