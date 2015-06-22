@@ -147,6 +147,8 @@ finish = (status, changed_file, mapped_file) ->
 :start, :finish
 ```
 
+There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
+
 Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
 
 
