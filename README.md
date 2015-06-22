@@ -76,14 +76,14 @@ and called by spook when certain events take place. Today the only events suppor
 Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
-start = (changed_file) ->
-  print "Running specs for file: #{changed_file}"
+start = (changed_file, mapped_file) ->
+  print "Running specs, #{mapped_file}, for changed file: #{changed_file}"
 
-finish = (status) ->
+finish = (status, changed_file, mapped_file) ->
   if status == 0
-    print "Tests passed"
+    print "Tests in #{mapped_file} for changes in #{changed_file} passed"
   else
-    print "Tests failed"
+    print "Tests in #{mapped_file} for changes in #{changed_file} failed"
 
 :start, :finish
 ```
@@ -118,11 +118,11 @@ start_reset_timer = ->
     tmux_set_status(tmux_default_status)
     stop_timer!
 
-start = (changed_file) ->
+start = (changed_file, mapped_file) ->
   tmux_set_status tmux_test_status
   start_reset_timer!
 
-finish = (status) ->
+finish = (status, changed_file, mapped_file) ->
   if status == 0
     tmux_set_status(tmux_pass_status)
   else

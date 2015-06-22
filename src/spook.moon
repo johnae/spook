@@ -28,6 +28,7 @@ run_utility = (changed_file, mapper, notifier) ->
   mapped_file = mapper(changed_file)
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
+    notifier.start changed_file, mapped_file
     output = io.popen "#{utility} #{mapper(changed_file)}"
     while true do
       line = output\read!
@@ -37,7 +38,7 @@ run_utility = (changed_file, mapper, notifier) ->
       io.flush!
 
     rc = {output\close!}
-    notifier.finish rc[3]
+    notifier.finish rc[3], changed_file, mapped_file
 
 last_changed_file = {"", true, 1}
 
@@ -47,15 +48,13 @@ create_event_handler = (fse, mapper, notifier) ->
     last_changed_file = {changed_file, false, last_changed_file[3]+1}
     timer = uv.new_timer!
     timer\start 200, 0, ->
+      timer\close!
       changed_file = last_changed_file[1]
       event_recorded = last_changed_file[2]
       event_id = last_changed_file[3]
       last_changed_file[2] = true
       unless event_recorded
-        notifier.start changed_file
         run_utility changed_file, mapper, notifier
-
-      timer\close!
 
 (mapper, notifier) ->
   print "Watching " .. #watch_dirs .. " directories"
