@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/johnae/spook.svg)](https://travis-ci.org/johnae/spook)
 
-### Spook
+## Spook
 
 Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and may not work.
 It is mostly written in [Lua](http://www.lua.org) and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
@@ -23,7 +23,7 @@ PREFIX=/usr/local make install
 
 After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
 
-## Running it
+### Running it
 
 To watch directories you need to provide them on stdin like so:
 
@@ -43,7 +43,7 @@ find lib spec -type d | spook bundle exec rspec
 
 Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
 
-## Mapping files to other files via the Spookfile
+### Mapping files to other files via the Spookfile
 
 Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
 
@@ -73,7 +73,7 @@ A more functional example of mapping via the Spookfile (for a rails app in this 
 }
 ```
 
-## Notifications
+### Notifications
 
 If you create a directory called .spook in your home dir and put a file called notifier.moon in there it will be loaded
 and called by spook when certain events take place. Today the only events supported are "start" and "finish".
