@@ -186,3 +186,9 @@ git_ref
 ```
 
 This gets you either the tag (if you're on a tagged commit) or the branch.
+
+```moonscript
+git_sha
+```
+
+This gets you the short sha of HEAD.
