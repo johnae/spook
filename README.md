@@ -78,6 +78,13 @@ find lib spec -type d | spook bundle exec rspec
 
 Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
 
+If you need to provide flags or options to the command you want to run you need to quote it, like this:
+
+```
+find lib spec -type d | spook "./bin/rspec -f d -c --tty"
+```
+
+
 
 ### Mapping files to other files via the Spookfile
 
