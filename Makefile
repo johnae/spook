@@ -11,6 +11,8 @@ CFLAGS = -Wall -O2 -Wl,-E
 EXTRAS = -lrt
 endif
 GITTAG = $(shell git tag -l --contains HEAD)
+GITBRANCH = $(shell git symbolic-ref --short HEAD)
+GITSHA = $(shell git rev-parse --short HEAD)
 LUAJIT_SRC = deps/luajit/src
 LUAJIT_LIBS = tools/luajit/lib
 LUAJIT_INCLUDE = tools/luajit/include/luajit-2.0
@@ -27,13 +29,17 @@ OBJECTS = main lib vendor
 
 .PHONY: release
 
-all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
+all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 install: all
 	cp spook $(PREFIX)/bin
+
+version_tag:
+	@if [ "$(GITTAG)" != "" ]; then echo "'$(GITTAG)'" > lib/version.moon; else echo "'$(GITSHA)-dirty'" > lib/version.moon; fi
+
 
 ${LIBLUV_DEPS}:
 	git submodule update --init deps/luv
@@ -70,7 +76,7 @@ clean-deps:
 		$(MAKE) clean
 
 clean:
-	rm -f spook main.o lib.o vendor.o vendor.lua lib.lua spook-*.gz
+	rm -f spook main.o lib.o vendor.o vendor.lua lib.lua spook-*.gz lib/version.moon
 
 release-create:
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
