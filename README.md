@@ -200,7 +200,7 @@ There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist]
 You may also use the commandline switch -n to override this:
 
 ```
-spook -m /path/to/some/notifier.moon
+spook -n /path/to/some/notifier.moon
 ```
 
 
