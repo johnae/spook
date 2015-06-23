@@ -26,6 +26,36 @@ itself, anything in vendor and deps is other peoples work and is just included i
 
 ### Running it
 
+For some basic help on command line usage, please run:
+
+```
+spook --help
+```
+
+Currently that would output something like:
+
+```
+Usage: spook [-v] [-l <log_level>] [-n <notifier>] [-m <mapping>] [-h]
+       <command> [<command>] ...
+
+Your very own filesystem spymaster
+
+Arguments:
+   command               The command to run when a file changes
+
+Options:
+   -v, --version         Show the Spook version you're running and exit
+   -l <log_level>, --log-level <log_level>
+                         Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG (default: 3)
+   -n <notifier>, --notifier <notifier>
+                         Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)
+   -m <mapping>, --mapping <mapping>
+                         Expects a path to use as mapping (overrides the default of Spookfile)
+   -h, --help            Show this help message and exit.
+
+For more see https://github.com/johnae/spook
+```
+
 To watch directories you need to provide them on stdin like so:
 
 ```
