@@ -23,14 +23,14 @@ LIBLUV_DEPS = ${LIBLUV}/build/libluv.a ${LIBLUV}/build/libuv.a
 LIBLUV_INCLUDE = deps/luv/src
 LIBUV_INCLUDE = deps/luv/deps/libuv/include
 ARCHIVES = $(LUAJIT_ARCHIVE)
-OBJECTS = main lib
+OBJECTS = main lib vendor
 
 .PHONY: release
 
 all: ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
-	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 install: all
 	cp spook $(PREFIX)/bin
@@ -51,10 +51,14 @@ ${LUAJIT}:
 		git checkout Makefile
 
 lib.lua:
-	cd src && \
+	cd lib && \
 		${LUAJIT_BIN} ../tools/pack.lua . > ../lib.lua
 
-${OBJECTS}: lib.lua
+vendor.lua:
+	cd vendor && \
+		${LUAJIT_BIN} ../tools/pack.lua . > ../vendor.lua
+
+${OBJECTS}: lib.lua vendor.lua
 	${LUAJIT_BIN} -b $@.lua $@.o
 
 clean-deps:
@@ -66,7 +70,7 @@ clean-deps:
 		$(MAKE) clean
 
 clean:
-	rm -f spook main.o lib.o lib.lua spook-*.gz
+	rm -f spook main.o lib.o vendor.o vendor.lua lib.lua spook-*.gz
 
 release-create:
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi

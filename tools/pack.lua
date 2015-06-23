@@ -1,5 +1,5 @@
 package.path = package.path .. ';../deps/luajit/src/jit/?.lua'
-package.path = package.path .. ';../src'
+package.path = package.path .. ';../vendor/?.lua'
 
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg

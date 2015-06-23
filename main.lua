@@ -1,3 +1,4 @@
+require("vendor")
 require("lib")
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg

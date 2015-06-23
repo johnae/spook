@@ -2,6 +2,7 @@
 build
 tools/luajit
 lib.lua
+vendor.lua
 spook
 .envrc_user
 spook-*.gz

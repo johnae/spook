@@ -40,6 +40,13 @@ run_utility = (changed_file, mapper, notifier) ->
 
     rc = {output\close!}
     notifier.finish rc[3], changed_file, mapped_file
+  else
+    if mapped_file and not file_exists mapped_file
+      io.write "#{mapped_file} does not exist"
+    else
+      io.write "No mapping found for #{changed_file}"
+    io.write "\n"
+    io.flush!
 
 last_changed_file = {"", true, 1}
 

@@ -2,5 +2,6 @@
   (changed_file) ->
     for matcher, mapper in pairs(file_mapping) do
       a, b = changed_file\match matcher
-      return mapper(a,b) if a and b
+      if a and b
+        return mapper(a,b)
     return nil
