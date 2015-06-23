@@ -204,7 +204,7 @@ spook -n /path/to/some/notifier.moon
 ```
 
 
-### Available additional functions in the global scope
+### Additional functions available in the global scope
 
 These can be used in the notifier:
 
