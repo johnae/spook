@@ -21,7 +21,8 @@ Installation is as straightforward as:
 PREFIX=/usr/local make install
 ```
 
-After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
+After that you should have an executable called spook. It's known to build on Linux and Mac OS X. Everything in the lib directory and toplevel is part of spook
+itself, anything in vendor and deps is other peoples work and is just included in the resulting executable.
 
 ### Running it
 
