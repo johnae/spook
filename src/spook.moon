@@ -6,11 +6,12 @@ for line in io.lines! do
   line, _ = line\gsub "/$", "", 1
   insert watch_dirs, line
 
-remove argv, 1
+arg_copy = {k,v for k,v in pairs arg}
+remove arg_copy, 1
 
 utility = nil
-if #argv >= 1
-  utility = concat argv, ' '
+if #arg_copy >= 1
+  utility = concat arg_copy, ' '
 
 file_exists = (path) ->
   f = io.open(path, "r")

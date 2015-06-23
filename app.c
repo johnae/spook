@@ -13,6 +13,7 @@ int main(int argc, char **argv)
   luaL_openlibs(L);
 
   lua_newtable(L);
+
   int i;
   for(i = 0; i < argc; i++)
   {
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
     lua_pushstring(L, argv[i]);
     lua_settable(L, -3);
   }
-  lua_setglobal(L, "argv");
+  lua_setglobal(L, "arg");
 
   lua_getglobal(L, "package");
   lua_getfield(L, -1, "preload");
