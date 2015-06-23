@@ -246,7 +246,7 @@ This gets you the short sha of HEAD.
 
 ### License
 
-Spook is released under the MIT license (see (LICENSE.md)[LICENSE.md] for details).
+Spook is released under the MIT license (see [LICENSE.md](LICENSE.md) for details).
 
 ### Contribute
 
