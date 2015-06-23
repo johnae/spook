@@ -7,7 +7,7 @@ parser\flag("-v --version", "Show the Spook version you're running and exit")\ac
   print(require "version")
   os.exit 0
 
-parser\option("-l --log-level", "Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG", "3")\convert(tonumber)
+parser\option("-l --log-level", "Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG", "2")\convert(tonumber)
 
 parser\option("-n --notifier", "Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)")\args(1)
 
