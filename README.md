@@ -2,12 +2,14 @@
 
 ## Spook
 
-Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard). Please note that this is very early and may not work.
-It is mostly written in [Lua](http://www.lua.org) and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
-binary with no dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. All extensions
-and such should be written in [moonscript](https://github.com/leafo/moonscript).
+Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard).
+Please note that this is very early and may not work. It is mostly written in [Lua](http://www.lua.org)
+and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
+binary with no dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and
+compiled with Lua 5.2 compatibility. All extensions and such should be written in [moonscript](https://github.com/leafo/moonscript).
 
-You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64 and Mac OS X x86_64.
+You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
+Currently only available for Linux x86_64 and Mac OS X x86_64.
 
 Building it should be as straightforward as:
 
@@ -21,8 +23,9 @@ Installation is as straightforward as:
 PREFIX=/usr/local make install
 ```
 
-After that you should have an executable called spook. It's known to build on Linux and Mac OS X. Everything in the lib directory and toplevel is part of spook
-itself, anything in vendor and deps is other peoples work and is just included in the resulting executable.
+After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
+Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps
+is other peoples work and is just included in the resulting executable.
 
 
 ### Running it
@@ -63,8 +66,8 @@ To watch directories you need to provide them on stdin like so:
 find lib spec -type d | spook
 ```
 
-So basically you're telling spook to watch all files (recursively) in lib and spec. This will be done using whatever method
-your OS provides courtesy of libuv.
+So basically you're telling spook to watch all files (recursively) in lib and spec. This will be done using
+whatever method your OS provides courtesy of libuv.
 
 
 To also run a utility (eg. rspec or some other test runner) you provide that via command line arguments, all together:
@@ -78,14 +81,16 @@ Actually you must provide a utility today. And, there's not much point in watchi
 
 ### Mapping files to other files via the Spookfile
 
-Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
+Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the
+directory of your application called:
 
 ```
 Spookfile
 ```
 
-This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table where the keys are matchers (in Luas regex syntax)
-and the values are functions taking the output of the matcher and (probably) transforming it somehow - the functions are only executed if there is an actual match:
+This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table where
+the keys are matchers (in Luas regex syntax) and the values are functions taking the output of the matcher and
+(probably) transforming it somehow - the functions are only executed if there is an actual match:
 
 ```moonscript
 {
@@ -93,7 +98,8 @@ and the values are functions taking the output of the matcher and (probably) tra
 }
 ```
 
-The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
+The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some
+cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
 
 A more functional example of mapping via the Spookfile (for a rails app in this case) might be:
 
@@ -132,7 +138,8 @@ finish = (status, changed_file, mapped_file) ->
 :start, :finish
 ```
 
-You must currently define both of the above functions and export them or things will crash and burn (you CAN skip creating the notifier completely though).
+You must currently define both of the above functions and export them or things will crash and burn (you CAN skip
+creating the notifier completely though).
 
 A more complex notification example for tmux might look like this (the uv package comes built in):
 
@@ -237,6 +244,16 @@ git_sha
 
 This gets you the short sha of HEAD.
 
+### License
+
+Spook is released under the MIT license (see (LICENSE.md)[LICENSE.md) for details).
+
+### Contribute
+
+Anything is welcome. Bug reports and pull requests most of all.
+
+Use the [Github issue tracker](https://github.com/johnae/spook/issues) for bug reports please.
+I can be reached directly at \<john at insane.se\> as well as through github.
 
 ### In closing
 
