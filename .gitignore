@@ -6,3 +6,4 @@ vendor.lua
 spook
 .envrc_user
 spook-*.gz
+lib/version.moon

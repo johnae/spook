@@ -4,6 +4,11 @@ local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
 require("moonscript")
 require("globals")
+local moon = require("moon")
+local cli = require("arguments")
+local args = cli:parse()
+_G.log = require("log")(args.log_level)
+
 local to_lua = require("moonscript.base").to_lua
 
 local function load_moonscript(file)
@@ -13,13 +18,13 @@ local function load_moonscript(file)
     f:close()
     local lua_code, line_table = to_lua(content)
     if not lua_code then
-      print("Error in " .. file .. " file")
-      print(line_table)
+      log.error("Error in " .. file .. " file")
+      log.error(line_table)
     end
     local chunk, err = loadstring(lua_code)
     if err ~= nil then
-      print("Error in " .. file .. " file")
-      print(err)
+      log.error("Error in " .. file .. " file")
+      log.error(err)
     end
     return chunk()
   end)
@@ -27,19 +32,22 @@ local function load_moonscript(file)
 end
 
 -- loading the Spookfile file here (the file mapper)
-local status, file_mapping = load_moonscript("Spookfile")
+local spookfile_path = args.mapping or "Spookfile"
+local status, file_mapping = load_moonscript(spookfile_path)
 if not status then
+  log.warn("Couldn't load " .. spookfile_path .. ", loading default mapping")
   file_mapping = require("default_file_mapping")
 end
 
 local mapper = require("file_mapper")(file_mapping)
 
 -- loading notifier here from ~/.spook/notifier.moon
-local status, notifier = load_moonscript(os.getenv("HOME").."/.spook/notifier.moon")
+local notifier_path = args.notifier or os.getenv("HOME").."/.spook/notifier.moon"
+local status, notifier = load_moonscript(notifier_path)
 if not status then
+  log.debug("Couldn't load " .. notifier_path .. ", loading default notifier")
   notifier = require("default_notifier")
 end
 
 local spook = require("spook")
-spook(mapper, notifier)
-
+spook(mapper, notifier, args)

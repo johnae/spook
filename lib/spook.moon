@@ -6,13 +6,6 @@ for line in io.lines! do
   line, _ = line\gsub "/$", "", 1
   insert watch_dirs, line
 
-arg_copy = {k,v for k,v in pairs arg}
-remove arg_copy, 1
-
-utility = nil
-if #arg_copy >= 1
-  utility = concat arg_copy, ' '
-
 file_exists = (path) ->
   f = io.open(path, "r")
   if f
@@ -21,11 +14,12 @@ file_exists = (path) ->
   else
     false
 
-run_utility = (changed_file, mapper, notifier) ->
-  unless utility
-    print "No utility to run on file changes, please supply it via arguments"
-    return false
+print_line = (line) ->
+  io.write line
+  io.write "\n"
+  io.flush!
 
+run_utility = (changed_file, mapper, notifier, utility) ->
   mapped_file = mapper(changed_file)
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
@@ -34,23 +28,19 @@ run_utility = (changed_file, mapper, notifier) ->
     while true do
       line = output\read!
       break unless line
-      io.write line
-      io.write "\n"
-      io.flush!
+      print_line line
 
     rc = {output\close!}
     notifier.finish rc[3], changed_file, mapped_file
   else
     if mapped_file and not file_exists mapped_file
-      io.write "#{mapped_file} does not exist"
+      log.debug "#{mapped_file} does not exist"
     else
-      io.write "No mapping found for #{changed_file}"
-    io.write "\n"
-    io.flush!
+      log.debug "No mapping found for #{changed_file}"
 
 last_changed_file = {"", true, 1}
 
-create_event_handler = (fse, mapper, notifier) ->
+create_event_handler = (fse, mapper, notifier, command) ->
   (self, filename, events, status) ->
     changed_file = "#{fse\getpath!}/#{filename}"
     last_changed_file = {changed_file, false, last_changed_file[3]+1}
@@ -62,12 +52,21 @@ create_event_handler = (fse, mapper, notifier) ->
       event_id = last_changed_file[3]
       last_changed_file[2] = true
       unless event_recorded
-        run_utility changed_file, mapper, notifier
+        run_utility changed_file, mapper, notifier, command
 
-(mapper, notifier) ->
-  print "Watching " .. #watch_dirs .. " directories"
+(mapper, notifier, args) ->
+  command_segments = [item for i, item in ipairs(args.command) when i > 1]
+
+  if #command_segments == 0
+    log.error "No command given, please supply the command on the command line as the last argument(s), something like: ", "\n"
+    log.error "find dir1 dir2 -type d | spook rspec -f d"
+    os.exit 1
+
+  command = concat command_segments, ' '
+  log.info "Watching " .. #watch_dirs .. " directories"
+
   for i, watch_dir in ipairs(watch_dirs) do
     fse = uv.new_fs_event!
-    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier)
+    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
 
   uv.run!
