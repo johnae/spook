@@ -24,6 +24,7 @@ PREFIX=/usr/local make install
 After that you should have an executable called spook. It's known to build on Linux and Mac OS X. Everything in the lib directory and toplevel is part of spook
 itself, anything in vendor and deps is other peoples work and is just included in the resulting executable.
 
+
 ### Running it
 
 For some basic help on command line usage, please run:
@@ -74,6 +75,7 @@ find lib spec -type d | spook bundle exec rspec
 
 Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
 
+
 ### Mapping files to other files via the Spookfile
 
 Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the directory of your application called:
@@ -103,6 +105,13 @@ A more functional example of mapping via the Spookfile (for a rails app in this 
   "^app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
 }
 ```
+
+You may also use the commandline switch -m to override this:
+
+```
+spook -m /path/to/some/Spookfile
+```
+
 
 ### Notifications
 
@@ -180,7 +189,12 @@ finish = (status, changed_file, mapped_file) ->
 
 There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
 
-Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+
+You may also use the commandline switch -n to override this:
+
+```
+spook -m /path/to/some/notifier.moon
+```
 
 
 ### Available additional functions in the global scope
@@ -222,3 +236,11 @@ git_sha
 ```
 
 This gets you the short sha of HEAD.
+
+
+### In closing
+
+Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+
+MoonScript and Lua are really powerful and fun, coupled with LuaJIT they're ridiculously fast but often overlooked languages.
+You should really give them a try - they deserve it, regardless of whether you like Spook or not.
