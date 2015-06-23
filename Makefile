@@ -83,6 +83,13 @@ release-create:
 	$(TOOLS)/github-release-$(UNAME)-$(ARCH) release \
 		--tag $(GITTAG) \
 		--name "Release $(GITTAG)" \
+		--description "Release $(GITTAG)"
+
+prerelease-create:
+	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
+	$(TOOLS)/github-release-$(UNAME)-$(ARCH) release \
+		--tag $(GITTAG) \
+		--name "Release $(GITTAG)" \
 		--description "Release $(GITTAG)" \
 		--pre-release
 
