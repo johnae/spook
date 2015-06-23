@@ -23,6 +23,14 @@ Installation is as straightforward as:
 PREFIX=/usr/local make install
 ```
 
+Or if you prefer to just install the latest binary you can do so by running the following in a shell:
+
+```
+curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local/bin bash
+```
+
+You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e)
+
 After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
 Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps
 is other peoples work and is just included in the resulting executable.
