@@ -78,25 +78,31 @@ clean-deps:
 clean:
 	rm -f spook main.o lib.o vendor.o vendor.lua lib.lua spook-*.gz lib/version.moon
 
-release-create:
+tools/github-release:
+	cd /tmp && \
+		if [ "$(UNAME)" = "Darwin" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/darwin-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/darwin/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi && \
+	if [ "$(UNAME)" = "Linux" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/linux-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/linux/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi
+	rm -rf /tmp/bin /tmp/*gitub-release*
+
+release-create: tools/github-release
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
-	$(TOOLS)/github-release-$(UNAME)-$(ARCH) release \
+	$(TOOLS)/github-release release \
 		--tag $(GITTAG) \
 		--name "Release $(GITTAG)" \
 		--description "Release $(GITTAG)"
 
-prerelease-create:
+prerelease-create: tools/github-release
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
-	$(TOOLS)/github-release-$(UNAME)-$(ARCH) release \
+	$(TOOLS)/github-release release \
 		--tag $(GITTAG) \
 		--name "Release $(GITTAG)" \
 		--description "Release $(GITTAG)" \
 		--pre-release
 
-release-upload: all
+release-upload: tools/github-release all
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
 	gzip -c spook > spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
-	$(TOOLS)/github-release-$(UNAME)-$(ARCH) upload \
+	$(TOOLS)/github-release upload \
 		--tag $(GITTAG) \
 		--name "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz" \
 		--file "spook-$(GITTAG)-$(UNAME)-$(ARCH).gz"
