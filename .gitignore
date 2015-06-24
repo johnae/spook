@@ -7,3 +7,4 @@ spook
 .envrc_user
 spook-*.gz
 lib/version.moon
+tools/github-release
