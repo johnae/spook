@@ -11,14 +11,14 @@ DEBUG = 3
 (level) ->
   {
     info: (...) ->
-      log(level, INFO, "INFO: ", ...)
+      log(level, INFO, ...)
   
     error: (...) ->
-      log(level, ERR, "ERROR: ", ...)
+      log(level, ERR, ...)
   
     warn: (...) ->
-      log(level, WARN, "WARN: ", ...)
+      log(level, WARN, ...)
   
     debug: (...) ->
-      log(level, DEBUG, "DEBUG: ", ...)
+      log(level, DEBUG, ...)
   }
