@@ -23,6 +23,7 @@ run_utility = (changed_file, mapper, notifier, utility) ->
   mapped_file = mapper(changed_file)
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
+    log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
     output = io.popen "#{utility} #{mapper(changed_file)}"
     while true do
