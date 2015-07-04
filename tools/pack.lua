@@ -59,10 +59,11 @@ do
     local original_loadfile = loadfile
     local function lf (file)
       local hndl = file:gsub( "%.lua$", "" )
+                       :gsub( "%.moon$", "" )
                        :gsub( "/", "." )
                        :gsub( "\\", "." )
                        :gsub( "%.init$", "" )
-      return package.preload[hndl] or original_loadfile( name )
+      return package.preload[hndl] or original_loadfile( file )
     end
 
     function dofile (name)
