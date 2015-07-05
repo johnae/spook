@@ -13,4 +13,6 @@ parser\option("-n --notifier", "Expects a path to a notifier moonscript (overrid
 
 parser\option("-m --mapping", "Expects a path to use as mapping (overrides the default of Spookfile)")\args(1)
 
+parser\option("-f --file", "Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior")\args(1)
+
 parser
