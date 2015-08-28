@@ -1,11 +1,6 @@
 uv = require "uv"
 {:insert, :remove, :concat} = table
 
-watch_dirs = {}
-for line in io.lines! do
-  line, _ = line\gsub "/$", "", 1
-  insert watch_dirs, line
-
 file_exists = (path) ->
   f = io.open(path, "r")
   if f
@@ -55,7 +50,7 @@ create_event_handler = (fse, mapper, notifier, command) ->
       unless event_recorded
         run_utility changed_file, mapper, notifier, command
 
-(mapper, notifier, args) ->
+(mapper, notifier, args, watch_dirs) ->
   command_segments = [item for i, item in ipairs(args.command) when i > 1]
 
   if #command_segments == 0
@@ -66,8 +61,11 @@ create_event_handler = (fse, mapper, notifier, command) ->
   command = concat command_segments, ' '
   log.info "Watching " .. #watch_dirs .. " directories"
 
+  watchers = {}
+
   for i, watch_dir in ipairs(watch_dirs) do
     fse = uv.new_fs_event!
+    watchers[watch_dir] = fse
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
 
-  uv.run!
+  uv, watchers

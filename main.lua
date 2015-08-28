@@ -32,6 +32,7 @@ end
 
 if args.file then
   local file = args.file
+  _G.arg = {}
   local loaded_chunk = assert(loadfile(file), "Failed to load file: " .. file)
   loaded_chunk()
 else
@@ -54,5 +55,12 @@ else
   end
 
   local spook = require("spook")
-  spook(mapper, notifier, args)
+  local watch_dirs
+  if args.watch then
+    watch_dirs = require("dir_list")(args.watch)
+  else
+    watch_dirs = require("stdin_list")()
+  end
+  local runner, watchers = spook(mapper, notifier, args, watch_dirs)
+  runner:run()
 end

@@ -5,7 +5,7 @@ ffi.cdef [[
 char *getcwd(char *buf, size_t size);
 ]]
 
-split = (str, sep) ->
+string.split = (str, sep) ->
   sep = P(sep)
   elem = C((1-sep)^0)
   p = Ct(elem * (sep * elem)^0)
