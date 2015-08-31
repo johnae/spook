@@ -8,8 +8,8 @@ describe 'spook', ->
 
   before_each ->
     dir = "/tmp/spook-spec"
-    fs.mkdir_p "#{dir}/a"
-    fs.mkdir_p "#{dir}/b/c"
+    fs.mkdir_p dir
+
     dirs = dir_list({dir})
     notifier = spy.new ->
     mapper = spy.new ->
