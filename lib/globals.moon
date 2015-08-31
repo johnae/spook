@@ -5,7 +5,7 @@ ffi.cdef [[
 char *getcwd(char *buf, size_t size);
 ]]
 
-split = (str, sep) ->
+string.split = (str, sep) ->
   sep = P(sep)
   elem = C((1-sep)^0)
   p = Ct(elem * (sep * elem)^0)
@@ -17,7 +17,7 @@ _G.getcwd = ->
    ffi.string buf
 
 _G.project_name = ->
-   cwd = split(getcwd!, "/")
+   cwd = getcwd!\split("/")
    cwd[#cwd]
 
 _G.git_branch = ->

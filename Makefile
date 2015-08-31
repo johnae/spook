@@ -29,10 +29,15 @@ OBJECTS = main lib vendor
 
 .PHONY: release
 
-all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
+all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook test
 
 spook:
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+
+rebuild: clean all
+
+test:
+	./spook -f spec/support/run_busted.lua
 
 install: all
 	cp spook $(PREFIX)/bin

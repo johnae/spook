@@ -1,11 +1,6 @@
 uv = require "uv"
 {:insert, :remove, :concat} = table
 
-watch_dirs = {}
-for line in io.lines! do
-  line, _ = line\gsub "/$", "", 1
-  insert watch_dirs, line
-
 file_exists = (path) ->
   f = io.open(path, "r")
   if f
@@ -20,12 +15,14 @@ print_line = (line) ->
   io.flush!
 
 run_utility = (changed_file, mapper, notifier, utility) ->
+  log.debug "mapping file #{changed_file}..."
   mapped_file = mapper(changed_file)
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
     log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
-    output = io.popen "#{utility} #{mapper(changed_file)}"
+    log.debug "running: '#{utility} #{mapped_file}'"
+    output = io.popen "#{utility} #{mapped_file}"
     while true do
       line = output\read!
       break unless line
@@ -43,7 +40,9 @@ last_changed_file = {"", true, 1}
 
 create_event_handler = (fse, mapper, notifier, command) ->
   (self, filename, events, status) ->
+    log.debug "change detected"
     changed_file = "#{fse\getpath!}/#{filename}"
+    log.debug "changed file #{changed_file}"
     last_changed_file = {changed_file, false, last_changed_file[3]+1}
     timer = uv.new_timer!
     timer\start 200, 0, ->
@@ -55,19 +54,17 @@ create_event_handler = (fse, mapper, notifier, command) ->
       unless event_recorded
         run_utility changed_file, mapper, notifier, command
 
-(mapper, notifier, args) ->
-  command_segments = [item for i, item in ipairs(args.command) when i > 1]
+(mapper, notifier, command, watch_dirs) ->
 
-  if #command_segments == 0
-    log.error "No command given, please supply the command on the command line as the last argument(s), something like: ", "\n"
-    log.error "find dir1 dir2 -type d | spook rspec -f d"
-    os.exit 1
-
-  command = concat command_segments, ' '
+  log.debug "Command to run "
+  log.debug command
   log.info "Watching " .. #watch_dirs .. " directories"
+
+  watchers = {}
 
   for i, watch_dir in ipairs(watch_dirs) do
     fse = uv.new_fs_event!
+    watchers[watch_dir] = fse
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
 
-  uv.run!
+  uv, watchers

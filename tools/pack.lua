@@ -1,9 +1,15 @@
 package.path = package.path .. ';../deps/luajit/src/jit/?.lua'
 package.path = package.path .. ';../vendor/?.lua'
+package.path = package.path .. ';../vendor/?/init.lua'
+package.path = package.path .. ';../lib/?.lua'
 
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
+require("moonscript")
 local to_lua = require("moonscript.base").to_lua
+local fs = require("fs")
+local moon = require("moon")
+local insert = table.insert
 
 local args = {...}
 local files = {}
@@ -11,19 +17,29 @@ local files = {}
 local root = args[1]:gsub( "/$", "" )
               :gsub( "\\$", "" )
 
+function files_with_ext(dir, ext)
+  local entry, attr
+  local found = {}
+  for entry, attr in fs.dirtree(dir, true) do
+    if entry:match("[^.]."..ext.."$") then
+      insert(found, entry)
+    end
+  end
+  return ipairs(found)
+end
+
 function luafiles(dir)
-  local p = io.popen('find "'..dir..'" -type f -name "*.lua"')
-  return p:lines()
+  return files_with_ext(dir, "lua")
 end
 
 function moonfiles(dir)
-  local p = io.popen('find "'..dir..'" -type f -name "*.moon"')
-  return p:lines()
+  return files_with_ext(dir, "moon")
 end
 
 function scandir (root, path)
   path = path or ""
-  for file in moonfiles( root..path ) do
+  for i, file in moonfiles( root..path ) do
+    io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     local content = io.open( file ):read"*a"
     local lua_code, line_table = to_lua(content)
@@ -34,7 +50,8 @@ function scandir (root, path)
     end
     files[hndl] = lua_code
   end
-  for file in luafiles( root..path ) do
+  for i, file in luafiles( root..path ) do
+    io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.lua$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     files[hndl] = io.open( file ):read"*a"
   end

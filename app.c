@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   int i;
   for(i = 0; i < argc; i++)
   {
-    lua_pushinteger(L, i + 1);
+    lua_pushinteger(L, i );
     lua_pushstring(L, argv[i]);
     lua_settable(L, -3);
   }

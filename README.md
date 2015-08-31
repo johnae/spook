@@ -47,70 +47,49 @@ spook --help
 Currently that would output something like:
 
 ```
-Usage: spook [-v] [-l <log_level>] [-n <notifier>] [-m <mapping>] [-h]
-       <command> [<command>] ...
+Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-f <file>]
+       [-h] [<command>] ... [-w [<watch>] ...] [-c [<config>] ...]
 
 Your very own filesystem spymaster
 
 Arguments:
-   command               The command to run when a file changes
+   command               Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!
 
 Options:
    -v, --version         Show the Spook version you're running and exit
+   -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
-                         Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG (default: 3)
+                         Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG (default: 2)
    -n <notifier>, --notifier <notifier>
                          Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)
-   -m <mapping>, --mapping <mapping>
-                         Expects a path to use as mapping (overrides the default of Spookfile)
+   -w [<watch>] ..., --watch [<watch>] ...
+                         Expects path(s) to directories to watch (recursively) - this disables reading the dir list from stdin
+   -c [<config>] ..., --config [<config>] ...
+                         Expect the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
+   -f <file>, --file <file>
+                         Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
 ```
 
-To watch directories you need to provide them on stdin like so:
+To watch directories the best way is to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
+should be pretty straightforward to change according to your needs.
+
+### The Spookfile
+
+The Spookfile can be initialized (with an example for a Rails app) like this:
 
 ```
-find lib spec -type d | spook
+cd /to/your/project
+spook -i
 ```
 
-So basically you're telling spook to watch all files (recursively) in lib and spec. This will be done using
-whatever method your OS provides courtesy of libuv.
+This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things.
 
-
-To also run a utility (eg. rspec or some other test runner) you provide that via command line arguments, all together:
-
-```
-find lib spec -type d | spook bundle exec rspec
-```
-
-Actually you must provide a utility today. And, there's not much point in watching for changes without doing anything I suppose.
-
-If you need to provide flags or options to the command you want to run you need to quote it, like this:
-
-```
-find lib spec -type d | spook "./bin/rspec -f d -c --tty"
-```
-
-
-
-### Mapping files to other files via the Spookfile
-
-Normally you'd want a code change to map to some test file. To map files with spook you would create a file in the
-directory of your application called:
-
-```
-Spookfile
-```
-
-This file should be written as [moonscript](https://github.com/leafo/moonscript) and return a mapping table where
-the keys are matchers (in Luas regex syntax) and the values are functions taking the output of the matcher and
-(probably) transforming it somehow - the functions are only executed if there is an actual match:
+An example of such a file could be:
 
 ```moonscript
-{
-  "(.*)": (m) -> m
-}
 ```
 
 The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some
@@ -119,25 +98,28 @@ cases, return an empty string which would normally result in running the full sp
 A more functional example of mapping via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
-{
+-- Directories to watch for changes
+watch = {"app","lib","spec"}
+
+-- How (changed) files are mapped to tests which become the input to the command to run
+map = {
   "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
-  "^spec/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}.rb"
-  "^lib/(.*)/(.*)%.rb": (a,b) -> "spec/lib/#{a}/#{b}_spec.rb"
-  "^app/(.*)/(.*)%.rb": (a,b) -> "spec/#{a}/#{b}_spec.rb"
+  "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
+  "^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"
+  "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
 }
-```
 
-You may also use the commandline switch -m to override this:
+-- You may also set the command to run here (as opposed to adding it on the command line), like this:
+command = "./bin/rspec --tty -f d"
+-- don't forget to return the command below like the others, eg. add :command to the returned values
 
+:watch, :map, :command
 ```
-spook -m /path/to/some/Spookfile
-```
-
 
 ### Notifications
 
 If you create a directory called .spook in your home dir and put a file called notifier.moon in there it will be loaded
-and called by spook when certain events take place. Today the only events supported are "start" and "finish".
+and called by spook when certain events take place. The events supported are "start" and "finish".
 Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
@@ -162,12 +144,13 @@ A more complex notification example for tmux might look like this (the uv packag
 uv = require "uv"
 
 tmux_set_status = (status) ->
-  os.execute "tmux set status-right '#{status}' > /dev/null"
+  os.execute "tmux set status-left '#{status}' > /dev/null"
 
-tmux_default_status = '#[fg=colour254,bg=colour234,nobold] #[fg=colour16,bg=colour254,bold] #(~/.tmux-mem-cpu-load.sh 2 0)'
-tmux_fail_status = tmux_default_status .. ' | #[fg=white,bg=red] FAIL: ' .. project_name!
-tmux_pass_status = tmux_default_status .. ' | #[fg=white,bg=green] PASS: ' .. project_name!
-tmux_test_status = tmux_default_status .. ' | #[fg=white,bg=cyan] TEST: ' .. project_name!
+tmux_default_status = '#[fg=colour16,bg=colour254,bold]'
+
+tmux_fail_status = tmux_default_status .. '#[fg=white,bg=red] FAIL: ' .. project_name! .. ' #[fg=red,bg=colour234,nobold]'
+tmux_pass_status = tmux_default_status .. '#[fg=white,bg=green] PASS: ' .. project_name! .. ' #[fg=green,bg=colour234,nobold]'
+tmux_test_status = tmux_default_status .. '#[fg=white,bg=cyan] TEST: ' .. project_name! .. ' #[fg=cyan,bg=colour234,nobold]'
 
 timer = nil
 stop_timer = ->
@@ -217,7 +200,6 @@ You may also use the commandline switch -n to override this:
 ```
 spook -n /path/to/some/notifier.moon
 ```
-
 
 ### Additional functions available in the global scope
 
