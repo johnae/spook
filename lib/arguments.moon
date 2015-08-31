@@ -15,6 +15,7 @@ parser\flag("-i --initialize", "Initialize an example Spookfile in the current d
 watch = {"app","lib","spec"}
 
 -- How (changed) files are mapped to tests which become the input to the command to run
+-- below is for a Rails app
 map = {
   "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
   "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
@@ -22,11 +23,11 @@ map = {
   "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
 }
 
--- You may also set the command to run here (as opposed to adding it on the command line), like this:
--- command = "./bin/rspec --tty -f d"
--- don't forget to return the command below like the others, eg. add :command to the returned values
+-- The command to run on changes (the mapped file will be it's input)
+-- below is for a Rails/ruby app tested with rspec
+command = "./bin/rspec --tty -f d"
 
-:watch, :map]]
+:watch, :map, :command]]
   content = f\write(content)
   f\close()
   os.exit 0
