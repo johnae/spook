@@ -10,14 +10,10 @@ describe 'spook', ->
     dir = "/tmp/spook-spec"
     fs.mkdir_p "#{dir}/a"
     fs.mkdir_p "#{dir}/b/c"
-    fs.list dir, (e, a) ->
-      if a.mode == "directory"
-        return e
-      nil
     dirs = dir_list({dir})
     notifier = spy.new ->
     mapper = spy.new ->
-    runner, watchers = spook(mapper, notifier, {command: {'spook', 'ls', 'lah'}}, dirs)
+    runner, watchers = spook(mapper, notifier, {command: {'ls', 'lah'}}, dirs)
 
     create_file = (time, runner, file) ->
       timer = runner.new_timer!

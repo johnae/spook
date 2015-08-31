@@ -1,0 +1,13 @@
+-- Directories to watch for changes
+watch = {"lib","spec"}
+
+-- How (changed) files are mapped to tests which become the input to the command to run
+map = {
+  "^(spec)/(spec_helper%.moon)": (a,b) -> "spec"
+  "^spec/(.*)%.moon": (a,b) -> "spec/#{a}.moon"
+  "^lib/(.*)%.moon": (a,b) -> "spec/#{a}_spec.moon"
+}
+
+command = "./spook -f spec/support/run_busted.lua"
+
+:watch, :map, :command

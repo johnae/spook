@@ -17,7 +17,7 @@ _G.getcwd = ->
    ffi.string buf
 
 _G.project_name = ->
-   cwd = split(getcwd!, "/")
+   cwd = getcwd!\split("/")
    cwd[#cwd]
 
 _G.git_branch = ->
