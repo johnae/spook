@@ -26,7 +26,7 @@ PREFIX=/usr/local make install
 Or if you prefer to just install the latest binary you can do so by running the following in a shell:
 
 ```
-curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local/bin bash
+curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local bash
 ```
 
 You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e)
