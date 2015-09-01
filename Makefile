@@ -104,7 +104,7 @@ prerelease-create: tools/github-release
 		--description "Release $(GITTAG)" \
 		--pre-release
 
-release-upload: tools/github-release all
+release-upload: tools/github-release rebuild
 	@if [ "$(GITTAG)" = "" ]; then echo "You've not checked out a git tag" && exit 1; fi
 	gzip -c spook > spook-$(GITTAG)-$(UNAME)-$(ARCH).gz
 	$(TOOLS)/github-release upload \
