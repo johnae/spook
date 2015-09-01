@@ -22,14 +22,8 @@ run_utility = (changed_file, mapper, notifier, utility) ->
     log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
     log.debug "running: '#{utility} #{mapped_file}'"
-    output = io.popen "#{utility} #{mapped_file}"
-    while true do
-      line = output\read!
-      break unless line
-      print_line line
-
-    rc = {output\close!}
-    notifier.finish rc[3], changed_file, mapped_file
+    _ ,_ ,status = os.execute "#{utility} #{mapped_file}"
+    notifier.finish status, changed_file, mapped_file
   else
     if mapped_file and not file_exists mapped_file
       log.debug "#{mapped_file} does not exist"
