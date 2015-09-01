@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 if [ "$TRAVIS_OS_NAME" = 'linux' ]; then
   add-apt-repository --yes ppa:kalakris/cmake

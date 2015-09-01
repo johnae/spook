@@ -4,7 +4,7 @@ os:
   - linux
   - osx
 
-sudo: true
+sudo: required
 
 before_script:
   - sudo ./ci/before_script.sh
