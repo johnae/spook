@@ -16,7 +16,10 @@ print_line = (line) ->
 
 run_utility = (changed_file, mapper, notifier, utility) ->
   log.debug "mapping file #{changed_file}..."
-  mapped_file = mapper(changed_file)
+  mapped_file, file_utility = mapper(changed_file)
+  log.debug "file_utility: #{file_utility}"
+  if file_utility
+    utility = file_utility
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
     log.debug "mapped file: #{mapped_file}"
