@@ -102,6 +102,10 @@ A more functional example of mapping via the Spookfile (for a rails app in this 
 watch = {"app","lib","spec"}
 
 -- How (changed) files are mapped to tests which become the input to the command to run
+-- every matcher can return an additional value specifying a different command to run when
+-- match (otherwise the specified default command will run).
+-- example:
+-- "^testing/stuff%.moon": -> "testing/stuff.moon", "ls -lah"
 map = {
   "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
   "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
