@@ -17,24 +17,28 @@ Building it should be as straightforward as:
 make
 ```
 
+After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
+Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps
+is other peoples work and is just included in the resulting executable.
+
+
 Installation is as straightforward as:
 
 ```
 PREFIX=/usr/local make install
 ```
 
-Or if you prefer to just install the latest binary you can do so by running the following in a shell:
+### Binaries
+
+If you prefer to just install the latest binary you can do so by running the following in a shell:
 
 ```
 curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local bash
 ```
 
+After running the above you should have an executable called spook. See below for instructions on how to run it.
+
 You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e)
-
-After that you should have an executable called spook. It's known to build on Linux and Mac OS X.
-Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps
-is other peoples work and is just included in the resulting executable.
-
 
 ### Running it
 
@@ -74,7 +78,14 @@ For more see https://github.com/johnae/spook
 ```
 
 To watch directories the best way is to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
-should be pretty straightforward to change according to your needs.
+should be pretty straightforward to change according to your needs. Just run:
+
+```
+spook -i
+```
+
+in your project directory to initialize a Spookfile. Then tailor it to your needs. After that you can just run spook without arguments within
+that directory.
 
 ### The Spookfile
 
