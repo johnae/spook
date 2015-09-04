@@ -125,7 +125,7 @@ map = {
 }
 
 -- You may also set the command to run here (as opposed to adding it on the command line), like this:
-command = "./bin/rspec --tty -f d"
+command = "./bin/rspec -f d"
 -- don't forget to return the command below like the others, eg. add :command to the returned values
 
 :watch, :map, :command

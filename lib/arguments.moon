@@ -25,7 +25,7 @@ map = {
 
 -- The command to run on changes (the mapped file will be it's input)
 -- below is for a Rails/ruby app tested with rspec
-command = "./bin/rspec --tty -f d"
+command = "./bin/rspec -f d"
 
 -- The notifier to use, skipped if it doesn't exist
 -- turn on debug (-l 3) to see if it failed to load because
