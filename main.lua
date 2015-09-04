@@ -26,7 +26,7 @@ else
     spookfile_path = arg.config
   end
 
-  local spook_config = assert(moonscript.loadfile(spookfile_path))
+  local spook_config = assert(moonscript.loadfile(spookfile_path))()
   if not spook_config then
     log.error("Couldn't load " .. spookfile_path .. ", please create a Spookfile using `spook -i`")
     os.exit(1)
@@ -54,9 +54,9 @@ else
     watch_dirs = args.watch
   end
 
-  local notifier = assert(moonscript.loadfile(notifier_path))
+  local status, notifier = pcall(function() assert(moonscript.loadfile(notifier_path))() end)
 
-  if not notifier then
+  if not status then
     log.debug("Couldn't load " .. notifier_path .. ", loading default notifier")
     log.debug(notifier)
     notifier = require("default_notifier")
