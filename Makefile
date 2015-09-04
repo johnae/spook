@@ -2,7 +2,7 @@ PREFIX ?= /usr/local
 UNAME := $(shell uname)
 ARCH := $(shell uname -m)
 ifeq ($(UNAME), Darwin)
-ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA51COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
+ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 else
