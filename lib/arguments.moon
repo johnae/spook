@@ -27,7 +27,12 @@ map = {
 -- below is for a Rails/ruby app tested with rspec
 command = "./bin/rspec --tty -f d"
 
-:watch, :map, :command]]
+-- The notifier to use, skipped if it doesn't exist
+-- turn on debug (-l 3) to see if it failed to load because
+-- there was no file
+notifier = "#{os.getenv('HOME')}/.spook/notifier.moon"
+
+:watch, :map, :command, :notifier]]
   content = f\write(content)
   f\close()
   os.exit 0
