@@ -1,8 +1,15 @@
 lfs = require "syscall.lfs"
 remove = table.remove
 
+is_dir = (dir) ->
+  return false unless type(dir) == "string"
+  attr = lfs.attributes(dir)
+  return false unless attr and attr.mode == "directory"
+  true
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
+
   if dir\sub(-1) == "/"
     dir = dir\sub(1,-2)
 
@@ -40,4 +47,4 @@ rm_rf = (path, attr) ->
   else
     os.remove path
 
-:dirtree, :rm_rf, :mkdir_p
+:dirtree, :rm_rf, :mkdir_p, :is_dir
