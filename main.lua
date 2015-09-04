@@ -7,44 +7,27 @@ require("globals")
 local cli = require("arguments")
 local args = cli:parse()
 local concat = table.concat
+local moonscript = require("moonscript.base")
 _G.log = require("log")(args.log_level)
 
-local to_lua = require("moonscript.base").to_lua
-
-local function load_moonscript(file)
-  local status, ms = pcall(function()
-    local f = io.open(file, "rb")
-    local content = f:read("*all")
-    f:close()
-    local lua_code, line_table = to_lua(content)
-    if not lua_code then
-      log.error("Error in " .. file .. " file")
-      log.error(line_table)
-    end
-    local chunk, err = loadstring(lua_code)
-    if err ~= nil then
-      log.error("Error in " .. file .. " file")
-      log.error(err)
-    end
-    return chunk()
-  end)
-  return status, ms
-end
-
 if args.file then
+
   local file = args.file
   _G.arg = {}
   local loaded_chunk = assert(loadfile(file), "Failed to load file: " .. file)
   loaded_chunk()
+
 else
-  -- loading the Spookfile file here (the file mapper)
+
+  local file_mapping, watch_dirs, notifier_path, command
   local spookfile_path = "Spookfile"
+
   if args.config then
     spookfile_path = arg.config
   end
-  local status, spook_config = load_moonscript(spookfile_path)
-  local file_mapping, watch_dirs, notifier_path, command
-  if not status then
+
+  local spook_config = assert(moonscript.loadfile(spookfile_path))
+  if not spook_config then
     log.error("Couldn't load " .. spookfile_path .. ", please create a Spookfile using `spook -i`")
     os.exit(1)
   else
@@ -71,8 +54,9 @@ else
     watch_dirs = args.watch
   end
 
-  local status, notifier = load_moonscript(notifier_path)
-  if not status then
+  local notifier = assert(moonscript.loadfile(notifier_path))
+
+  if not notifier then
     log.debug("Couldn't load " .. notifier_path .. ", loading default notifier")
     log.debug(notifier)
     notifier = require("default_notifier")
