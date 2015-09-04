@@ -54,8 +54,7 @@ else
     watch_dirs = args.watch
   end
 
-  local status, notifier = pcall(function() assert(moonscript.loadfile(notifier_path))() end)
-
+  local status, notifier = pcall(function() return moonscript.loadfile(notifier_path)() end)
   if not status then
     log.debug("Couldn't load " .. notifier_path .. ", loading default notifier")
     log.debug(notifier)
