@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/johnae/spook.svg)](https://travis-ci.org/johnae/spook)
+[![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
 
 ## Spook
 
