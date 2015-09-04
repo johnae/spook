@@ -98,15 +98,7 @@ spook -i
 
 This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things.
 
-An example of such a file could be:
-
-```moonscript
-```
-
-The above just returns the file it was given but obviously there's alot of flexibility there. You might, in some
-cases, return an empty string which would normally result in running the full spec suite (if your tools are sane).
-
-A more functional example of mapping via the Spookfile (for a rails app in this case) might be:
+A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
 -- Directories to watch for changes
