@@ -198,6 +198,8 @@ finish = (status, changed_file, mapped_file) ->
 
 There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
 
+There is also an OS X example here: [osx notifier gist](https://gist.github.com/fc803fe80124a0fe1953)
+
 
 You may also use the commandline switch -n to override this:
 
