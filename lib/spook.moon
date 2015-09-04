@@ -9,17 +9,15 @@ file_exists = (path) ->
   else
     false
 
-print_line = (line) ->
-  io.write line
-  io.write "\n"
-  io.flush!
-
 run_utility = (changed_file, mapper, notifier, utility) ->
+
   log.debug "mapping file #{changed_file}..."
   mapped_file, file_utility = mapper(changed_file)
-  log.debug "file_utility: #{file_utility}"
+
   if file_utility
+    log.debug "using matcher utility: #{file_utility}"
     utility = file_utility
+
   -- only runs if there is something returned from the mapper
   if mapped_file and file_exists mapped_file
     log.debug "mapped file: #{mapped_file}"
@@ -37,10 +35,12 @@ last_changed_file = {"", true, 1}
 
 create_event_handler = (fse, mapper, notifier, command) ->
   (self, filename, events, status) ->
+
     log.debug "change detected"
     changed_file = "#{fse\getpath!}/#{filename}"
     log.debug "changed file #{changed_file}"
     last_changed_file = {changed_file, false, last_changed_file[3]+1}
+
     timer = uv.new_timer!
     timer\start 200, 0, ->
       timer\close!
