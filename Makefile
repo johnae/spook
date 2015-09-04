@@ -15,7 +15,7 @@ GITBRANCH = $(shell git symbolic-ref --short HEAD)
 GITSHA = $(shell git rev-parse --short HEAD)
 LUAJIT_SRC = deps/luajit/src
 LUAJIT_LIBS = tools/luajit/lib
-LUAJIT_INCLUDE = tools/luajit/include/luajit-2.0
+LUAJIT_INCLUDE = tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
 LUAJIT = tools/luajit/bin/luajit
 TOOLS=$(realpath tools)
@@ -58,6 +58,7 @@ ${LUAJIT}:
 	cd deps/luajit && \
 		$(MAKE) PREFIX=${TOOLS}/luajit && \
 		$(MAKE) install PREFIX=${TOOLS}/luajit
+	  ln -sf ${TOOLS}/luajit/bin/luajit-2.1.0-beta1 ${TOOLS}/luajit/bin/luajit
 	cd deps/luajit/src && \
 		git checkout Makefile
 
