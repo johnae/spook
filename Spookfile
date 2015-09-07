@@ -5,7 +5,6 @@ watch = {"lib","spec"}
 map = {
   "^(spec)/(spec_helper%.moon)": (a,b) -> "spec"
   "^spec/(.*)%.moon": (a,b) -> "spec/#{a}.moon"
-  "^lib/(.*)%.moon": (a,b) -> "spec/#{a}_spec.moon"
 }
 
 command = "./spook -f spec/support/run_busted.lua"
