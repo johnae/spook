@@ -1,6 +1,7 @@
 lfs = require "syscall.lfs"
 fs = require "fs"
 insert = table.insert
+sort = table.sort
 
 describe 'fs', ->
 
@@ -37,9 +38,12 @@ describe 'fs', ->
       contents = {}
       for entry, attr in fs.dirtree '/tmp/spook-fs-spec', true
         insert contents, entry
-      assert.same {
+      expected = {
         '/tmp/spook-fs-spec/my',
         '/tmp/spook-fs-spec/my/dir',
         '/tmp/spook-fs-spec/my/dir/structure',
         '/tmp/spook-fs-spec/my/dir/file.txt'
-      }, contents
+      }
+      table.sort(expected)
+      table.sort(contents)
+      assert.same expected, contents
