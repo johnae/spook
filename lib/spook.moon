@@ -2,7 +2,7 @@ uv = require "uv"
 {:insert, :remove, :concat} = table
 
 file_exists = (path) ->
-  f = io.open(path, "r")
+  f = io.open path, "r"
   if f
     f\close!
     true
@@ -12,7 +12,7 @@ file_exists = (path) ->
 run_utility = (changed_file, mapper, notifier, utility) ->
 
   log.debug "mapping file #{changed_file}..."
-  mapped_file, file_utility = mapper(changed_file)
+  mapped_file, file_utility = mapper changed_file
 
   if file_utility
     log.debug "using matcher utility: #{file_utility}"
@@ -59,7 +59,7 @@ create_event_handler = (fse, mapper, notifier, command) ->
 
   watchers = {}
 
-  for i, watch_dir in ipairs(watch_dirs) do
+  for watch_dir in *watch_dirs
     fse = uv.new_fs_event!
     watchers[watch_dir] = fse
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
