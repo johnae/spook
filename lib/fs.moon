@@ -39,12 +39,12 @@ mkdir_p = (path) ->
     lfs.mkdir dir
 
 rm_rf = (path, attr) ->
-  attr = attr or lfs.attributes(path)
-  if attr.mode == "directory"
-    for entry, attr in dirtree(path, false) do
-      rm_rf entry, attr
-    os.remove path
-  else
-    os.remove path
+    attr = attr or lfs.attributes path
+    if attr and attr.mode == "directory"
+      for entry, attr in dirtree path, false
+        rm_rf entry, attr
+      os.remove path
+    else if attr
+      os.remove path
 
 :dirtree, :rm_rf, :mkdir_p, :is_dir
