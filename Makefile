@@ -29,7 +29,7 @@ OBJECTS = main lib vendor
 
 .PHONY: release
 
-all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook test
+all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
 
 spook:
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
