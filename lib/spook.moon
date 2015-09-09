@@ -1,5 +1,6 @@
 uv = require "uv"
 {:insert, :remove, :concat} = table
+colors = require 'ansicolors'
 
 file_exists = (path) ->
   f = io.open path, "r"
@@ -9,6 +10,7 @@ file_exists = (path) ->
   else
     false
 
+display_spooked_message = false
 run_utility = (changed_file, mapper, notifier, utility) ->
 
   log.debug "mapping file #{changed_file}..."
@@ -23,6 +25,8 @@ run_utility = (changed_file, mapper, notifier, utility) ->
     log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
     log.debug "running: '#{utility} #{mapped_file}'"
+    if display_spooked_message
+      log.info colors("%{blue}[SPOOKED] #{utility} #{mapped_file}")
     _ ,_ ,status = os.execute "#{utility} #{mapped_file}"
     notifier.finish status, changed_file, mapped_file
   else
@@ -51,11 +55,12 @@ create_event_handler = (fse, mapper, notifier, command) ->
       unless event_recorded
         run_utility changed_file, mapper, notifier, command
 
-(mapper, notifier, command, watch_dirs) ->
+(mapper, notifier, command, watch_dirs, args) ->
 
   log.debug "Command to run "
   log.debug command
   log.info "Watching " .. #watch_dirs .. " directories"
+  display_spooked_message = args.spooked
 
   watchers = {}
 

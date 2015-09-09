@@ -68,6 +68,6 @@ else
   end
 
   local spook = require("spook")
-  local runner, watchers = spook(mapper, notifier, command, watch_dirs)
+  local runner, watchers = spook(mapper, notifier, command, watch_dirs, args)
   runner:run()
 end

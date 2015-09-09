@@ -47,4 +47,6 @@ parser\option("-c --config", "Expect the path to a Spook config file (eg. Spookf
 
 parser\option("-f --file", "Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior")\args(1)
 
+parser\flag("-s --spooked", "Show the \"[SPOOKED] path/to/utility path/to/file\" message on change detected")
+
 parser
