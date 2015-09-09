@@ -60,7 +60,7 @@ create_event_handler = (fse, mapper, notifier, command) ->
   log.debug "Command to run "
   log.debug command
   log.info "Watching " .. #watch_dirs .. " directories"
-  display_spooked_message = args.spooked
+  display_spooked_message = args and args.spooked
 
   watchers = {}
 
