@@ -23,7 +23,7 @@ else
   local spookfile_path = "Spookfile"
 
   if args.config then
-    spookfile_path = arg.config
+    spookfile_path = args.config
   end
 
   local spook_config = assert(moonscript.loadfile(spookfile_path))()
@@ -47,7 +47,7 @@ else
   end
 
   if args.notifier then
-    notifier_path = args.notifier_path
+    notifier_path = args.notifier
   end
 
   if args.watch then
