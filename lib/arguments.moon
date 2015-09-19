@@ -2,7 +2,7 @@ argparse = require "argparse"
 
 parser = argparse name: "spook", description: "Your very own filesystem spymaster", epilog: "For more see https://github.com/johnae/spook"
 
-parser\argument("command", "Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!")\args("*")
+parser\argument("command", "Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!")\args "0-1"
 
 parser\flag("-v --version", "Show the Spook version you're running and exit")\action ->
   print(require "version")
@@ -44,7 +44,7 @@ parser\option("-n --notifier", "Expects a path to a notifier moonscript (overrid
 
 parser\option("-w --watch", "Expects path(s) to directories to watch (recursively) - this disables reading the dir list from stdin")\args("*")
 
-parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("*")
+parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
 
 parser\option("-f --file", "Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior")\args(1)
 
