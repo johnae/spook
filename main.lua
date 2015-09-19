@@ -58,7 +58,7 @@ else
     log.debug("parsing command...")
     log.debug(args.command)
     log.debug(#args.command)
-    command = concat(args.command, " ")
+    command = args.command
   end
 
   if args.notifier then
