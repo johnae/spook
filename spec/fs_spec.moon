@@ -8,14 +8,14 @@ describe 'fs', ->
   after_each ->
     fs.rm_rf '/tmp/spook-fs-spec'
 
+  it 'mkdir_p creates directory structures', ->
+    fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
+    assert.true fs.is_dir '/tmp/spook-fs-spec/my/dir/structure'
+
   it 'is_dir returns true for en existing directory', ->
     assert.false fs.is_dir '/tmp/spook-fs-spec'
     fs.mkdir_p '/tmp/spook-fs-spec'
     assert.true fs.is_dir '/tmp/spook-fs-spec'
-
-  it 'mkdir_p creates directory structures', ->
-    fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
-    assert.true fs.is_dir '/tmp/spook-fs-spec/my/dir/structure'
 
   it 'rm_rf removes directory structures', ->
     fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
