@@ -8,8 +8,13 @@ package.path = package.path .. ';lib/?.lua'
 package.path = package.path .. ';lib/?/init.lua'
 package.loaded.lfs = require('syscall.lfs')
 
+local moonscript = require "moonscript.base"
+package.moonpath = moonscript.create_moonpath(package.path)
+local busted = assert(loadfile(base_dir .. '/busted/busted_bootstrap'))
+assert(moonscript.loadfile(base_dir .. '/../spec_helper.moon'))()
+
 -- unload everything preloaded
-fs = require("fs")
+local fs = require("fs")
 local entry, attr
 for entry, attr in fs.dirtree("lib", true) do
   if entry:match("[^.].moon$") then
@@ -17,9 +22,5 @@ for entry, attr in fs.dirtree("lib", true) do
     package.preload[hndl] = nil
   end
 end
-
-local moonscript = require "moonscript.base"
-package.moonpath = moonscript.create_moonpath(package.path)
-local busted = assert(loadfile(base_dir .. '/busted/busted_bootstrap'))
-assert(moonscript.loadfile(base_dir .. '/../spec_helper.moon'))()
+package.loaded.fs = nil
 busted()
