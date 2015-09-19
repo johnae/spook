@@ -1,4 +1,4 @@
-start = (changed_file, mapped_file) -> print "file: #{changed_file}"
-finish = (status, changed_file, mapped_file) -> print "done: #{status}"
+start = (changed_file, mapped_file) -> nil
+finish = (status, changed_file, mapped_file) -> nil
 
 :start, :finish
