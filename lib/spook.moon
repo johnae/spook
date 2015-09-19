@@ -56,10 +56,9 @@ create_event_handler = (fse, mapper, notifier, command) ->
         run_utility changed_file, mapper, notifier, command
 
 (mapper, notifier, command, watch_dirs, args) ->
-
   log.debug "Command to run "
   log.debug command
-  log.info "Watching " .. #watch_dirs .. " directories"
+  log.info colors("%{blue}Watching " .. #watch_dirs .. " directories")
   display_spooked_message = args and args.spooked
 
   watchers = {}
