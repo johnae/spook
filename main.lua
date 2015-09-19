@@ -5,20 +5,35 @@ package.loaded['lpeg'] = lpeg
 require("moonscript")
 require("globals")
 local cli = require("arguments")
-local args = cli:parse()
-local concat = table.concat
 local moonscript = require("moonscript.base")
-_G.log = require("log")(args.log_level)
 
-if args.file then
+local concat = table.concat
+local remove = table.remove
 
-  local file = args.file
-  _G.arg = {}
+function run_file()
+  for i,v in pairs(arg) do
+    if v == "-f" then
+      remove(arg, i)
+      file = remove(arg, i)
+      _G.arg[0] = nil
+      return true, file
+    end
+  end
+  return false, nil
+end
+
+local run_file, file = run_file()
+
+if run_file then
+
+  _G.log = require("log")(1)
   local loaded_chunk = assert(loadfile(file), "Failed to load file: " .. file)
   loaded_chunk()
 
 else
 
+  local args = cli:parse()
+  _G.log = require("log")(args.log_level)
   local file_mapping, watch_dirs, notifier_path, command
   local spookfile_path = "Spookfile"
 
