@@ -40,9 +40,9 @@ else
   local mapper = require("file_mapper")(file_mapping)
 
   if args.command and #args.command>0 then
-    log.error("parsing command...")
-    log.error(args.command)
-    log.error(#args.command)
+    log.debug("parsing command...")
+    log.debug(args.command)
+    log.debug(#args.command)
     command = concat(args.command, " ")
   end
 
