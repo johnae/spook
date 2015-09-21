@@ -1,7 +1,8 @@
-package.path = package.path .. ';../deps/luajit/src/jit/?.lua'
-package.path = package.path .. ';../vendor/?.lua'
-package.path = package.path .. ';../vendor/?/init.lua'
-package.path = package.path .. ';../lib/?.lua'
+local base_dir = assert(os.getenv("SPOOK_BASE_DIR"), "Please set the env var SPOOK_BASE_DIR to the project directory of spook")
+package.path = package.path .. ';' .. base_dir .. '/deps/luajit/src/jit/?.lua'
+package.path = package.path .. ';' .. base_dir .. '/vendor/?.lua'
+package.path = package.path .. ';' .. base_dir .. '/vendor/?/init.lua'
+package.path = package.path .. ';' .. base_dir .. '/lib/?.lua'
 
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg

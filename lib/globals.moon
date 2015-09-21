@@ -11,6 +11,12 @@ string.split = (str, sep) ->
   p = Ct(elem * (sep * elem)^0)
   match p, str
 
+table.index_of = (t, v) ->
+  for i = 1, #t
+    return i if t[i] == v
+
+  nil
+
 _G.getcwd = ->
    buf = ffi.new "char[?]", 1024
    ffi.C.getcwd buf, 1024
