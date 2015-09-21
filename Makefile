@@ -1,6 +1,7 @@
 PREFIX ?= /usr/local
 UNAME := $(shell uname)
 ARCH := $(shell uname -m)
+SPOOK_BASE_DIR := $(shell pwd)
 ifeq ($(UNAME), Darwin)
 ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl
@@ -62,15 +63,18 @@ ${LUAJIT}:
 	cd deps/luajit/src && \
 		git checkout Makefile
 
+main.lua:
+	SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ./tools/compile_moon.lua main.moon > main.lua
+
 lib.lua:
 	cd lib && \
-		${LUAJIT_BIN} ../tools/pack.lua . > ../lib.lua
+		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../lib.lua
 
 vendor.lua:
 	cd vendor && \
-		${LUAJIT_BIN} ../tools/pack.lua . > ../vendor.lua
+		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../vendor.lua
 
-${OBJECTS}: lib.lua vendor.lua
+${OBJECTS}: lib.lua vendor.lua main.lua
 	${LUAJIT_BIN} -b $@.lua $@.o
 
 clean-deps:
@@ -82,7 +86,7 @@ clean-deps:
 		$(MAKE) clean
 
 clean:
-	rm -f spook main.o lib.o vendor.o vendor.lua lib.lua spook-*.gz lib/version.moon
+	rm -f spook main.o lib.o vendor.o main.lua vendor.lua lib.lua spook-*.gz lib/version.moon
 
 tools/github-release:
 	cd /tmp && \
