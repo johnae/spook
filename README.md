@@ -51,10 +51,10 @@ spook --help
 Currently that would output something like:
 
 ```
-Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-f <file>]
-       [-h] [<command>] ... [-w [<watch>] ...] [-c [<config>] ...]
+Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-c <config>]
+       [-f <file>] [-s] [-h] [<command>] [-w [<watch>] ...]
 
-Your very own filesystem spymaster
+Watches for changes and runs commands in response
 
 Arguments:
    command               Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!
@@ -63,15 +63,16 @@ Options:
    -v, --version         Show the Spook version you're running and exit
    -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
-                         Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG (default: 2)
+                         Log level either ERR, WARN, INFO or DEBUG
    -n <notifier>, --notifier <notifier>
-                         Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)
+                         Expects a path to a notifier moonscript file (overrides the default of ~/.spook/notifier.moon)
    -w [<watch>] ..., --watch [<watch>] ...
-                         Expects path(s) to directories to watch (recursively) - this disables reading the dir list from stdin
-   -c [<config>] ..., --config [<config>] ...
-                         Expect the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
+                         Expects path(s) to directories to watch (recursively)
+   -c <config>, --config <config>
+                         Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -f <file>, --file <file>
-                         Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior
+                         Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
+   -s, --spooked         Show the "[SPOOKED] path/to/utility path/to/file" message on change detected
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
@@ -101,26 +102,30 @@ This file is written as [moonscript](https://github.com/leafo/moonscript) and ma
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
+-- How much output do you want?
+log_level "INFO"
+
 -- Directories to watch for changes
-watch = {"app","lib","spec"}
+watch {"app","lib","spec"}
 
 -- How (changed) files are mapped to tests which become the input to the command to run
 -- every matcher can return an additional value specifying a different command to run when
 -- match (otherwise the specified default command will run).
 -- example:
 -- "^testing/stuff%.moon": -> "testing/stuff.moon", "ls -lah"
-map = {
+map {
   "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
   "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
   "^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"
   "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
 }
+-- you may also use a list of k,v tables for ordering if that's important
 
--- You may also set the command to run here (as opposed to adding it on the command line), like this:
-command = "./bin/rspec -f d"
--- don't forget to return the command below like the others, eg. add :command to the returned values
+-- The command to run in response to changes - the mapped file is given as argument, like this:
+command "./bin/rspec -f d"
 
-:watch, :map, :command
+-- Show what command will run
+spooked true
 ```
 
 ### Notifications

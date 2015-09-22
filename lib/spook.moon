@@ -1,6 +1,9 @@
 uv = require "uv"
-{:insert, :remove, :concat} = table
 colors = require 'ansicolors'
+{:insert, :remove, :concat} = table
+{:log} = _G
+
+spooked = false
 
 file_exists = (path) ->
   f = io.open path, "r"
@@ -10,7 +13,6 @@ file_exists = (path) ->
   else
     false
 
-display_spooked_message = false
 run_utility = (changed_file, mapper, notifier, utility) ->
 
   log.debug "mapping file #{changed_file}..."
@@ -25,7 +27,7 @@ run_utility = (changed_file, mapper, notifier, utility) ->
     log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
     log.debug "running: '#{utility} #{mapped_file}'"
-    if display_spooked_message
+    if spooked
       log.info colors("%{blue}[SPOOKED] #{utility} #{mapped_file}")
     _ ,_ ,status = os.execute "#{utility} #{mapped_file}"
     notifier.finish status, changed_file, mapped_file
@@ -55,17 +57,14 @@ create_event_handler = (fse, mapper, notifier, command) ->
       unless event_recorded
         run_utility changed_file, mapper, notifier, command
 
-(mapper, notifier, command, watch_dirs, args) ->
-  log.debug "Passed arguments:"
-  log.debug args
-  log.debug "Command to run "
-  log.debug command
-  log.info colors("%{blue}Watching " .. #watch_dirs .. " directories")
-  display_spooked_message = args and args.spooked
+(config) ->
+  {:mapper, :notifier, :command, :watch, :spooked} = config
+  log.debug "Command to run: #{command}"
+  log.info colors("%{blue}Watching " .. #watch .. " directories")
 
   watchers = {}
 
-  for watch_dir in *watch_dirs
+  for watch_dir in *watch
     fse = uv.new_fs_event!
     watchers[watch_dir] = fse
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)

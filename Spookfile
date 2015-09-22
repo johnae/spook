@@ -1,13 +1,19 @@
 -- Directories to watch for changes
-watch = {"lib","spec"}
+watch {"lib", "spec", "playground"}
 
--- How (changed) files are mapped to tests which become the input to the command to run
-map = {
-  "^(spec)/(spec_helper%.moon)": (a,b) -> "spec"
-  "^spec/(.*)%.moon": (a,b) -> "spec/#{a}.moon"
-  "^lib/(.*)%.moon": (a,b) -> "spec/#{a}_spec.moon"
+-- How much logs do we want? (ERR, WARN, INFO, DEBUG)
+log_level "INFO"
+
+-- How should changed files be mapped to tests (or whatever file really)?
+map {
+  {"^(spec)/(spec_helper%.moon)": (a,b) -> "spec"}
+  {"^spec/(.*)%.moon": (a,b) -> "spec/#{a}.moon"}
+  {"^lib/(.*)%.moon": (a,b) -> "spec/#{a}_spec.moon"}
+  {"^playground/(.*)%.moon": (a) -> "playground/#{a}.moon"}
 }
 
-command = "./spook -f spec/support/run_busted.lua"
+-- What's the (default) command we want to run?
+command "./spook -f spec/support/run_busted.lua"
 
-:watch, :map, :command
+-- Display what's being run
+spooked true

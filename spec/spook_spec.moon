@@ -29,7 +29,9 @@ describe 'spook', ->
     dirs = dir_list({dir})
     notifier = spy.new ->
     mapper = spy.new ->
-    runner, watchers = spook(mapper, notifier, {command: {'ls', 'lah'}}, dirs)
+    command = "ls -lah"
+    config = {notifier: notifier, mapper: mapper, command: command, watch: dirs}
+    runner, watchers = spook config
 
   after_each ->
     fs.rm_rf dir
