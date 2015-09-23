@@ -3,7 +3,7 @@ colors = require 'ansicolors'
 {:insert, :remove, :concat} = table
 {:log} = _G
 
-spooked = false
+show_command = false
 
 file_exists = (path) ->
   f = io.open path, "r"
@@ -27,8 +27,8 @@ run_utility = (changed_file, mapper, notifier, utility) ->
     log.debug "mapped file: #{mapped_file}"
     notifier.start changed_file, mapped_file
     log.debug "running: '#{utility} #{mapped_file}'"
-    if spooked
-      log.info colors("%{blue}[SPOOKED] #{utility} #{mapped_file}")
+    if show_command
+      log.info colors("%{blue}[RUNNING] #{utility} #{mapped_file}")
     _ ,_ ,status = os.execute "#{utility} #{mapped_file}"
     notifier.finish status, changed_file, mapped_file
   else
@@ -58,7 +58,7 @@ create_event_handler = (fse, mapper, notifier, command) ->
         run_utility changed_file, mapper, notifier, command
 
 (config) ->
-  {:mapper, :notifier, :command, :watch, :spooked} = config
+  {:mapper, :notifier, :command, :watch, :show_command} = config
   log.debug "Command to run: #{command}"
   log.info colors("%{blue}Watching " .. #watch .. " directories")
 

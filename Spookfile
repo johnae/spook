@@ -16,4 +16,4 @@ map {
 command "./spook -f spec/support/run_busted.lua"
 
 -- Display what's being run
-spooked true
+show_command true

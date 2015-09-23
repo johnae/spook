@@ -72,7 +72,7 @@ Options:
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -f <file>, --file <file>
                          Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
-   -s, --spooked         Show the "[SPOOKED] path/to/utility path/to/file" message on change detected
+   -s, --show-command    Show the "[RUNNING] path/to/utility path/to/file" message on change detected
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
@@ -125,7 +125,7 @@ map {
 command "./bin/rspec -f d"
 
 -- Show what command will run
-spooked true
+show_command true
 ```
 
 ### Notifications

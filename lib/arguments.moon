@@ -57,7 +57,7 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 --}
 
 -- Show what's being run (or not)
-spooked true
+show_command true
 ]]
   content = f\write(content)
   f\close()
@@ -73,6 +73,6 @@ parser\option("-c --config", "Expects the path to a Spook config file (eg. Spook
 
 parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
 
-parser\flag("-s --spooked", "Show the \"[SPOOKED] path/to/utility path/to/file\" message on change detected")
+parser\flag("-s --show-command", "Show the \"[RUNNING] path/to/utility path/to/file\" message on change detected")
 
 parser

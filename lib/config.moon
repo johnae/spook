@@ -31,8 +31,8 @@ log = require("log")(0)
     command: (c) ->
       config.command = c
 
-    spooked: (s) ->
-      config.spooked = s
+    show_command: (s) ->
+      config.show_command = s
 
   }
 
@@ -46,14 +46,14 @@ log = require("log")(0)
     log_level "INFO"
     notifier require("default_notifier")
     command "ls"
-    spooked false
+    show_command false
 
   args_configuration = (args) ->
     watch args.watch unless args.watch == nil
     log_level args.log_level unless args.log_level == nil
     notifier args.notifier unless args.notifier == nil
     command args.command unless args.command == nil
-    spooked args.spooked unless args.spooked == nil
+    show_command args.show_command unless args.show_command == nil
 
 
   setfenv default_configuration, cenv
