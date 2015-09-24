@@ -2,7 +2,6 @@ colors = require 'ansicolors'
 {:insert, :remove, :concat} = table
 {:log} = _G
 uv = require "uv"
-moon = require "moon"
 
 run_utility = (changed_file, mapper, notifier) ->
 
