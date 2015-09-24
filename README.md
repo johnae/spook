@@ -52,9 +52,9 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-c <config>]
-       [-f <file>] [-s] [-h] [<command>]
+       [-f <file>] [-h] [<command>]
 
-Watches for changes and runs commands in response
+Watches for changes and runs functions (and commands) in response
 
 Arguments:
    command               Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!
@@ -65,7 +65,7 @@ Options:
    -l <log_level>, --log-level <log_level>
                          Log level either ERR, WARN, INFO or DEBUG
    -n <notifier>, --notifier <notifier>
-                         Expects a path to a notifier moonscript file (overrides the default of ~/.spook/notifier.moon)
+                         Expects a path to a notifier moonscript file
    -c <config>, --config <config>
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -f <file>, --file <file>
