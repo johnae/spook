@@ -96,7 +96,7 @@ spook -i
 
 This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
 DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
-response to a change.
+response to a change. All functions should return true or false which indicates success or not.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
