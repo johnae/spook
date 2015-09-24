@@ -2,11 +2,11 @@
 
 ## Spook
 
-Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard).
+Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard) and much more.
 It's still early days but I'm using it every day for work. It is mostly written in [Lua](http://www.lua.org)
 and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
-binary with no dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and
-compiled with Lua 5.2 compatibility. All extensions and such should be written in [moonscript](https://github.com/leafo/moonscript).
+binary with no external dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and
+compiled with Lua 5.2 compatibility. Extensions easily written in [moonscript](https://github.com/leafo/moonscript).
 
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
 Currently only available for Linux x86_64 and Mac OS X x86_64.
@@ -94,8 +94,9 @@ cd /to/your/project
 spook -i
 ```
 
-This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things. It understands a simple
-DSL as well as just straight moonscript for additional things.
+This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
+DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
+response to a change.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
