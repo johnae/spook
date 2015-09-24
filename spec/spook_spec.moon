@@ -31,7 +31,7 @@ describe 'spook', ->
     notifier = spy.new ->
     mapper = spy.new ->
     command = "ls -lah"
-    config = {notifier: notifier, mapper: mapper, command: command, watch: dirs}
+    config = {notifier: notifier, mapper: mapper, watch: dirs}
     spook config
 
   after_each ->
@@ -41,8 +41,9 @@ describe 'spook', ->
 
     it 'gets notified when a new file is added', ->
       file = "#{dirs[1]}/myfile.txt"
-      watch_for(1000)
-      create_file(500, file)
+      watch_for(1200)
+      create_file(300, file)
+      uv.update_time!
       uv\run!
       assert.spy(mapper).was_called(1)
 

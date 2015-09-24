@@ -14,33 +14,25 @@ parser\flag("-i --initialize", "Initialize an example Spookfile in the current d
 -- How much output do we want?
 log_level "INFO"
 
--- Directories to watch for changes
-watch {"app","lib","spec"}
+-- Setup what directories to watch and what to do
+-- when a file is changed. "command" is a helper
+-- for setting up what command to run. There is no
+-- restriction on running shell commands however -
+-- any function (in lua/moonscript) can be run
+watch "app", "lib", "spec", ->
+  cmd = command "./bin/rspec -f d spec"
+  on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
+  on_changed "^spec/(.*)%_spec.rb", (a) -> cmd "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> "spec/lib/#{a}_spec.rb"
+  on_changed "^app/(.*)%.rb", (a) -> "spec/#{a}_spec.rb"
 
--- How (changed) files are mapped to tests which become the input to the command to run
--- below is for a Rails app. If order must be preserved. Make this a list of k,v tables.
--- They will be evaluated first to last in that case.
-map {
-  {"^(spec)/(spec_helper%.rb)": (a,b) -> "spec"}
-  {"^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"}
-  {"^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"}
-  {"^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"}
-}
--- You can return more than one value from a matcher, the second value should
--- in that case be the command you want to run for that specific match overriding
--- the default command - the mapped file is given as argument to the command, example:
---map {
---  {"^assets/(.*)%.coffee": (a,b) -> "assets/#{a}.coffee", "/usr/local/brew_coffee -o assets/#{a}.js"}
---  {"^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"}
---  {"^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"}
---}
-
--- The command to run on changes (the mapped file will be it's argument)
--- below is for a Rails/ruby app tested with rspec
-command "./bin/rspec -f d"
+-- For business and pleasure yeah?
+watch "playground", ->
+  cmd = command "ruby"
+  on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
 -- The notifier to use, skipped if it doesn't exist
--- turn on debug (-l DEBUG or in this file - see log_level)
+-- turn on debug (-l DEBUG or in this file - see log_level above)
 -- to see if it failed to load because there was no file or
 -- some error parsing it
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
@@ -55,9 +47,6 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 --    else
 --      print "Failure!"
 --}
-
--- Show what's being run (or not)
-show_command true
 ]]
   content = f\write(content)
   f\close()
@@ -67,12 +56,8 @@ parser\option("-l --log-level", "Log level either ERR, WARN, INFO or DEBUG")\arg
 
 parser\option("-n --notifier", "Expects a path to a notifier moonscript file (overrides the default of ~/.spook/notifier.moon)")\args(1)
 
-parser\option("-w --watch", "Expects path(s) to directories to watch (recursively)")\args("*")
-
 parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
 
 parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
-
-parser\flag("-s --show-command", "Show the \"[RUNNING] path/to/utility path/to/file\" message on change detected")
 
 parser

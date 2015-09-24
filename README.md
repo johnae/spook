@@ -52,7 +52,7 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-c <config>]
-       [-f <file>] [-s] [-h] [<command>] [-w [<watch>] ...]
+       [-f <file>] [-s] [-h] [<command>]
 
 Watches for changes and runs commands in response
 
@@ -66,19 +66,16 @@ Options:
                          Log level either ERR, WARN, INFO or DEBUG
    -n <notifier>, --notifier <notifier>
                          Expects a path to a notifier moonscript file (overrides the default of ~/.spook/notifier.moon)
-   -w [<watch>] ..., --watch [<watch>] ...
-                         Expects path(s) to directories to watch (recursively)
    -c <config>, --config <config>
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -f <file>, --file <file>
                          Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
-   -s, --show-command    Show the "[RUNNING] path/to/utility path/to/file" message on change detected
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
 ```
 
-To watch directories the best way is to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
+To watch directories you need to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
 should be pretty straightforward to change according to your needs. Just run:
 
 ```
@@ -90,14 +87,15 @@ that directory.
 
 ### The Spookfile
 
-The Spookfile can be initialized (with an example for a Rails app) like this:
+The Spookfile can, as mentioned above, be initialized (with an example for a Rails app) like this:
 
 ```
 cd /to/your/project
 spook -i
 ```
 
-This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things.
+This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things. It understands a simple
+DSL as well as just straight moonscript for additional things.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
@@ -109,15 +107,15 @@ log_level "INFO"
 -- mapping with those watches. There's also one command per
 -- watch statement (eg. what to execute on changes).
 watch "lib", "spec", ->
-  map "^(spec)/(spec_helper%.moon)", -> "spec"
-  map "^spec/(.*)%.moon", (a) -> "spec/#{a}.moon"
-  map "^lib/(.*)%.moon", (a) -> "spec/#{a}_spec.moon"
-  command "./spook -f spec/support/run_busted.lua"
+  cmd "./spook -f spec/support/run_busted.lua", show_command: true -- setting show_command means it will log what it runs
+  on_changed "^(spec)/(spec_helper%.moon)", -> cmd "spec"
+  on_changed "^spec/(.*)%.moon", (a) -> cmd "spec/#{a}.moon"
+  on_changed "^lib/(.*)%.moon", (a) -> cmd "spec/#{a}_spec.moon"
 
 -- Another watch
 watch "playground", ->
-  map "^playground/(.*)%.moon", (a) -> "playground/#{a}.moon"
-  command "./spook -f"
+  cmd = command "./spook -f"
+  on_changed "^playground/(.*)%.moon", (a) -> cmd "playground/#{a}.moon"
 
 -- The notifier to use
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
@@ -136,8 +134,8 @@ Something like this in ~/.spook/notifier.moon:
 start = (changed_file, mapped_file) ->
   print "#{project_name!}: running specs #{mapped_file} for changes in #{changed_file}"
 
-finish = (status, changed_file, mapped_file) ->
-  if status == 0
+finish = (success, changed_file, mapped_file) ->
+  if success
     print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} passed"
   else
     print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} failed"
@@ -191,8 +189,8 @@ uv.signal_start sigint, "sigint", (signal) ->
   tmux_set_status tmux_default_status
   os.exit 1
 
-finish = (status, changed_file, mapped_file) ->
-  if status == 0
+finish = (success, changed_file, mapped_file) ->
+  if success
     tmux_set_status tmux_pass_status
   else
     tmux_set_status tmux_fail_status

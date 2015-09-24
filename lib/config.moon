@@ -1,12 +1,10 @@
 moonscript = require "moonscript"
 log = require("log")(0)
+command = require "command"
 ->
 
   config = {watch: {}}
   config_env = {
-
-    show_command: (s) ->
-      config.show_command = s
 
     log_level: (l) ->
       levels = {ERR: 0, WARN: 1, INFO: 2, DEBUG: 3}
@@ -19,7 +17,7 @@ log = require("log")(0)
       else if type(n) == "string"
         status, notifier = pcall(-> return moonscript.loadfile(n)!)
         if not status
-          log.debug "Failed to load notifier from #{n}: #{notifier}"
+          log.error "Failed to load notifier from #{n}: #{notifier}"
           notifier = require "default_notifier"
         notifier
       else
@@ -28,43 +26,40 @@ log = require("log")(0)
     watch: (...) ->
       args = {...}
       f = table.remove args, #args
-      local command
       tmap = {}
       conf = {}
       watch_env = {
-        map: (m, r) ->
+        :command
+        on_changed: (m, r) ->
           tmap[#tmap + 1] = {m, r}
 
-        command: (c) ->
-          command = c
       }
       setmetatable watch_env, __index: _G
       setfenv f, watch_env
       f!
       for dir in *args
-        config.watch[dir] = {:command, map: tmap}
+        config.watch[dir] = tmap
 
   }
 
   setmetatable config_env, __index: _G
 
   default_configuration = ->
+    change_handler = (s) ->
+      print "Mapped file #{s}"
     watch "lib", "spec", ->
-      map "^lib/(.*)%.(.*)", (n, ext) -> "spec/#{n}.#{ext}"
-      command "ls"
+      on_changed "^lib/(.*)%.(.*)", (n, ext) -> change_handler "spec/#{n}.#{ext}"
     log_level "INFO"
     notifier require("default_notifier")
-    show_command false
 
   args_configuration = (args) ->
     unless args.watch == nil
+      cmd = command args.command unless args.command == nil
       watch unpack(args.watch), ->
-        command args.command unless args.command == nil
+    --    command args.command unless args.command == nil
 
     log_level args.log_level unless args.log_level == nil
     notifier args.notifier unless args.notifier == nil
-    show_command args.show_command unless args.show_command == nil
-
 
   setfenv default_configuration, config_env
   setfenv args_configuration, config_env

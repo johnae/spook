@@ -18,7 +18,10 @@ if fi = index_of arg, "-f"
     os.exit 1
   _G.arg = new_args
   _G.log = require("log")(1)
-  loaded_chunk = assert loadfile(file), "Failed to load file: #{file}"
+  loaded_chunk = if file\match "[^.]%.lua$"
+    assert loadfile(file), "Failed to load file: #{file}"
+  else -- assume it's moonscript
+    assert moonscript.loadfile(file), "Failed to load file: #{file}"
   loaded_chunk!
 
 else
@@ -44,12 +47,11 @@ else
   {:notifier, :show_command, :watch} = conf
 
   watched = 0
-  for dir, conf in pairs watch
+  for dir, on_changed in pairs watch
     dirs = dir_list dir
     watched += #dirs
-    mapper = file_mapper conf.map
-    spook {mapper: mapper, command: conf.command,
-          notifier: notifier, watch: dirs, show_command: show_command}
+    mapper = file_mapper on_changed
+    spook {mapper: mapper, notifier: notifier, watch: dirs, show_command: show_command}
     
   log.info colors("%{blue}Watching " .. watched .. " directories")
   uv\run!

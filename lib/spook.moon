@@ -4,43 +4,22 @@ colors = require 'ansicolors'
 uv = require "uv"
 moon = require "moon"
 
-show_command = false
-
-file_exists = (path) ->
-  f = io.open path, "r"
-  if f
-    f\close!
-    true
-  else
-    false
-
-run_utility = (changed_file, mapper, notifier, utility) ->
+run_utility = (changed_file, mapper, notifier) ->
 
   log.debug "mapping file #{changed_file}..."
-  mapped_file, file_utility = mapper changed_file
+  run = mapper changed_file
 
-  if file_utility
-    log.debug "using matcher utility: #{file_utility}"
-    utility = file_utility
-
-  -- only runs if there is something returned from the mapper
-  if mapped_file and file_exists mapped_file
-    log.debug "mapped file: #{mapped_file}"
-    notifier.start changed_file, mapped_file
-    log.debug "running: '#{utility} #{mapped_file}'"
-    if show_command
-      log.info colors("%{blue}[RUNNING] #{utility} #{mapped_file}")
-    _ ,_ ,status = os.execute "#{utility} #{mapped_file}"
-    notifier.finish status, changed_file, mapped_file
+  -- only runs if there is something returned from the change_handler
+  if run
+    notifier.start changed_file, runnable
+    successful = run!
+    notifier.finish successful, changed_file, runnable
   else
-    if mapped_file and not file_exists mapped_file
-      log.debug "#{mapped_file} does not exist"
-    else
-      log.debug "No mapping found for #{changed_file}"
+    log.debug "No mapping found for #{changed_file}"
 
 last_changed_file = {"", true, 1}
 
-create_event_handler = (fse, mapper, notifier, command) ->
+create_event_handler = (fse, mapper, notifier) ->
   (self, filename, events, status) ->
 
     log.debug "change detected"
@@ -56,17 +35,16 @@ create_event_handler = (fse, mapper, notifier, command) ->
       event_id = last_changed_file[3]
       last_changed_file[2] = true
       unless event_recorded
-        run_utility changed_file, mapper, notifier, command
+        run_utility changed_file, mapper, notifier
 
-(config) ->
-  {:mapper, :notifier, :command, :watch, :show_command} = config
-  log.debug "Command to run: #{command}"
+(conf) ->
+  {:mapper, :notifier, :watch} = conf
 
   watchers = {}
 
   for watch_dir in *watch
     fse = uv.new_fs_event!
     watchers[watch_dir] = fse
-    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
+    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier)
 
   watchers

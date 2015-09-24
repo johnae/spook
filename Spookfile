@@ -1,19 +1,20 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
+echo = (i) ->
+  print i
+
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
-  map "^(spec)/(spec_helper%.moon)", -> "spec"
-  map "^spec/(.*)%.moon", (a) -> "spec/#{a}.moon"
-  map "^lib/(.*)%.moon", (a) -> "spec/#{a}_spec.moon"
-  command "./spook -f spec/support/run_busted.lua"
+  cmd = command "./spook -f spec/support/run_busted.lua", show_command: true
+  on_changed "^(spec)/(spec_helper%.moon)", -> cmd "spec"
+  on_changed "^spec/(.*)%.moon", (a) -> cmd "spec/#{a}.moon"
+  on_changed "^lib/(.*)%.moon", (a) -> cmd "spec/#{a}_spec.moon"
 
 watch "playground", ->
-  map "^playground/(.*)%.moon", (a) -> "playground/#{a}.moon"
-  command "./spook -f"
+  cmd = command "./spook -f", show_command: true
+  on_changed "^playground/(.*)%.moon", (a) -> cmd "playground/#{a}.moon"
+  on_changed "^playground/(.*)%.lua", (a) -> cmd "playground/#{a}.lua"
 
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
-
--- Display what's being run
-show_command true
