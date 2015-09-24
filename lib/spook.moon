@@ -1,5 +1,4 @@
 colors = require 'ansicolors'
-{:insert, :remove, :concat} = table
 {:log} = _G
 uv = require "uv"
 
