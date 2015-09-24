@@ -23,8 +23,8 @@ watch "app", "lib", "spec", ->
   cmd = command "./bin/rspec -f d spec"
   on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
   on_changed "^spec/(.*)%_spec.rb", (a) -> cmd "spec/#{a}_spec.rb"
-  on_changed "^lib/(.*)%.rb", (a) -> "spec/lib/#{a}_spec.rb"
-  on_changed "^app/(.*)%.rb", (a) -> "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
+  on_changed "^app/(.*)%.rb", (a) -> cmd "spec/#{a}_spec.rb"
 
 -- For business and pleasure yeah?
 watch "playground", ->
