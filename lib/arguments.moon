@@ -1,6 +1,6 @@
 argparse = require "argparse"
 
-parser = argparse name: "spook", description: "Watches for changes and runs commands in response", epilog: "For more see https://github.com/johnae/spook"
+parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response", epilog: "For more see https://github.com/johnae/spook"
 
 parser\argument("command", "Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!")\args "0-1"
 
