@@ -121,9 +121,6 @@ watch "playground", ->
 
 -- The notifier to use
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
-
--- Display what's being run (or not)
-show_command true
 ```
 
 ### Notifications
