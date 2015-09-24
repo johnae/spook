@@ -54,7 +54,7 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
 parser\option("-l --log-level", "Log level either ERR, WARN, INFO or DEBUG")\args(1)
 
-parser\option("-n --notifier", "Expects a path to a notifier moonscript file (overrides the default of ~/.spook/notifier.moon)")\args(1)
+parser\option("-n --notifier", "Expects a path to a notifier moonscript file")\args(1)
 
 parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
 
