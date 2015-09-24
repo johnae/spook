@@ -130,14 +130,14 @@ and called by spook when certain events take place. The events supported are "st
 Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
-start = (changed_file, mapped_file) ->
-  print "#{project_name!}: running specs #{mapped_file} for changes in #{changed_file}"
+start = (changed_file) ->
+  print "#{project_name!}: changes detected in #{changed_file}"
 
-finish = (success, changed_file, mapped_file) ->
+finish = (success, changed_file) ->
   if success
-    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} passed"
+    print "#{project_name!}: changes in #{changed_file} passed"
   else
-    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} failed"
+    print "#{project_name!}: changes in #{changed_file} failed"
 
 :start, :finish
 ```
@@ -174,7 +174,7 @@ start_reset_timer = ->
     tmux_set_status tmux_default_status
     stop_timer!
 
-start = (changed_file, mapped_file) ->
+start = (changed_file) ->
   tmux_set_status tmux_test_status
   start_reset_timer!
 
@@ -188,7 +188,7 @@ uv.signal_start sigint, "sigint", (signal) ->
   tmux_set_status tmux_default_status
   os.exit 1
 
-finish = (success, changed_file, mapped_file) ->
+finish = (success, changed_file) ->
   if success
     tmux_set_status tmux_pass_status
   else
