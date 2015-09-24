@@ -102,29 +102,27 @@ This file is written as [moonscript](https://github.com/leafo/moonscript) and ma
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
--- How much output do you want?
+-- How much output do you want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
--- Directories to watch for changes
-watch {"app","lib","spec"}
+-- Set up watches for one or more directories and associate
+-- mapping with those watches. There's also one command per
+-- watch statement (eg. what to execute on changes).
+watch "lib", "spec", ->
+  map "^(spec)/(spec_helper%.moon)", -> "spec"
+  map "^spec/(.*)%.moon", (a) -> "spec/#{a}.moon"
+  map "^lib/(.*)%.moon", (a) -> "spec/#{a}_spec.moon"
+  command "./spook -f spec/support/run_busted.lua"
 
--- How (changed) files are mapped to tests which become the input to the command to run
--- every matcher can return an additional value specifying a different command to run when
--- match (otherwise the specified default command will run).
--- example:
--- "^testing/stuff%.moon": -> "testing/stuff.moon", "ls -lah"
-map {
-  "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
-  "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
-  "^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"
-  "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
-}
--- you may also use a list of k,v tables for ordering if that's important
+-- Another watch
+watch "playground", ->
+  map "^playground/(.*)%.moon", (a) -> "playground/#{a}.moon"
+  command "./spook -f"
 
--- The command to run in response to changes - the mapped file is given as argument, like this:
-command "./bin/rspec -f d"
+-- The notifier to use
+notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
--- Show what command will run
+-- Display what's being run (or not)
 show_command true
 ```
 

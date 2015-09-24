@@ -1,8 +1,19 @@
 config = require "config"
 dir_list = require "dir_list"
+moon = require "moon"
 
 describe 'config', ->
   local conf
+
+  sorted = (t) ->
+    table.sort t
+    t
+
+  keys = (t) ->
+    k = {}
+    for key,_ in pairs t
+      k[#k + 1] = key
+    sorted k
 
   describe 'default configuration', ->
 
@@ -10,11 +21,13 @@ describe 'config', ->
       conf = config()!
 
     it 'has defaults', ->
-      expected_watch_dirs = dir_list({"lib", "spec"})
-      assert.same expected_watch_dirs, conf.watch
+      watched = keys(conf.watch)
+      assert.same sorted({"lib", "spec"}), watched
+      for dir in *watched
+        assert.same "ls", conf.watch[dir].command
       assert.false conf.show_command
+      assert.same 2, conf.log_level
       assert.same require("default_notifier"), conf.notifier
-      assert.same "ls", conf.command
 
   describe 'from Spookfile', ->
 
@@ -22,22 +35,26 @@ describe 'config', ->
       conf = config!(config_file: 'Spookfile')
 
     it 'overwrites deafaults with supplied config', ->
-      expected_watch_dirs = dir_list({"lib", "spec", "playground"})
-      assert.same expected_watch_dirs, conf.watch
+      watched = keys(conf.watch)
+      assert.same sorted({"playground", "lib", "spec"}), watched
+      assert.same "./spook -f spec/support/run_busted.lua", conf.watch.lib.command
+      assert.same "./spook -f spec/support/run_busted.lua", conf.watch.spec.command
+      assert.same "./spook -f", conf.watch.playground.command
+      assert.same 2, conf.log_level
       assert.true conf.show_command
-      assert.same "./spook -f spec/support/run_busted.lua", conf.command
 
   describe 'from args', ->
     local args
     before_each ->
       args = {
-        watch: {"lib"}
+        watch: {"spoon"}
         show_command: true
+        log_level: 'DEBUG'
       }
       conf = config!(args: args)
 
     it 'overwrites defaults with supplied args', ->
-      expected_watch_dirs = dir_list({"lib"})
-      assert.same expected_watch_dirs, conf.watch
+      watched = keys(conf.watch)
+      assert.same {"lib", "spec", "spoon"}, watched
+      assert.same 3, conf.log_level
       assert.true conf.show_command
-      assert.same "ls", conf.command -- default

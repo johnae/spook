@@ -5,6 +5,7 @@ package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
 config = require("config")!
+uv = require "uv"
 moonscript = require "moonscript.base"
 {:concat, :remove, :index_of} = table
 
@@ -33,8 +34,22 @@ else
   if not conf
     os.exit 1
 
-  _G.log = conf.log
+  _G.log = require("log")(conf.log_level)
 
+  colors = require 'ansicolors'
   spook = require "spook"
-  runner, watchers = spook conf
-  runner\run!
+  file_mapper = require "file_mapper"
+  dir_list = require "dir_list"
+
+  {:notifier, :show_command, :watch} = conf
+
+  watched = 0
+  for dir, conf in pairs watch
+    dirs = dir_list dir
+    watched += #dirs
+    mapper = file_mapper conf.map
+    spook {mapper: mapper, command: conf.command,
+          notifier: notifier, watch: dirs, show_command: show_command}
+    
+  log.info colors("%{blue}Watching " .. watched .. " directories")
+  uv\run!

@@ -1,7 +1,8 @@
-uv = require "uv"
 colors = require 'ansicolors'
 {:insert, :remove, :concat} = table
 {:log} = _G
+uv = require "uv"
+moon = require "moon"
 
 show_command = false
 
@@ -60,7 +61,6 @@ create_event_handler = (fse, mapper, notifier, command) ->
 (config) ->
   {:mapper, :notifier, :command, :watch, :show_command} = config
   log.debug "Command to run: #{command}"
-  log.info colors("%{blue}Watching " .. #watch .. " directories")
 
   watchers = {}
 
@@ -69,4 +69,4 @@ create_event_handler = (fse, mapper, notifier, command) ->
     watchers[watch_dir] = fse
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier, command)
 
-  uv, watchers
+  watchers

@@ -1,8 +1,9 @@
 fs = require "fs"
 insert = table.insert
 
-(top_dirs) ->
+(...) ->
   watch_dirs = {}
+  top_dirs = {...}
   for dir in *top_dirs
     if fs.is_dir dir
       insert watch_dirs, dir

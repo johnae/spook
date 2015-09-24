@@ -1,19 +1,19 @@
--- Directories to watch for changes
-watch {"lib", "spec", "playground"}
-
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
--- How should changed files be mapped to tests (or whatever file really)?
-map {
-  {"^(spec)/(spec_helper%.moon)": (a,b) -> "spec"}
-  {"^spec/(.*)%.moon": (a,b) -> "spec/#{a}.moon"}
-  {"^lib/(.*)%.moon": (a,b) -> "spec/#{a}_spec.moon"}
-  {"^playground/(.*)%.moon": (a) -> "playground/#{a}.moon"}
-}
+-- Directories to watch for changes, how to map detected changes to
+-- files and what to run
+watch "lib", "spec", ->
+  map "^(spec)/(spec_helper%.moon)", -> "spec"
+  map "^spec/(.*)%.moon", (a) -> "spec/#{a}.moon"
+  map "^lib/(.*)%.moon", (a) -> "spec/#{a}_spec.moon"
+  command "./spook -f spec/support/run_busted.lua"
 
--- What's the (default) command we want to run?
-command "./spook -f spec/support/run_busted.lua"
+watch "playground", ->
+  map "^playground/(.*)%.moon", (a) -> "playground/#{a}.moon"
+  command "./spook -f"
+
+notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
 -- Display what's being run
 show_command true

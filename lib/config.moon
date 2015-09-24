@@ -1,19 +1,16 @@
 moonscript = require "moonscript"
 log = require("log")(0)
 ->
-  config = {}
-  cenv = {
 
-    watch: (w) ->
-      config.watch = require("dir_list")(w)
+  config = {watch: {}}
+  config_env = {
 
-    map: (m) ->
-      config.mapper = require("file_mapper")(m)
+    show_command: (s) ->
+      config.show_command = s
 
     log_level: (l) ->
       levels = {ERR: 0, WARN: 1, INFO: 2, DEBUG: 3}
-      log_level = assert tonumber(l) or levels[l]
-      config.log = require("log")(log_level)
+      config.log_level = assert tonumber(l) or levels[l]
 
     notifier: (n) ->
       local notifier
@@ -28,36 +25,49 @@ log = require("log")(0)
       else
         require "default_notifier"
 
-    command: (c) ->
-      config.command = c
+    watch: (...) ->
+      args = {...}
+      f = table.remove args, #args
+      local command
+      tmap = {}
+      conf = {}
+      watch_env = {
+        map: (m, r) ->
+          tmap[#tmap + 1] = {m, r}
 
-    show_command: (s) ->
-      config.show_command = s
+        command: (c) ->
+          command = c
+      }
+      setmetatable watch_env, __index: _G
+      setfenv f, watch_env
+      f!
+      for dir in *args
+        config.watch[dir] = {:command, map: tmap}
 
   }
 
-  cenv = setmetatable cenv, __index: _G
+  setmetatable config_env, __index: _G
 
   default_configuration = ->
-    watch {"lib", "spec"}
-    map {
-      {"^lib/(.*)%.(.*)": (n, ext) -> "spec/#{n}.#{ext}"}
-    }
+    watch "lib", "spec", ->
+      map "^lib/(.*)%.(.*)", (n, ext) -> "spec/#{n}.#{ext}"
+      command "ls"
     log_level "INFO"
     notifier require("default_notifier")
-    command "ls"
     show_command false
 
   args_configuration = (args) ->
-    watch args.watch unless args.watch == nil
+    unless args.watch == nil
+      watch unpack(args.watch), ->
+        command args.command unless args.command == nil
+
     log_level args.log_level unless args.log_level == nil
     notifier args.notifier unless args.notifier == nil
-    command args.command unless args.command == nil
     show_command args.show_command unless args.show_command == nil
 
 
-  setfenv default_configuration, cenv
-  setfenv args_configuration, cenv
+  setfenv default_configuration, config_env
+  setfenv args_configuration, config_env
 
   default_configuration!
 
@@ -68,7 +78,7 @@ log = require("log")(0)
       assert moonscript.loadfile(config_file), "Failed to load #{config_file}"
 
     if spook_configuration
-      setfenv spook_configuration, cenv
+      setfenv spook_configuration, config_env
       spook_configuration!
 
     if args
