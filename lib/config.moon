@@ -27,9 +27,9 @@ command = require "command"
       args = {...}
       f = table.remove args, #args
       tmap = {}
-      conf = {}
       watch_env = {
         :command
+
         on_changed: (m, r) ->
           tmap[#tmap + 1] = {m, r}
 
@@ -53,11 +53,6 @@ command = require "command"
     notifier require("default_notifier")
 
   args_configuration = (args) ->
-    unless args.watch == nil
-      cmd = command args.command unless args.command == nil
-      watch unpack(args.watch), ->
-    --    command args.command unless args.command == nil
-
     log_level args.log_level unless args.log_level == nil
     notifier args.notifier unless args.notifier == nil
 
