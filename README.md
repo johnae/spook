@@ -264,7 +264,7 @@ I can be reached directly at \<john at insane.se\> as well as through github.
 
 ### In closing
 
-Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+Anything you can do with LuaJIT (FFI for example) you can do in the notifier (or even Spookfile)  so go crazy if you want to.
 
 MoonScript and Lua are really powerful and fun, coupled with LuaJIT they're ridiculously fast but often overlooked languages.
 You should really give them a try - they deserve it, regardless of whether you like Spook or not.
