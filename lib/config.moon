@@ -11,7 +11,6 @@ command = require "command"
       config.log_level = assert tonumber(l) or levels[l]
 
     notifier: (n) ->
-      local notifier
       config.notifier = if type(n) == "table"
         n
       else if type(n) == "string"
