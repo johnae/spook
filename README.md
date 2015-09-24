@@ -104,8 +104,10 @@ A functional example of mapping etc via the Spookfile (for a rails app in this c
 log_level "INFO"
 
 -- Set up watches for one or more directories and associate
--- mapping with those watches. There's also one command per
--- watch statement (eg. what to execute on changes).
+-- mapping with those watches. A function is associated with
+-- the matcher and will run on changes. The command helper is
+-- there so it's easy to construct a function that runs a shell command
+-- but it's not limited to that - you can run any function you want.
 watch "lib", "spec", ->
   cmd "./spook -f spec/support/run_busted.lua", show_command: true -- setting show_command means it will log what it runs
   on_changed "^(spec)/(spec_helper%.moon)", -> cmd "spec"
