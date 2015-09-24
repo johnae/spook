@@ -8,4 +8,4 @@ log = require("log")(2)
     if opts.show_command
       log.info colors("%{blue}[RUNNING] #{t.cmd} #{rest}")
     _, _, status = os.execute "#{t.cmd} #{rest}"
-    status == 0 or false
+    status == 0
