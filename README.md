@@ -109,16 +109,16 @@ log_level "INFO"
 -- the matcher and will run on changes. The command helper is
 -- there so it's easy to construct a function that runs a shell command
 -- but it's not limited to that - you can run any function you want.
-watch "lib", "spec", ->
-  cmd "./spook -f spec/support/run_busted.lua", show_command: true -- setting show_command means it will log what it runs
-  on_changed "^(spec)/(spec_helper%.moon)", -> cmd "spec"
-  on_changed "^spec/(.*)%.moon", (a) -> cmd "spec/#{a}.moon"
-  on_changed "^lib/(.*)%.moon", (a) -> cmd "spec/#{a}_spec.moon"
+watch "lib", "app", "spec", ->
+  cmd "./bin/rspec -f d"
+  on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
+  on_changed "^spec/(.*)_spec%.rb", (a) -> cmd "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.moon"
 
 -- Another watch
 watch "playground", ->
-  cmd = command "./spook -f"
-  on_changed "^playground/(.*)%.moon", (a) -> cmd "playground/#{a}.moon"
+  cmd = comand "ruby"
+  on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
 -- The notifier to use
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
