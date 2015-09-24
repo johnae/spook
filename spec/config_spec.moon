@@ -40,12 +40,9 @@ describe 'config', ->
     local args
     before_each ->
       args = {
-        watch: {"spoon"}
         log_level: 'DEBUG'
       }
       conf = config!(args: args)
 
     it 'overwrites defaults with supplied args', ->
-      watched = keys(conf.watch)
-      assert.same {"lib", "spec", "spoon"}, watched
       assert.same 3, conf.log_level
