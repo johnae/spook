@@ -41,7 +41,7 @@ describe 'spook', ->
 
     it 'gets notified when a new file is added', ->
       file = "#{dirs[1]}/myfile.txt"
-      watch_for(1200)
+      watch_for(1500)
       create_file(300, file)
       uv.update_time!
       uv\run!
