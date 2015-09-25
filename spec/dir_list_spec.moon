@@ -16,7 +16,7 @@ describe 'dir_list', ->
     fs.rm_rf dir
 
   it 'only lists directories including the top dir', ->
-    dirs = dir_list({dir})
+    dirs = dir_list dir
     assert.same {
       dir,
       "#{dir}/dir1",

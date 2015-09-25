@@ -12,10 +12,19 @@ describe 'fs', ->
     fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
     assert.true fs.is_dir '/tmp/spook-fs-spec/my/dir/structure'
 
-  it 'is_dir returns true for en existing directory', ->
+  it 'is_dir returns true for en existing directory and false if not a dir or missing', ->
     assert.false fs.is_dir '/tmp/spook-fs-spec'
     fs.mkdir_p '/tmp/spook-fs-spec'
     assert.true fs.is_dir '/tmp/spook-fs-spec'
+
+  it 'is_file returns true for en existing file and false if not a file or missing', ->
+    fs.mkdir_p '/tmp/spook-fs-spec'
+    assert.false fs.is_file '/tmp/spook-fs-spec'
+    assert.false fs.is_file '/tmp/spook-fs-spec/myfile.txt'
+    f = assert io.open('/tmp/spook-fs-spec/myfile.txt', "w")
+    f\write "hello"
+    f\close!
+    assert.true fs.is_file '/tmp/spook-fs-spec/myfile.txt'
 
   it 'rm_rf removes directory structures', ->
     fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'

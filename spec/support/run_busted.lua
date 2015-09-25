@@ -20,6 +20,7 @@ for entry, attr in fs.dirtree("lib", true) do
   if entry:match("[^.].moon$") then
     local hndl = (entry:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" ):gsub("lib%.", "")
     package.preload[hndl] = nil
+    package.loaded[hndl] = nil
   end
 end
 package.loaded.fs = nil

@@ -1,6 +1,6 @@
 argparse = require "argparse"
 
-parser = argparse name: "spook", description: "Your very own filesystem spymaster", epilog: "For more see https://github.com/johnae/spook"
+parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response", epilog: "For more see https://github.com/johnae/spook"
 
 parser\argument("command", "Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!")\args "0-1"
 
@@ -11,43 +11,54 @@ parser\flag("-v --version", "Show the Spook version you're running and exit")\ac
 parser\flag("-i --initialize", "Initialize an example Spookfile in the current dir")\action ->
   f = io.open("Spookfile", "wb")
   content = [[
--- Directories to watch for changes
-watch = {"app","lib","spec"}
+-- How much output do we want?
+log_level "INFO"
 
--- How (changed) files are mapped to tests which become the input to the command to run
--- below is for a Rails app. If order must be preserved. Make this a list of k,v tables.
--- They will be evaluated first to last in that case.
-map = {
-  "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
-  "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
-  "^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"
-  "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
-}
+-- Setup what directories to watch and what to do
+-- when a file is changed. "command" is a helper
+-- for setting up what command to run. There is no
+-- restriction on running shell commands however -
+-- any function (in lua/moonscript) can be run
+watch "app", "lib", "spec", ->
+  cmd = command "./bin/rspec -f d"
+  on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
+  on_changed "^spec/(.*)%_spec.rb", (a) -> cmd "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
+  on_changed "^app/(.*)%.rb", (a) -> cmd "spec/#{a}_spec.rb"
 
--- The command to run on changes (the mapped file will be it's input)
--- below is for a Rails/ruby app tested with rspec
-command = "./bin/rspec -f d"
+-- Perhaps some area where we experiment, sort of
+-- like a poor mans REPL
+watch "playground", ->
+  cmd = command "ruby"
+  on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
 -- The notifier to use, skipped if it doesn't exist
--- turn on debug (-l 3) to see if it failed to load because
--- there was no file
-notifier = "#{os.getenv('HOME')}/.spook/notifier.moon"
+-- turn on debug (-l DEBUG or in this file - see log_level above)
+-- to see if it failed to load because there was no file or
+-- some error parsing it
+notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
-:watch, :map, :command, :notifier]]
+-- or you could specify the notifier here (for simpler variants), like
+--notifier {
+--  start: (changed_file, mapped_file) ->
+--    print "#{changed_file} -> "#{mapped_file}"
+--  finish: (status, changed_file, mapped_file) ->
+--    if status
+--      print "Success!"
+--    else
+--      print "Failure!"
+--}
+]]
   content = f\write(content)
   f\close()
   os.exit 0
 
-parser\option("-l --log-level", "Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG", "2")\convert(tonumber)
+parser\option("-l --log-level", "Log level either ERR, WARN, INFO or DEBUG")\args(1)
 
-parser\option("-n --notifier", "Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)")\args(1)
-
-parser\option("-w --watch", "Expects path(s) to directories to watch (recursively) - this disables reading the dir list from stdin")\args("*")
+parser\option("-n --notifier", "Expects a path to a notifier moonscript file")\args(1)
 
 parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
 
-parser\option("-f --file", "Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior")\args(1)
-
-parser\flag("-s --spooked", "Show the \"[SPOOKED] path/to/utility path/to/file\" message on change detected")
+parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
 
 parser

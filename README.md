@@ -2,11 +2,11 @@
 
 ## Spook
 
-Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard).
+Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard) and much more.
 It's still early days but I'm using it every day for work. It is mostly written in [Lua](http://www.lua.org)
 and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a static
-binary with no dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and
-compiled with Lua 5.2 compatibility. All extensions and such should be written in [moonscript](https://github.com/leafo/moonscript).
+binary with no external dependencies. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and
+compiled with Lua 5.2 compatibility. Extensions easily written in [moonscript](https://github.com/leafo/moonscript).
 
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
 Currently only available for Linux x86_64 and Mac OS X x86_64.
@@ -51,10 +51,10 @@ spook --help
 Currently that would output something like:
 
 ```
-Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-f <file>]
-       [-h] [<command>] ... [-w [<watch>] ...] [-c [<config>] ...]
+Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-c <config>]
+       [-f <file>] [-h] [<command>]
 
-Your very own filesystem spymaster
+Watches for changes and runs functions (and commands) in response
 
 Arguments:
    command               Expects the command to run which will be given as input the output of the mapping (in Spookfile), enclose it in quotes!
@@ -63,21 +63,19 @@ Options:
    -v, --version         Show the Spook version you're running and exit
    -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
-                         Log level, 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG (default: 2)
+                         Log level either ERR, WARN, INFO or DEBUG
    -n <notifier>, --notifier <notifier>
-                         Expects a path to a notifier moonscript (overrides the default of ~/.spook/notifier.moon)
-   -w [<watch>] ..., --watch [<watch>] ...
-                         Expects path(s) to directories to watch (recursively) - this disables reading the dir list from stdin
-   -c [<config>] ..., --config [<config>] ...
-                         Expect the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
+                         Expects a path to a notifier moonscript file
+   -c <config>, --config <config>
+                         Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -f <file>, --file <file>
-                         Expects a path to moonscript file - this runs the script within the context of spook, skipping the default behavior
+                         Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
 ```
 
-To watch directories the best way is to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
+To watch directories you need to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
 should be pretty straightforward to change according to your needs. Just run:
 
 ```
@@ -89,38 +87,41 @@ that directory.
 
 ### The Spookfile
 
-The Spookfile can be initialized (with an example for a Rails app) like this:
+The Spookfile can, as mentioned above, be initialized (with an example for a Rails app) like this:
 
 ```
 cd /to/your/project
 spook -i
 ```
 
-This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to other files among other things.
+This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
+DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
+response to a change. All functions should return true or false which indicates success or not.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
--- Directories to watch for changes
-watch = {"app","lib","spec"}
+-- How much output do you want? (ERR, WARN, INFO, DEBUG)
+log_level "INFO"
 
--- How (changed) files are mapped to tests which become the input to the command to run
--- every matcher can return an additional value specifying a different command to run when
--- match (otherwise the specified default command will run).
--- example:
--- "^testing/stuff%.moon": -> "testing/stuff.moon", "ls -lah"
-map = {
-  "^(spec)/(spec_helper%.rb)": (a,b) -> "spec"
-  "^spec/(.*)%.rb": (a,b) -> "spec/#{a}.rb"
-  "^lib/(.*)%.rb": (a,b) -> "spec/lib/#{a}_spec.rb"
-  "^app/(.*)%.rb": (a,b) -> "spec/#{a}_spec.rb"
-}
+-- Set up watches for one or more directories and associate
+-- mapping with those watches. A function is associated with
+-- the matcher and will run on changes. The command helper is
+-- there so it's easy to construct a function that runs a shell command
+-- but it's not limited to that - you can run any function you want.
+watch "lib", "app", "spec", ->
+  cmd "./bin/rspec -f d"
+  on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
+  on_changed "^spec/(.*)_spec%.rb", (a) -> cmd "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.moon"
 
--- You may also set the command to run here (as opposed to adding it on the command line), like this:
-command = "./bin/rspec -f d"
--- don't forget to return the command below like the others, eg. add :command to the returned values
+-- Another watch
+watch "playground", ->
+  cmd = comand "ruby"
+  on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
-:watch, :map, :command
+-- The notifier to use
+notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 ```
 
 ### Notifications
@@ -130,14 +131,14 @@ and called by spook when certain events take place. The events supported are "st
 Something like this in ~/.spook/notifier.moon:
 
 ```moonscript
-start = (changed_file, mapped_file) ->
-  print "#{project_name!}: running specs #{mapped_file} for changes in #{changed_file}"
+start = (changed_file) ->
+  print "#{project_name!}: changes detected in #{changed_file}"
 
-finish = (status, changed_file, mapped_file) ->
-  if status == 0
-    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} passed"
+finish = (success, changed_file) ->
+  if success
+    print "#{project_name!}: changes in #{changed_file} passed"
   else
-    print "#{project_name!}: tests in #{mapped_file} for changes in #{changed_file} failed"
+    print "#{project_name!}: changes in #{changed_file} failed"
 
 :start, :finish
 ```
@@ -174,7 +175,7 @@ start_reset_timer = ->
     tmux_set_status tmux_default_status
     stop_timer!
 
-start = (changed_file, mapped_file) ->
+start = (changed_file) ->
   tmux_set_status tmux_test_status
   start_reset_timer!
 
@@ -188,8 +189,8 @@ uv.signal_start sigint, "sigint", (signal) ->
   tmux_set_status tmux_default_status
   os.exit 1
 
-finish = (status, changed_file, mapped_file) ->
-  if status == 0
+finish = (success, changed_file) ->
+  if success
     tmux_set_status tmux_pass_status
   else
     tmux_set_status tmux_fail_status
@@ -263,7 +264,7 @@ I can be reached directly at \<john at insane.se\> as well as through github.
 
 ### In closing
 
-Anything you can do with LuaJIT (FFI for example) you can do in the notifier so go crazy if you want to.
+Anything you can do with LuaJIT (FFI for example) you can do in the notifier (or even Spookfile)  so go crazy if you want to.
 
 MoonScript and Lua are really powerful and fun, coupled with LuaJIT they're ridiculously fast but often overlooked languages.
 You should really give them a try - they deserve it, regardless of whether you like Spook or not.

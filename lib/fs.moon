@@ -7,6 +7,15 @@ is_dir = (dir) ->
   return false unless attr and attr.mode == "directory"
   true
 
+is_file = (path) ->
+  return false if is_dir path
+  f = io.open path, "r"
+  if f
+    f\close!
+    true
+  else
+    false
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
 
@@ -47,4 +56,4 @@ rm_rf = (path, attr) ->
     else if attr
       os.remove path
 
-:dirtree, :rm_rf, :mkdir_p, :is_dir
+:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file
