@@ -20,7 +20,7 @@ log_level "INFO"
 -- restriction on running shell commands however -
 -- any function (in lua/moonscript) can be run
 watch "app", "lib", "spec", ->
-  cmd = command "./bin/rspec -f d spec"
+  cmd = command "./bin/rspec -f d"
   on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
   on_changed "^spec/(.*)%_spec.rb", (a) -> cmd "spec/#{a}_spec.rb"
   on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
@@ -42,7 +42,7 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 --  start: (changed_file, mapped_file) ->
 --    print "#{changed_file} -> "#{mapped_file}"
 --  finish: (status, changed_file, mapped_file) ->
---    if status == 0
+--    if status
 --      print "Success!"
 --    else
 --      print "Failure!"
