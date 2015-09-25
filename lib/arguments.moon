@@ -26,7 +26,8 @@ watch "app", "lib", "spec", ->
   on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
   on_changed "^app/(.*)%.rb", (a) -> cmd "spec/#{a}_spec.rb"
 
--- For business and pleasure yeah?
+-- Perhaps some area where we experiment, sort of
+-- like a poor mans REPL
 watch "playground", ->
   cmd = command "ruby"
   on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
