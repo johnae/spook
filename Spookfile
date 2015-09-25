@@ -1,9 +1,6 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
-echo = (i) ->
-  print i
-
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
