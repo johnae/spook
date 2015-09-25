@@ -9,9 +9,9 @@ run_utility = (changed_file, mapper, notifier) ->
 
   -- only runs if there is something returned from the "mapper"
   if run
-    notifier.start changed_file, run
+    notifier.start changed_file
     successful = run!
-    notifier.finish successful, changed_file, run
+    notifier.finish successful, changed_file
   else
     log.debug "No mapping found for #{changed_file}"
 
