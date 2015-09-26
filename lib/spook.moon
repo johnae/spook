@@ -1,8 +1,13 @@
 colors = require 'ansicolors'
 {:log} = _G
 uv = require "uv"
+fs = require "fs"
 
-run_utility = (changed_file, mapper, notifier) ->
+run_utility = (changed_file, mapper, notifier, deleted) ->
+
+  if deleted
+    log.debug "File deleted: #{changed_file}"
+    return
 
   log.debug "mapping file #{changed_file}..."
   run = mapper changed_file
@@ -15,23 +20,20 @@ run_utility = (changed_file, mapper, notifier) ->
   else
     log.debug "No mapping found for #{changed_file}"
 
-last_change = {"", true}
-
 create_event_handler = (fse, mapper, notifier) ->
-  (self, filename, events, status) ->
+  local changed_file, timer
+  (handle, filename, events, status) ->
 
-    log.debug "change detected"
     changed_file = "#{fse\getpath!}/#{filename}"
     log.debug "changed file #{changed_file}"
-    last_change = {changed_file, false}
 
-    timer = uv.new_timer!
-    timer\start 200, 0, ->
-      timer\close!
-      file, recorded = last_change[1], last_change[2]
-      last_change[2] = true
-      unless recorded
-        run_utility changed_file, mapper, notifier
+    unless timer
+      timer = uv.new_timer!
+      timer\start 100, 0, ->
+        timer\close!
+        timer = nil
+        deleted = not fs.is_file changed_file
+        run_utility changed_file, mapper, notifier, deleted
 
 (conf) ->
   {:mapper, :notifier, :watch} = conf
