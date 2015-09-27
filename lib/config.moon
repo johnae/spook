@@ -10,13 +10,15 @@ command = require "command"
       levels = {ERR: 0, WARN: 1, INFO: 2, DEBUG: 3}
       config.log_level = assert tonumber(l) or levels[l]
 
+    :command
+
     notifier: (n) ->
       config.notifier = if type(n) == "table"
         n
       else if type(n) == "string"
         status, notifier = pcall(-> return moonscript.loadfile(n)!)
         if not status
-          log.error "Failed to load notifier from #{n}: #{notifier}"
+          log.error "Failed to load notifier from #{n}: #{notifier}, loading default notifier (a noop)"
           notifier = require "default_notifier"
         notifier
       else
