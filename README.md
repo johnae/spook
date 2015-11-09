@@ -11,7 +11,8 @@ compiled with Lua 5.2 compatibility. Extensions easily written in [moonscript](h
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
 Currently only available for Linux x86_64 and Mac OS X x86_64.
 
-Building it should be as straightforward as:
+Buiding spook requires the usual tools + cmake, so you may need to to apt-get install cmake before
+building it. Otherwise it should be as straightforward as:
 
 ```
 make
