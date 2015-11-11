@@ -97,55 +97,106 @@ spook -i
 
 This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
 DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
-response to a change. All functions should return true or false which indicates success or not.
+response to a change. Hooking in to the notifications api is recommended and is automatic when using the command helper. See
+below for more information on how all this works.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
 ```moonscript
--- How much output do you want? (ERR, WARN, INFO, DEBUG)
+-- How much output do we want?
 log_level "INFO"
 
--- Set up watches for one or more directories and associate
--- mapping with those watches. A function is associated with
--- the matcher and will run on changes. The command helper is
--- there so it's easy to construct a function that runs a shell command
--- but it's not limited to that - you can run any function you want.
-watch "lib", "app", "spec", ->
-  cmd "./bin/rspec -f d"
+-- Setup what directories to watch and what to do
+-- when a file is changed. "command" is a helper
+-- for setting up what command to run. There is no
+-- restriction on running shell commands however -
+-- any function (in lua/moonscript) can be run
+watch "app", "lib", "spec", ->
+  cmd = command "./bin/rspec -f d"
   on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
   on_changed "^spec/(.*)_spec%.rb", (a) -> cmd "spec/#{a}_spec.rb"
-  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.moon"
+  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
+  on_changed "^app/(.*)%.rb", (a) -> cmd "spec/#{a}_spec.rb"
 
--- Another watch
+-- Perhaps some area where we experiment, sort of
+-- like a poor mans REPL
 watch "playground", ->
-  cmd = comand "ruby"
+  cmd = command "ruby"
   on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
--- The notifier to use
+-- If a "command" isn't what you want to run, as mentioned, any function
+-- can be run in response to a change. here's an example of how that might look:
+-- {:round} = math
+-- handle_file = (file) ->
+--   f = assert io.open(file, 'r')
+--   content = f\read!
+--   f\close!
+--   new_content = "do stuff do content: #{content}"
+--   o = assert io.open('/tmp/new_file.txt', 'w')
+--   o\write new_content
+--   o\close!
+--   true -- return true or false for notications
+-- do_stuff = (file) ->
+--   notify.start "do_stuff", file -- for terminal etc notifications
+--   ts = gettimeofday! / 1000.0
+--   success = handle_file file
+--   te = gettimeofday! / 1000.0
+--   elapsed = round te - ts, 3
+--   notify.finish success, "do_stuff", file, elapsed -- for terminal etc notifications
+--
+-- watch "stuff", ->
+--   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
+
+-- Define additional notifiers to use. Any number of them can be specified here.
+-- Set log_level to DEBUG to see whether there's a failure in loading them. Either
+-- through command line switch -l or in this file.
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
+
+-- You can even specify a notifier right here (perhaps for simpler variants), like
+--notifier {
+--  start: (what, data) ->
+--    print "#{what} "#{data}"
+--  finish: (success, what, data, elapsed_time) ->
+--    if success
+--      print "Success! in #{elapsed_time} s"
+--    else
+--      print "Failure! in #{elapsed_time} s"
+--}
+
+-- Commands can be defined at top level too if more convenient, like:
+-- cmd1 = command "ls -lah"
+-- cmd2 = command "reformat_and_completely_erase_my_whole_disk --force"
+-- and can be used wherever below inside a watch/on_changed statement.
+-- watch "some_place", ->
+--   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
+--   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd1 "other_stuff/#{a}/#{b}_thing.txt"
 ```
 
 ### Notifications
 
-If you create a directory called .spook in your home dir and put a file called notifier.moon in there it will be loaded
-and called by spook when certain events take place. The events supported are "start" and "finish".
-Something like this in ~/.spook/notifier.moon:
+The default Spookfile that is generated via ```spook -i``` defines a notifier
+to be loaded from ```$HOME/.spook/notifier.moon```, where you actually put them
+is irrelevant however but it's probably as good a place as any - others working
+on a project might want different notifiers while still checking in the Spookfile
+in the repo. Using "commands" automatically ties into the the notifier api, for your
+own functions you have to do this if you want/need notifications (see above for example).
+This is how a simple notifier might look:
 
 ```moonscript
-start = (changed_file) ->
+-- The "what" for commands is the command specified, the "data" is the mapped file.
+start = (what, data) ->
   print "#{project_name!}: changes detected in #{changed_file}"
 
-finish = (success, changed_file) ->
+finish = (success, what, data, elapsed_time) ->
   if success
-    print "#{project_name!}: changes in #{changed_file} passed"
+    print "#{project_name!}: run of '#{what} #{data}' passed in #{elapsed_time} seconds"
   else
-    print "#{project_name!}: changes in #{changed_file} failed"
+    print "#{project_name!}: run of '#{what} #{data}' failed in #{elapsed_time} seconds"
 
 :start, :finish
 ```
 
-You must currently define both of the above functions and export them or things will crash and burn (you CAN skip
-creating the notifier completely though).
+You must define both of the above functions and export them or things will crash and burn.
 
 A more complex notification example for tmux might look like this (the uv package comes built in):
 
@@ -176,7 +227,7 @@ start_reset_timer = ->
     tmux_set_status tmux_default_status
     stop_timer!
 
-start = (changed_file) ->
+start = (what, data) ->
   tmux_set_status tmux_test_status
   start_reset_timer!
 
@@ -190,7 +241,7 @@ uv.signal_start sigint, "sigint", (signal) ->
   tmux_set_status tmux_default_status
   os.exit 1
 
-finish = (success, changed_file) ->
+finish = (success, what, data, elapsed_time) ->
   if success
     tmux_set_status tmux_pass_status
   else
@@ -206,7 +257,7 @@ There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist]
 There is also an OS X example here using terminal-notifier for system notifications: [osx notifier gist](https://gist.github.com/fc803fe80124a0fe1953)
 
 
-You may also use the commandline switch -n to override this:
+You may also use the commandline switch -n to add a notifier:
 
 ```
 spook -n /path/to/some/notifier.moon

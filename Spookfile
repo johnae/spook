@@ -1,17 +1,18 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
+spec_cmd = command "./spook -f spec/support/run_busted.lua", show_command: true
+exec_cmd = command "./spook -f", show_command: true
+
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
-  cmd = command "./spook -f spec/support/run_busted.lua", show_command: true
-  on_changed "^(spec)/(spec_helper%.moon)", -> cmd "spec"
-  on_changed "^spec/(.*)%.moon", (a) -> cmd "spec/#{a}.moon"
-  on_changed "^lib/(.*)%.moon", (a) -> cmd "spec/#{a}_spec.moon"
+  on_changed "^(spec)/(spec_helper%.moon)", -> spec_cmd "spec"
+  on_changed "^spec/(.*)%.moon", (a) -> spec_cmd "spec/#{a}.moon"
+  on_changed "^lib/(.*)%.moon", (a) -> spec_cmd "spec/#{a}_spec.moon"
 
 watch "playground", ->
-  cmd = command "./spook -f", show_command: true
-  on_changed "^playground/(.*)%.moon", (a) -> cmd "playground/#{a}.moon"
-  on_changed "^playground/(.*)%.lua", (a) -> cmd "playground/#{a}.lua"
+  on_changed "^playground/(.*)%.moon", (a) -> exec_cmd "playground/#{a}.moon"
+  on_changed "^playground/(.*)%.lua", (a) -> exec_cmd "playground/#{a}.lua"
 
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"

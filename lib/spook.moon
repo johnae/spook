@@ -4,7 +4,7 @@ colors = require 'ansicolors'
 {:is_file} = require "fs"
 {:round} = math
 
-run_utility = (changed_file, mapper, notifier, deleted) ->
+run_utility = (changed_file, mapper, deleted) ->
 
   if deleted
     log.debug "file deleted: #{changed_file}"
@@ -12,22 +12,9 @@ run_utility = (changed_file, mapper, notifier, deleted) ->
 
   log.debug "mapping file #{changed_file}..."
   run = mapper changed_file
+  run and run! or log.debug "no mapping found for #{changed_file}"
 
-  -- only runs if there is something returned from the "mapper"
-  if run
-    notifier.start changed_file
-    ts = gettimeofday! / 1000.0
-    successful = run!
-    te = gettimeofday! / 1000.0
-    elapsed = round te-ts, 3
-    notifier.finish successful, changed_file
-    msg = successful and colors("[ %{green}PASSED") or colors("[ %{red}FAILED")
-    print msg .. colors "%{white} in #{elapsed} seconds ]"
-    print ''
-  else
-    log.debug "no mapping found for #{changed_file}"
-
-create_event_handler = (fse, mapper, notifier) ->
+create_event_handler = (fse, mapper) ->
   local changed_file, timer
   (handle, filename, events, status) ->
 
@@ -40,11 +27,10 @@ create_event_handler = (fse, mapper, notifier) ->
         timer\close!
         timer = nil
         deleted = not is_file changed_file
-        run_utility changed_file, mapper, notifier, deleted
+        run_utility changed_file, mapper, deleted
 
 (conf) ->
-  {:mapper, :notifier, :watch} = conf
-
+  {:mapper, :watch} = conf
   for watch_dir in *watch
     fse = new_fs_event!
-    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier)
+    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper)

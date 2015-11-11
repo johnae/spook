@@ -3,20 +3,24 @@ command = require "command"
 moon = require "moon"
 
 describe 'file_mapper', ->
-  local mapping, mapper, os_exec, real_exec
+  local mapping, mapper, os_exec, real_exec, dummy_notify
 
   before_each ->
     real_exec = os.execute
     os_exec = spy.new -> true
     os.execute = os_exec
+    dummy_notify = {
+      start: spy.new -> nil
+      finish: spy.new -> nil
+    }
 
   after_each ->
     os.execute = real_exec
 
   it 'maps a matched file to its specified target runnable', ->
 
-    cmd = command "test"
-    cmd2 = command "test2"
+    cmd = command "test", notify: dummy_notify, only_if: -> true
+    cmd2 = command "test2", notify: dummy_notify, only_if: -> true
 
     mapping = {
       {"^my/code/(.*)%.moon", (a) -> cmd "my/tests/#{a}_spec.moon"}

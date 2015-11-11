@@ -1,9 +1,9 @@
-moonscript = require "moonscript"
-log = require("log")(0)
-command = require "command"
 ->
+  moonscript = require "moonscript"
+  log = require("log")(0)
+  command = require "command"
 
-  config = {watch: {}}
+  config = {watch: {}, notifiers: {}}
   config_env = {
 
     log_level: (l) ->
@@ -13,16 +13,16 @@ command = require "command"
     :command
 
     notifier: (n) ->
-      config.notifier = if type(n) == "table"
+      notifiers = config.notifiers
+      notifier = if type(n) == "table"
         n
       else if type(n) == "string"
         status, notifier = pcall(-> return moonscript.loadfile(n)!)
         if not status
           log.debug "Failed to load notifier from #{n}: #{notifier}, loading default notifier (a noop)"
-          notifier = require "default_notifier"
+          notifier = nil
         notifier
-      else
-        require "default_notifier"
+      notifiers[#notifiers + 1] = notifier if notifier
 
     watch: (...) ->
       args = {...}
@@ -51,11 +51,10 @@ command = require "command"
     watch "lib", "spec", ->
       on_changed "^lib/(.*)%.(.*)", (n, ext) -> change_handler "spec/#{n}.#{ext}"
     log_level "INFO"
-    notifier require("default_notifier")
 
   args_configuration = (args) ->
     log_level args.log_level unless args.log_level == nil
-    notifier args.notifier unless args.notifier == nil
+    notify args.notifier unless args.notifier == nil
 
   setfenv default_configuration, config_env
   setfenv args_configuration, config_env

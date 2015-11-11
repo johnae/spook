@@ -7,5 +7,5 @@ map = (mapping, changed_file) ->
 (file_mapping) ->
   (changed_file) ->
     for mapping in *file_mapping
-      if mapped = map(mapping, changed_file)
+      if mapped = map mapping, changed_file
         return mapped

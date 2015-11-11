@@ -17,16 +17,20 @@ INFO = 2
 DEBUG = 3
 
 (level) ->
+  log_level = level or INFO
   {
+    level: (l) ->
+      log_level = l
+
     info: (...) ->
-      log(level, INFO, ...)
+      log(log_level, INFO, ...)
   
     error: (...) ->
-      log(level, ERR, ...)
+      log(log_level, ERR, ...)
   
     warn: (...) ->
-      log(level, WARN, ...)
+      log(log_level, WARN, ...)
   
     debug: (...) ->
-      log(level, DEBUG, ...)
+      log(log_level, DEBUG, ...)
   }

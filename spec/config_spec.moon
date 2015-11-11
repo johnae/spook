@@ -24,7 +24,6 @@ describe 'config', ->
       watched = keys(conf.watch)
       assert.same sorted({"lib", "spec"}), watched
       assert.same 2, conf.log_level
-      assert.same require("default_notifier"), conf.notifier
 
   describe 'from Spookfile', ->
 

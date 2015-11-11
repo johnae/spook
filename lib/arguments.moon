@@ -32,22 +32,52 @@ watch "playground", ->
   cmd = command "ruby"
   on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
 
--- The notifier to use, skipped if it doesn't exist
--- turn on debug (-l DEBUG or in this file - see log_level above)
--- to see if it failed to load because there was no file or
--- some error parsing it
+-- If a "command" isn't what you want to run, as mentioned, any function
+-- can be run in response to a change. here's an example of how that might look:
+-- {:round} = math
+-- handle_file = (file) ->
+--   f = assert io.open(file, 'r')
+--   content = f\read!
+--   f\close!
+--   new_content = "do stuff do content: #{content}"
+--   o = assert io.open('/tmp/new_file.txt', 'w')
+--   o\write new_content
+--   o\close!
+--   true -- return true or false for notications
+-- do_stuff = (file) ->
+--   notify.start "do_stuff", file -- for terminal etc notifications
+--   ts = gettimeofday! / 1000.0
+--   success = handle_file file
+--   te = gettimeofday! / 1000.0
+--   elapsed = round te - ts, 3
+--   notify.finish success, "do_stuff", file, elapsed -- for terminal etc notifications
+-- 
+-- watch "stuff", ->
+--   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
+
+-- Define additional notifiers to use. Any number of them can be specified here.
+-- Set log_level to DEBUG to see whether there's a failure in loading them. Either
+-- through command line switch -l or in this file.
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
--- or you could specify the notifier here (for simpler variants), like
+-- You can even specify a notifier right here (perhaps for simpler variants), like:
 --notifier {
---  start: (changed_file, mapped_file) ->
---    print "#{changed_file} -> "#{mapped_file}"
---  finish: (status, changed_file, mapped_file) ->
---    if status
---      print "Success!"
+--  start: (what, data) ->
+--    print "#{what} "#{data}"
+--  finish: (success, what, data, elapsed_time) ->
+--    if success
+--      print "Success! in #{elapsed_time} s"
 --    else
---      print "Failure!"
+--      print "Failure! in #{elapsed_time} s"
 --}
+
+-- Commands can be defined at top level too if more convenient, like:
+-- cmd1 = command "ls -lah"
+-- cmd2 = command "reformat_and_completely_erase_my_whole_disk --force"
+-- and can be used wherever below inside a watch/on_changed statement.
+-- watch "some_place", ->
+--   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
+--   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd1 "other_stuff/#{a}/#{b}_thing.txt"
 ]]
   content = f\write(content)
   f\close()

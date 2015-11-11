@@ -4,6 +4,8 @@ lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
+_G.notify = require("notify")(require 'terminal_notifier')
+_G.log = require("log")(1)
 config = require("config")!
 {:run} = require "uv"
 moonscript = require "moonscript.base"
@@ -17,7 +19,6 @@ if fi = index_of arg, "-f"
     log.error "The -f option requires an argument"
     os.exit 1
   _G.arg = new_args
-  _G.log = require("log")(1)
   loaded_chunk = if file\match "[^.]%.lua$"
     assert loadfile(file), "Failed to load file: #{file}"
   else -- assume it's moonscript
@@ -37,22 +38,25 @@ else
   if not conf
     os.exit 1
 
-  _G.log = require("log")(conf.log_level)
+  _G.log.level conf.log_level
 
   colors = require 'ansicolors'
   spook = require "spook"
   file_mapper = require "file_mapper"
   dir_list = require "dir_list"
 
-  {:notifier, :show_command, :watch} = conf
+  {:notifiers, :show_command, :watch} = conf
+
+  for notifier in *notifiers
+    notify[#notify + 1] = notifier
 
   watched = 0
   for dir, on_changed in pairs watch
     dirs = dir_list dir
     watched += #dirs
     mapper = file_mapper on_changed
-    spook {mapper: mapper, notifier: notifier, watch: dirs, show_command: show_command}
+    spook {mapper: mapper, watch: dirs}
     
-  print colors "%{blue}[ Watching #{watched} directories ]"
+  print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
   print ""
   run!
