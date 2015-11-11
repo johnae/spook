@@ -1,7 +1,7 @@
 colors = require 'ansicolors'
 {:log} = _G
-uv = require "uv"
-fs = require "fs"
+{:new_timer, :new_fs_event} = require "uv"
+{:is_file} = require "fs"
 
 run_utility = (changed_file, mapper, notifier, deleted) ->
 
@@ -28,16 +28,16 @@ create_event_handler = (fse, mapper, notifier) ->
     log.debug "changed file #{changed_file}"
 
     unless timer
-      timer = uv.new_timer!
+      timer = new_timer!
       timer\start 100, 0, ->
         timer\close!
         timer = nil
-        deleted = not fs.is_file changed_file
+        deleted = not is_file changed_file
         run_utility changed_file, mapper, notifier, deleted
 
 (conf) ->
   {:mapper, :notifier, :watch} = conf
 
   for watch_dir in *watch
-    fse = uv.new_fs_event!
+    fse = new_fs_event!
     fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper, notifier)

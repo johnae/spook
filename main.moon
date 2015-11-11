@@ -5,7 +5,7 @@ package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
 config = require("config")!
-uv = require "uv"
+{:run} = require "uv"
 moonscript = require "moonscript.base"
 {:concat, :remove, :index_of} = table
 
@@ -54,4 +54,4 @@ else
     spook {mapper: mapper, notifier: notifier, watch: dirs, show_command: show_command}
     
   log.info colors("%{blue}Watching " .. watched .. " directories")
-  uv\run!
+  run!
