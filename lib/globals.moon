@@ -17,6 +17,22 @@ table.index_of = (t, v) ->
 
   nil
 
+table.merge = (t1, t2) ->
+  res = {k, v for k, v in pairs t1}
+  for k, v in pairs t2
+    res[k] = v
+  res
+
+math.round = (num, dp) ->
+  m = 10 ^ (dp or 0)
+  floor( num * m + 0.5 ) / m
+
+local g_timeval
+_G.gettimeofday = ->
+   g_timeval or= ffi.new("struct timeval")
+   ffi.C.gettimeofday g_timeval, nil
+   tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
+
 _G.getcwd = ->
    buf = ffi.new "char[?]", 1024
    ffi.C.getcwd buf, 1024
