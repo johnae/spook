@@ -16,6 +16,9 @@ is_file = (path) ->
   else
     false
 
+is_present = (path) ->
+  is_dir(path) or is_file(path)
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
 
@@ -56,4 +59,4 @@ rm_rf = (path, attr) ->
     else if attr
       os.remove path
 
-:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file
+:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file, :is_present

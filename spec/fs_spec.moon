@@ -26,6 +26,14 @@ describe 'fs', ->
     f\close!
     assert.true fs.is_file '/tmp/spook-fs-spec/myfile.txt'
 
+  it 'is_present returns true for either files or directories', ->
+    fs.mkdir_p '/tmp/spook-fs-spec'
+    f = assert io.open('/tmp/spook-fs-spec/myfile.txt', "w")
+    f\write "hello"
+    f\close!
+    assert.true fs.is_present '/tmp/spook-fs-spec'
+    assert.true fs.is_present '/tmp/spook-fs-spec/myfile.txt'
+
   it 'rm_rf removes directory structures', ->
     fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
     assert.true fs.is_dir '/tmp/spook-fs-spec/my/dir/structure'
