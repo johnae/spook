@@ -1,4 +1,5 @@
 {:P, :C, :Ct, :match} = require "lpeg"
+{:floor} = math
 
 ffi = require "ffi"
 ffi.cdef [[

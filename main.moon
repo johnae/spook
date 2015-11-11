@@ -53,5 +53,6 @@ else
     mapper = file_mapper on_changed
     spook {mapper: mapper, notifier: notifier, watch: dirs, show_command: show_command}
     
-  log.info colors("%{blue}Watching " .. watched .. " directories")
+  print colors "%{blue}[ Watching #{watched} directories ]"
+  print ""
   run!

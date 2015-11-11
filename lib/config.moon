@@ -18,7 +18,7 @@ command = require "command"
       else if type(n) == "string"
         status, notifier = pcall(-> return moonscript.loadfile(n)!)
         if not status
-          log.error "Failed to load notifier from #{n}: #{notifier}, loading default notifier (a noop)"
+          log.debug "Failed to load notifier from #{n}: #{notifier}, loading default notifier (a noop)"
           notifier = require "default_notifier"
         notifier
       else
