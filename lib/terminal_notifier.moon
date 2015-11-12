@@ -1,7 +1,7 @@
 colors = require 'ansicolors'
 
 start = (what, data) ->
-  print colors("[ %{dim}RUNNING #{what} ]")
+  print colors("[ %{dim}RUNNING #{what}%{reset} ]")
 
 finish = (success, what, data, elapsed_time) ->
   msg = success and colors("[ %{green}PASSED") or colors("[ %{red}FAILED")
