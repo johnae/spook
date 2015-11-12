@@ -131,11 +131,11 @@ watch "playground", ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
---   new_content = "do stuff do content: #{content}"
+--   new_content = "do stuff to content: #{content}"
 --   o = assert io.open('/tmp/new_file.txt', 'w')
 --   o\write new_content
 --   o\close!
---   true -- return true or false for notications
+--   true -- return true or false for notifications
 -- do_stuff = (file) ->
 --   notify.start "do_stuff", file -- for terminal etc notifications
 --   ts = gettimeofday! / 1000.0
@@ -147,12 +147,14 @@ watch "playground", ->
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 
--- Define additional notifiers to use. Any number of them can be specified here.
+-- Define additional notifiers to use. Any number of them can be specified here (by
+-- just issuing the notifier config command again).
 -- Set log_level to DEBUG to see whether there's a failure in loading them. Either
--- through command line switch -l or in this file.
+-- through command line switch "-l DEBUG" or in this file.
 notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
--- You can even specify a notifier right here (perhaps for simpler variants), like
+-- You can even specify a notifier right here (perhaps for simpler variants), like:
+--
 --notifier {
 --  start: (what, data) ->
 --    print "#{what} "#{data}"
@@ -165,11 +167,18 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
 -- Commands can be defined at top level too if more convenient, like:
 -- cmd1 = command "ls -lah"
--- cmd2 = command "reformat_and_completely_erase_my_whole_disk --force"
+
+-- Yes commands can be defined with a placeholder for the file which
+-- can come in handy. You may use <file>, [file] or {file} one or more
+-- times. It is replaced with the path to the file given to the command
+-- when running it - in such cases it's no longer added as the last input
+-- to the command.
+-- cmd2 = command "cat [file] | gzip -c > [file].gz"
+
 -- and can be used wherever below inside a watch/on_changed statement.
 -- watch "some_place", ->
 --   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
---   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd1 "other_stuff/#{a}/#{b}_thing.txt"
+--   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
 ```
 
 ### Notifications
