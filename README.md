@@ -192,15 +192,16 @@ own functions you have to do this if you want/need notifications (see above for 
 This is how a simple notifier might look:
 
 ```moonscript
--- The "what" for commands is the command specified, the "data" is the mapped file.
+-- The "what" for commands is the command specified (including path to mapped file), the "data"
+-- is the mapped file.
 start = (what, data) ->
-  print "#{project_name!}: changes detected in #{changed_file}"
+  print "#{project_name!}: running #{what}"
 
 finish = (success, what, data, elapsed_time) ->
   if success
-    print "#{project_name!}: run of '#{what} #{data}' passed in #{elapsed_time} seconds"
+    print "#{project_name!}: run of '#{what}' passed in #{elapsed_time} seconds"
   else
-    print "#{project_name!}: run of '#{what} #{data}' failed in #{elapsed_time} seconds"
+    print "#{project_name!}: run of '#{what}' failed in #{elapsed_time} seconds"
 
 :start, :finish
 ```
