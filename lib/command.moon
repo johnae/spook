@@ -1,6 +1,5 @@
 colors = require "ansicolors"
 {:is_present} = require "fs"
-{:round} = math
 
 expand_file = (data, file) ->
   return nil unless data
@@ -21,10 +20,8 @@ expand_file = (data, file) ->
     unless is_present rest
       return log.debug "skipping '#{cmdline}' since #{rest} does not exist"
 
-    notify.start cmdline, rest
-    ts = gettimeofday! / 1000.0
-    _, _, status = os.execute cmdline
-    te = gettimeofday! / 1000.0
-    elapsed = round te-ts, 3
-    success = (status == 0)
-    notify.finish success, cmdline, rest, elapsed
+    run = ->
+      _, _, status = os.execute cmdline
+      status == 0
+
+    notify.begin cmdline, rest, run

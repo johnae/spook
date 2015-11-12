@@ -34,7 +34,6 @@ watch "playground", ->
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
--- {:round} = math
 -- handle_file = (file) ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
@@ -45,13 +44,7 @@ watch "playground", ->
 --   o\close!
 --   true -- return true or false for notications
 -- do_stuff = (file) ->
---   notify.start "do_stuff #{file}", file -- for terminal etc notifications
---   ts = gettimeofday! / 1000.0
---   success = handle_file file
---   te = gettimeofday! / 1000.0
---   elapsed = round te - ts, 3
---   notify.finish success, "do_stuff #{file}", file, elapsed -- for terminal etc notifications
--- 
+--   notify.begin "do_stuff #{file}", file, -> handle_file file -- for terminal etc notifications
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 
