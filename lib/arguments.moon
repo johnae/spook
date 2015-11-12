@@ -45,12 +45,12 @@ watch "playground", ->
 --   o\close!
 --   true -- return true or false for notications
 -- do_stuff = (file) ->
---   notify.start "do_stuff", file -- for terminal etc notifications
+--   notify.start "do_stuff #{file}", file -- for terminal etc notifications
 --   ts = gettimeofday! / 1000.0
 --   success = handle_file file
 --   te = gettimeofday! / 1000.0
 --   elapsed = round te - ts, 3
---   notify.finish success, "do_stuff", file, elapsed -- for terminal etc notifications
+--   notify.finish success, "do_stuff #{file}", file, elapsed -- for terminal etc notifications
 -- 
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
@@ -73,11 +73,18 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
 -- Commands can be defined at top level too if more convenient, like:
 -- cmd1 = command "ls -lah"
--- cmd2 = command "reformat_and_completely_erase_my_whole_disk --force"
+
+-- Yes commands can be defined with a placeholder for the file which
+-- can come in handy. You may use <file>, [file] or {file} one or more
+-- times. It is replaced with the path to the file given to the command
+-- when running it - in such cases it's no longer added as the last input
+-- to the command.
+-- cmd2 = command "cat [file] | gzip -c > [file].gz"
+
 -- and can be used wherever below inside a watch/on_changed statement.
 -- watch "some_place", ->
 --   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
---   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd1 "other_stuff/#{a}/#{b}_thing.txt"
+--   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
 ]]
   content = f\write(content)
   f\close()
