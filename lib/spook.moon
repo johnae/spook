@@ -12,7 +12,10 @@ run_utility = (changed_file, mapper, deleted) ->
 
   log.debug "mapping file #{changed_file}..."
   run = mapper changed_file
-  run and run! or log.debug "no mapping found for #{changed_file}"
+  if run
+    run!
+  else
+    log.debug "no mapping found for #{changed_file}"
 
 create_event_handler = (fse, mapper) ->
   local changed_file, timer
