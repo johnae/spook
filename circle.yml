@@ -8,6 +8,4 @@ dependencies:
 
 test:
   override:
-    - mkdir -p ~/.spook
-    - cp circleci_notifier.moon ~/.spook/notifier.moon
     - make test
