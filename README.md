@@ -212,9 +212,12 @@ tmux_set_status = (status) ->
 
 tmux_default_status = '#[fg=colour16,bg=colour254,bold]'
 
-tmux_fail_status = tmux_default_status .. '#[fg=white,bg=red] FAIL: ' .. project_name! .. ' #[fg=red,bg=colour234,nobold]'
-tmux_pass_status = tmux_default_status .. '#[fg=white,bg=green] PASS: ' .. project_name! .. ' #[fg=green,bg=colour234,nobold]'
-tmux_test_status = tmux_default_status .. '#[fg=white,bg=cyan] TEST: ' .. project_name! .. ' #[fg=cyan,bg=colour234,nobold]'
+tmux_fail_status = (elapsed) ->
+  tmux_default_status .. '#[fg=white,bg=red] FAIL: ' .. project_name! .. " (#{elapsed} s) " .. '#[fg=red,bg=colour234,nobold]'
+tmux_pass_status = (elapsed) ->
+  tmux_default_status .. '#[fg=white,bg=green] PASS: ' .. project_name! .. " (#{elapsed} s) " .. '#[fg=green,bg=colour234,nobold]'
+tmux_test_status = ->
+  tmux_default_status .. '#[fg=white,bg=cyan] TEST: ' .. project_name! .. ' #[fg=cyan,bg=colour234,nobold]'
 
 timer = nil
 stop_timer = ->
@@ -232,7 +235,7 @@ start_reset_timer = ->
     stop_timer!
 
 start = (what, data) ->
-  tmux_set_status tmux_test_status
+  tmux_set_status tmux_test_status!
   start_reset_timer!
 
 -- we can use uv:s signal handling to ensure something runs
@@ -247,9 +250,9 @@ uv.signal_start sigint, "sigint", (signal) ->
 
 finish = (success, what, data, elapsed_time) ->
   if success
-    tmux_set_status tmux_pass_status
+    tmux_set_status tmux_pass_status(elapsed_time)
   else
-    tmux_set_status tmux_fail_status
+    tmux_set_status tmux_fail_status(elapsed_time)
 
   start_reset_timer!
 
