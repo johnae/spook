@@ -2,12 +2,13 @@
   moonscript = require "moonscript"
   log = require("log")(0)
   command = require "command"
+  {:remove} = table
 
   config = {watch: {}, notifiers: {}}
   config_env = {
 
     log_level: (l) ->
-      levels = {ERR: 0, WARN: 1, INFO: 2, DEBUG: 3}
+      levels = ERR: 0, WARN: 1, INFO: 2, DEBUG: 3
       config.log_level = assert tonumber(l) or levels[l]
 
     :command
@@ -26,7 +27,7 @@
 
     watch: (...) ->
       args = {...}
-      f = table.remove args, #args
+      f = remove args, #args
       tmap = {}
       watch_env = {
         :command

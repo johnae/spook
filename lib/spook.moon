@@ -4,9 +4,8 @@ colors = require 'ansicolors'
 {:is_file} = require "fs"
 {:round} = math
 
-run_utility = (changed_file, mapper, deleted) ->
-
-  if deleted
+run_utility = (changed_file, mapper) ->
+  unless is_file changed_file
     log.debug "file deleted: #{changed_file}"
     return
 
@@ -17,7 +16,7 @@ run_utility = (changed_file, mapper, deleted) ->
   else
     log.debug "no mapping found for #{changed_file}"
 
-create_event_handler = (fse, mapper) ->
+new_handler = (fse, mapper) ->
   local changed_file, timer
   (handle, filename, events, status) ->
 
@@ -26,14 +25,13 @@ create_event_handler = (fse, mapper) ->
 
     unless timer
       timer = new_timer!
-      timer\start 100, 0, ->
+      timer\start 200, 0, ->
         timer\close!
         timer = nil
-        deleted = not is_file changed_file
-        run_utility changed_file, mapper, deleted
+        run_utility changed_file, mapper
 
 (conf) ->
   {:mapper, :watch} = conf
   for watch_dir in *watch
     fse = new_fs_event!
-    fse\start watch_dir, {recursive: true, stat: true}, create_event_handler(fse, mapper)
+    fse\start watch_dir, {recursive: true, stat: true}, new_handler(fse, mapper)

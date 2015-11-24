@@ -4,7 +4,7 @@ lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
-_G.notify = require("notify")(require 'terminal_notifier')
+_G.notify = require("notify")(require "terminal_notifier")
 _G.log = require("log")(1)
 config = require("config")!
 {:run} = require "uv"
@@ -35,17 +35,17 @@ else
     spookfile_path = args.config
 
   conf = config config_file: spookfile_path, args: args
-  if not conf
+  unless conf
     os.exit 1
 
   _G.log.level conf.log_level
 
-  colors = require 'ansicolors'
+  colors = require "ansicolors"
   spook = require "spook"
   file_mapper = require "file_mapper"
   dir_list = require "dir_list"
 
-  {:notifiers, :show_command, :watch} = conf
+  {:notifiers, :watch} = conf
 
   for notifier in *notifiers
     notify[#notify + 1] = notifier
@@ -55,7 +55,7 @@ else
     dirs = dir_list dir
     watched += #dirs
     mapper = file_mapper on_changed
-    spook {mapper: mapper, watch: dirs}
+    spook mapper: mapper, watch: dirs
     
   print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
   print ""
