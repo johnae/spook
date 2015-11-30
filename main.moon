@@ -45,7 +45,7 @@ else
     _G.log.level conf.log_level
 
   colors = require "ansicolors"
-  spook = require "spook"
+  watcher = require "watcher"
   file_mapper = require "file_mapper"
   dir_list = require "dir_list"
 
@@ -59,7 +59,7 @@ else
     dirs = dir_list dir
     watched += #dirs
     mapper = file_mapper on_changed
-    spook mapper: mapper, watch: dirs
+    watcher mapper: mapper, watch: dirs
     
   print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
   print ""

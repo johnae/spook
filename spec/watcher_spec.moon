@@ -8,9 +8,9 @@ lfs = require "syscall.lfs"
 fs = require "fs"
 dir_list = require "dir_list"
 uv = require "uv"
-spook = require "spook"
+watcher = require "watcher"
 
-describe 'spook', ->
+describe 'watcher', ->
   local dir1, dir2, dir3, mapper
 
   timers = {}
@@ -44,6 +44,7 @@ describe 'spook', ->
       uv\stop!
 
   before_each ->
+    fs.rm_rf "/tmp/spook-spec-base"
     dir1 = "/tmp/spook-spec-base/spook-spec1"
     dir2 = "/tmp/spook-spec-base/spook-spec2"
     dir3 = "/tmp/spook-spec-base/spook-spec3"
@@ -63,9 +64,9 @@ describe 'spook', ->
     it 'when a new file is added', ->
       watch = dir_list(dir1)
       file = "#{dir1}/myfile.txt"
-      spook {:mapper, :watch}
-      watch_for(1500)
-      create_file(300, file)
+      watcher {:mapper, :watch}
+      watch_for(1800)
+      create_file(400, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_called(1)
@@ -76,9 +77,9 @@ describe 'spook', ->
       f = assert(io.open(file, "w"))
       f\write("hello")
       f\close!
-      spook {:mapper, :watch}
-      watch_for(1500)
-      update_file(300, file)
+      watcher {:mapper, :watch}
+      watch_for(1800)
+      update_file(400, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_called(1)
@@ -90,9 +91,9 @@ describe 'spook', ->
       f = assert(io.open(file, "w"))
       f\write("hello")
       f\close!
-      spook {:mapper, :watch}
-      watch_for(1500)
-      delete_file(300, file)
+      watcher {:mapper, :watch}
+      watch_for(1800)
+      delete_file(400, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_not_called
