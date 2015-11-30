@@ -38,9 +38,7 @@ describe 'config', ->
   describe 'from args', ->
     local args
     before_each ->
-      args = {
-        log_level: 'DEBUG'
-      }
+      args = log_level: 'DEBUG'
       conf = config!(args: args)
 
     it 'overwrites defaults with supplied args', ->

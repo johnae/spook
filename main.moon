@@ -34,11 +34,15 @@ else
   if args.config
     spookfile_path = args.config
 
+  if args.log_level
+    _G.log.level assert tonumber(args.log_level) or _G.log[args.log_level]
+
   conf = config config_file: spookfile_path, args: args
   unless conf
     os.exit 1
 
-  _G.log.level conf.log_level
+  unless args.log_level
+    _G.log.level conf.log_level
 
   colors = require "ansicolors"
   spook = require "spook"

@@ -3,7 +3,6 @@ serpent = require 'serpent'
 format = (p) ->
   if type(p) == 'table'
     return serpent.block p, comment: false, sortkeys: true
-
   p
 
 log = (req_level, level, ...) ->
@@ -19,6 +18,10 @@ DEBUG = 3
 (level) ->
   log_level = level or INFO
   {
+    :ERR
+    :WARN
+    :INFO
+    :DEBUG
     level: (l) ->
       log_level = l
 

@@ -4,10 +4,16 @@
   notify = {...}
   start = (what, data) ->
     for notifier in *notify
-      notifier.start what, data
+      if notifier.__init
+        notifier\start what, data
+      else
+        notifier.start what, data
   finish = (status, what, data, elapsed_time) ->
     for notifier in *notify
-      notifier.finish status, what, data, elapsed_time
+      if notifier.__init
+        notifier\finish status, what, data, elapsed_time
+      else
+        notifier.finish status, what, data, elapsed_time
   setmetatable notify, __index:
     :start
     :finish

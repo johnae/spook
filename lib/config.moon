@@ -1,29 +1,49 @@
 ->
   moonscript = require "moonscript"
-  log = require("log")(0)
+  log = _G.log
   command = require "command"
-  {:remove} = table
+  {:remove, :insert} = table
+  {:is_dir, :is_file, :dirtree} = require "fs"
 
   config = {watch: {}, notifiers: {}}
   config_env = {
 
     log_level: (l) ->
-      levels = ERR: 0, WARN: 1, INFO: 2, DEBUG: 3
-      config.log_level = assert tonumber(l) or levels[l]
+      config.log_level = assert tonumber(l) or log[l]
 
     :command
 
     notifier: (n) ->
       notifiers = config.notifiers
-      notifier = if type(n) == "table"
-        n
+      if type(n) == "table"
+        notifiers[#notifiers + 1] = n
       else if type(n) == "string"
-        status, notifier = pcall(-> return moonscript.loadfile(n)!)
-        if not status
-          log.debug "Failed to load notifier from #{n}: #{notifier}, loading default notifier (a noop)"
-          notifier = nil
-        notifier
-      notifiers[#notifiers + 1] = notifier if notifier
+        to_load = {}
+        if is_dir n
+          for entry, attr in dirtree n
+            if entry\match "[^.].moon$"
+              to_load[#to_load + 1] = entry
+        else
+          to_load = {n}
+
+        for n in *to_load
+          status, notifier = pcall(-> return moonscript.loadfile(n)!)
+          unless status
+            log.debug "Failed to load notifier from #{n}: #{notifier}, skipping"
+            continue
+          unless notifier.start and notifier.finish
+            log.debug "Notifier #{n} doesn't implement the start and finish functions, skipping"
+            continue
+          if notifier.runs
+            unless notifier.runs!
+              log.debug "Notifier #{n} cannot run on this system, skipping"
+              continue
+          else
+            log.debug "Notifier #{n} has no boolean 'runs' function, defaulting to true"
+            log.debug "if this notifier can't run on all systems a 'runs' function should"
+            log.debug "be added returning a bool where true means it can run on the system"
+
+          notifiers[#notifiers + 1] = notifier
 
     watch: (...) ->
       args = {...}
@@ -55,7 +75,7 @@
 
   args_configuration = (args) ->
     log_level args.log_level unless args.log_level == nil
-    notify args.notifier unless args.notifier == nil
+    notifer args.notifier unless args.notifier == nil
 
   setfenv default_configuration, config_env
   setfenv args_configuration, config_env
