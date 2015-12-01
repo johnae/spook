@@ -24,4 +24,4 @@ expand_file = (data, file) ->
       _, _, status = os.execute cmdline
       status == 0
 
-    notify.begin cmdline, rest, run
+    notify.begin description: cmdline, detail: rest, run
