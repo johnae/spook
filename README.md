@@ -11,7 +11,7 @@ compiled with Lua 5.2 compatibility. Extensions easily written in [moonscript](h
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
 Currently only available for Linux x86_64 and Mac OS X x86_64.
 
-Buiding spook requires the usual tools + cmake, so you may need to to apt-get install cmake before
+Buiding spook requires the usual tools + cmake, so you may need to to apt-get/brew/yum/etc install cmake before
 building it. Otherwise it should be as straightforward as:
 
 ```
@@ -52,8 +52,8 @@ spook --help
 Currently that would output something like:
 
 ```
-Usage: spook [-v] [-i] [-l <log_level>] [-n <notifier>] [-c <config>]
-       [-f <file>] [-h] [<command>]
+Usage: spook [-v] [-s] [-i] [-l <log_level>] [-n <notifier>]
+       [-c <config>] [-f <file>] [-h] [<command>]
 
 Watches for changes and runs functions (and commands) in response
 
@@ -62,6 +62,7 @@ Arguments:
 
 Options:
    -v, --version         Show the Spook version you're running and exit
+   -s, --setup           Setup Spook on a new system - creates ~/.spook/notifiers and a default notifier
    -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
                          Log level either ERR, WARN, INFO or DEBUG
@@ -76,29 +77,36 @@ Options:
 For more see https://github.com/johnae/spook
 ```
 
-To watch directories you need to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
-should be pretty straightforward to change according to your needs. Just run:
+### First things first
+
+It's a good idea to setup spook first on a new system. The simplest way to do that is to just run:
 
 ```
-spook -i
+spook --setup
 ```
 
-in your project directory to initialize a Spookfile. Then tailor it to your needs. After that you can just run spook without arguments within
-that directory.
+That just creates $HOME/.spook/notifiers and places a default notifier in there. It's useful to keep that one
+there even when you create your own notifiers. It provides meaningful terminal output even though you might also
+want say OS X notifications, growl notifications or some other type of notifier (like a tmux notifier or ubuntu notifier).
+
 
 ### The Spookfile
 
-The Spookfile can, as mentioned above, be initialized (with an example for a Rails app) like this:
+To watch directories you need to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but
+should be pretty straightforward to change according to your needs. Just run:
 
 ```
 cd /to/your/project
 spook -i
 ```
 
-This file is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
+in your project directory to initialize a Spookfile. Then tailor it to your needs. After that you can just run spook without arguments within
+that directory. The default Spookfile is a basic example that would work for a Rails app.
+
+The Spookfile is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
 DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
-response to a change. Hooking in to the notifications api is recommended and is automatic when using the command helper. See
-below for more information on how all this works.
+response to a change (which is probably the most common use case). Hooking in to the notifications api is recommended and is
+automatic when using the command helper. See below for more information on how all this works.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
@@ -130,33 +138,31 @@ watch "playground", ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
---   new_content = "do stuff to content: #{content}"
+--   new_content = "do stuff do content: #{content}"
 --   o = assert io.open('/tmp/new_file.txt', 'w')
 --   o\write new_content
 --   o\close!
---   true -- return true or false for notifications
+--   true -- return true or false for notications
 -- do_stuff = (file) ->
---   notify.begin "do_stuff #{file}", file, -> handle_file file -- for terminal etc notifications
---
+--   notify.begin description: "do_stuff #{file}", detail: file, -> handle_file file -- for terminal etc notifications
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 
--- Define additional notifiers to use. Any number of them can be specified here (by
--- just issuing the notifier config command again).
+-- Define notifiers to use, a default one is created for you. All notifiers in specified dir
+-- are loaded and if their "runs" function returns true they will also run.
 -- Set log_level to DEBUG to see whether there's a failure in loading them. Either
--- through command line switch "-l DEBUG" or in this file.
-notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
+-- through command line switch -l or in this file.
+notifier "#{os.getenv('HOME')}/.spook/notifiers"
 
 -- You can even specify a notifier right here (perhaps for simpler variants), like:
---
 --notifier {
---  start: (what, data) ->
---    print "#{what} "#{data}"
---  finish: (success, what, data, elapsed_time) ->
+--  start: (info) ->
+--    print "#{info.description} "#{info.detail}"
+--  finish: (success, info) ->
 --    if success
---      print "Success! in #{elapsed_time} s"
+--      print "Success! in #{info.elapsed_time} s"
 --    else
---      print "Failure! in #{elapsed_time} s"
+--      print "Failure! in #{info.elapsed_time} s"
 --}
 
 -- Commands can be defined at top level too if more convenient, like:
@@ -177,30 +183,34 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 
 ### Notifications
 
-The default Spookfile that is generated via ```spook -i``` defines a notifier
-to be loaded from ```$HOME/.spook/notifier.moon```, where you actually put them
-is irrelevant however but it's probably as good a place as any - others working
+The default Spookfile that is generated via ```spook -i``` defines notifiers
+to be loaded from ```$HOME/.spook/notifiers```, where you actually put them
+is irrelevant however but it's probably a good place for them - others working
 on a project might want different notifiers while still checking in the Spookfile
-in the repo. Using "commands" automatically ties into the the notifier api, for your
-own functions you have to do this if you want/need notifications (see above for example).
+in the repo. Using "commands" automatically ties into the the notifier api. For your
+own functions you have to do this yourself if you want/need notifications (see above for example).
 This is how a simple notifier might look:
 
 ```moonscript
--- The "what" for commands is the command specified (including path to mapped file), the "data"
--- is the mapped file.
-start = (what, data) ->
-  print "#{project_name!}: running #{what}"
+-- "runs" is expected to return true or false and determines whether the notifier can run at all (eg. dependencies satisfied)
+-- this way it's possible to put all kinds of notifiers in ~/.spook/notifiers and sync them across systems without
+-- having to change the Spookfile.
+runs = -> true
 
-finish = (success, what, data, elapsed_time) ->
+start = (info) ->
+  print "#{project_name!}: running #{info.description}"
+
+finish = (success, info) ->
   if success
-    print "#{project_name!}: run of '#{what}' passed in #{elapsed_time} seconds"
+    print "#{project_name!}: run of '#{info.description}' passed in #{info.elapsed_time} seconds"
   else
-    print "#{project_name!}: run of '#{what}' failed in #{elapsed_time} seconds"
+    print "#{project_name!}: run of '#{info.description}' failed in #{info.elapsed_time} seconds"
 
-:start, :finish
+-- Finally those are exported in usual moonscript style
+:start, :finish, :runs
 ```
 
-You must define both of the above functions and export them or things will crash and burn.
+You must define at a minimum "start" or "finish" and export them or your notifier will not run at all.
 
 A more complex notification example for tmux might look like this (the uv package comes built in):
 
@@ -212,10 +222,10 @@ tmux_set_status = (status) ->
 
 tmux_default_status = '#[fg=colour16,bg=colour254,bold]'
 
-tmux_fail_status = (elapsed) ->
-  tmux_default_status .. '#[fg=white,bg=red] FAIL: ' .. project_name! .. " (#{elapsed} s) " .. '#[fg=red,bg=colour234,nobold]'
-tmux_pass_status = (elapsed) ->
-  tmux_default_status .. '#[fg=white,bg=green] PASS: ' .. project_name! .. " (#{elapsed} s) " .. '#[fg=green,bg=colour234,nobold]'
+tmux_fail_status = (info) ->
+  tmux_default_status .. '#[fg=white,bg=red] FAIL: ' .. project_name! .. " (#{info.elapsed_time} s) " .. '#[fg=red,bg=colour234,nobold]'
+tmux_pass_status = (info) ->
+  tmux_default_status .. '#[fg=white,bg=green] PASS: ' .. project_name! .. " (#{info.elapsed_time} s) " .. '#[fg=green,bg=colour234,nobold]'
 tmux_test_status = ->
   tmux_default_status .. '#[fg=white,bg=cyan] TEST: ' .. project_name! .. ' #[fg=cyan,bg=colour234,nobold]'
 
@@ -234,7 +244,10 @@ start_reset_timer = ->
     tmux_set_status tmux_default_status
     stop_timer!
 
-start = (what, data) ->
+-- only run this notifier if the TMUX env var is set
+runs = -> os.getenv("TMUX")
+
+start = (info) ->
   tmux_set_status tmux_test_status!
   start_reset_timer!
 
@@ -248,23 +261,23 @@ uv.signal_start sigint, "sigint", (signal) ->
   tmux_set_status tmux_default_status
   os.exit 1
 
-finish = (success, what, data, elapsed_time) ->
+finish = (success, info) ->
   if success
-    tmux_set_status tmux_pass_status(elapsed_time)
+    tmux_set_status tmux_pass_status(info)
   else
-    tmux_set_status tmux_fail_status(elapsed_time)
+    tmux_set_status tmux_fail_status(info)
 
   start_reset_timer!
 
-:start, :finish
+:start, :finish, :runs
 ```
 
-There's a gist for the above I just clone to ~/.spook here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
+There's a gist for the above I just clone to ~/.spook/notifiers here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
 
 There is also an OS X example here using terminal-notifier for system notifications: [osx notifier gist](https://gist.github.com/fc803fe80124a0fe1953)
 
 
-You may also use the commandline switch -n to add a notifier:
+You may also use the commandline switch -n to add/test a notifier:
 
 ```
 spook -n /path/to/some/notifier.moon
