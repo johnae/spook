@@ -37,17 +37,25 @@ function moonfiles(dir)
   return files_with_ext(dir, "moon")
 end
 
+function should_replace_with_file(str, pat)
+  return str:match( "%[%[READ_FILE_(" .. pat .. ")%]%]" )
+end
+
+function replace_with_file(str, file, pat)
+  local replacement = io.open( file ):read"*a"
+  return str:gsub ( "%[%[READ_FILE_" .. pat .. "%]%]", "[[" .. replacement .. "]]" )
+end
+
 function scandir (root, path)
   path = path or ""
   for i, file in moonfiles( root..path ) do
     io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     local content = io.open( file ):read"*a"
-    local rep = content:match( "%[%[READ_FILE_(.*%.moon)%]%]" )
+    local rep = should_replace_with_file( content, ".*%.moon" )
     if rep then
       io.stderr:write("Replacing pattern in " .. file .. " with contents of lib/" .. rep .. "\n")
-      local replacement = io.open( root .. "/" .. rep ):read"*a"
-      content = content:gsub ( "%[%[READ_FILE_.*%.moon%]%]", "[[" .. replacement .. "]]" )
+      content = replace_with_file( content, root .. "/" .. rep, ".*%.moon" )
     end
     local lua_code, line_table = to_lua(content)
     if not lua_code then
