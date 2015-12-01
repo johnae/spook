@@ -15,4 +15,4 @@ watch "playground", ->
   on_changed "^playground/(.*)%.moon", (a) -> exec_cmd "playground/#{a}.moon"
   on_changed "^playground/(.*)%.lua", (a) -> exec_cmd "playground/#{a}.lua"
 
-notifier "#{os.getenv('HOME')}/.spook"
+notifier "#{os.getenv('HOME')}/.spook/notifiers"
