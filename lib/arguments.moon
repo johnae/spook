@@ -1,4 +1,5 @@
 argparse = require "argparse"
+fs = require "fs"
 
 parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response", epilog: "For more see https://github.com/johnae/spook"
 
@@ -6,6 +7,18 @@ parser\argument("command", "Expects the command to run which will be given as in
 
 parser\flag("-v --version", "Show the Spook version you're running and exit")\action ->
   print(require "version")
+  os.exit 0
+
+parser\flag("-s --setup", "Setup Spook on a new system - creates ~/.spook/notifiers and a default notifier")\action ->
+  fs.mkdir_p "#{os.getenv('HOME')}/.spook/notifiers"
+  f = io.open "#{os.getenv('HOME')}/.spook/notifiers/terminal_notifier.moon", "wb"
+  -- a simple replacement string
+  -- will replace the contents with
+  -- whatever is in lib/terminal_notifier.moon
+  -- happens at compile time - see tools/pack.lua
+  content = [[READ_FILE_terminal_notifier.moon]]
+  f\write(content)
+  f\close!
   os.exit 0
 
 parser\flag("-i --initialize", "Initialize an example Spookfile in the current dir")\action ->
@@ -44,24 +57,26 @@ watch "playground", ->
 --   o\close!
 --   true -- return true or false for notications
 -- do_stuff = (file) ->
---   notify.begin "do_stuff #{file}", file, -> handle_file file -- for terminal etc notifications
+--   notify.begin description: "do_stuff #{file}", detail: file, -> handle_file file -- for terminal etc notifications
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 
--- Define additional notifiers to use. Any number of them can be specified here.
+-- Define notifiers to use, a default one (including directory structure) is created for you
+-- when you run "spook --setup". All notifiers in specified dir are loaded and if their "runs"
+-- function returns true they will be run (if there is no runs function they will also run).
 -- Set log_level to DEBUG to see whether there's a failure in loading them. Either
 -- through command line switch -l or in this file.
-notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
+notifier "#{os.getenv('HOME')}/.spook/notifiers"
 
 -- You can even specify a notifier right here (perhaps for simpler variants), like:
 --notifier {
---  start: (what, data) ->
---    print "#{what} "#{data}"
---  finish: (success, what, data, elapsed_time) ->
+--  start: (info) ->
+--    print "#{info.description} "#{info.detail}"
+--  finish: (success, info) ->
 --    if success
---      print "Success! in #{elapsed_time} s"
+--      print "Success! in #{info.elapsed_time} s"
 --    else
---      print "Failure! in #{elapsed_time} s"
+--      print "Failure! in #{info.elapsed_time} s"
 --}
 
 -- Commands can be defined at top level too if more convenient, like:
@@ -79,8 +94,8 @@ notifier "#{os.getenv('HOME')}/.spook/notifier.moon"
 --   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
 --   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
 ]]
-  content = f\write(content)
-  f\close()
+  f\write(content)
+  f\close!
   os.exit 0
 
 parser\option("-l --log-level", "Log level either ERR, WARN, INFO or DEBUG")\args(1)
