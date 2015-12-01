@@ -43,3 +43,10 @@ describe 'config', ->
 
     it 'overwrites defaults with supplied args', ->
       assert.same 3, conf.log_level
+
+    describe 'when Spookfile also sets the value', ->
+      before_each ->
+        conf = config!(config_file: 'Spookfile', args: {log_level: 'DEBUG'})
+
+      it 'args take precedence', ->
+        assert.same 3, conf.log_level
