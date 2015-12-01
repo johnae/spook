@@ -1,11 +1,13 @@
 colors = require 'ansicolors'
 
-start = (what, data) ->
-  print colors("[ %{dim}RUNNING #{what}%{reset} ]")
+runs = -> true
 
-finish = (success, what, data, elapsed_time) ->
+start = (info) ->
+  print colors("[ %{dim}RUNNING #{info.description}%{reset} ]")
+
+finish = (success, info) ->
   msg = success and colors("[ %{green}PASSED") or colors("[ %{red}FAILED")
-  print msg .. colors "%{white} in #{elapsed_time} seconds%{reset} ]"
+  print msg .. colors "%{white} in #{info.elapsed_time} seconds%{reset} ]"
   print ''
 
-:start, :finish
+:start, :finish, :runs

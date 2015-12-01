@@ -2,25 +2,19 @@
 
 (...) ->
   notify = {...}
-  start = (what, data) ->
+  start = (info) ->
     for notifier in *notify
-      if notifier.__init
-        notifier\start what, data
-      else
-        notifier.start what, data
-  finish = (status, what, data, elapsed_time) ->
+      notifier.start info if notifier.start
+  finish = (success, info) ->
     for notifier in *notify
-      if notifier.__init
-        notifier\finish status, what, data, elapsed_time
-      else
-        notifier.finish status, what, data, elapsed_time
+      notifier.finish success, info if notifier.finish
   setmetatable notify, __index:
     :start
     :finish
-    begin: (what, data, fn) ->
+    begin: (info, fn) ->
       start_time = gettimeofday! / 1000.0
-      start what, data
+      start info
       success = fn!
       end_time = gettimeofday! / 1000.0
-      elapsed = round end_time-start_time, 3
-      finish success, what, data, elapsed
+      info.elapsed_time = round end_time-start_time, 3
+      finish success, info

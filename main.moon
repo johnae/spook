@@ -4,7 +4,7 @@ lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
-_G.notify = require("notify")(require "terminal_notifier")
+_G.notify = require("notify")!
 _G.log = require("log")(1)
 config = require("config")!
 {:run} = require "uv"
