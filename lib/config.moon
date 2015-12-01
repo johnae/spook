@@ -31,8 +31,8 @@
           unless status
             log.debug "Failed to load notifier from #{n}: #{notifier}, skipping"
             continue
-          unless notifier.start and notifier.finish
-            log.debug "Notifier #{n} doesn't implement the start and finish functions, skipping"
+          unless notifier.start or notifier.finish
+            log.debug "Notifier #{n} doesn't implement the start and/or finish functions, skipping"
             continue
           if notifier.runs
             unless notifier.runs!
