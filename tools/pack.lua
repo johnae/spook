@@ -43,6 +43,12 @@ function scandir (root, path)
     io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     local content = io.open( file ):read"*a"
+    local rep = content:match( "%[%[READ_FILE_(.*%.moon)%]%]" )
+    if rep then
+      io.stderr:write("Replacing pattern in " .. file .. " with contents of lib/" .. rep .. "\n")
+      local replacement = io.open( root .. "/" .. rep ):read"*a"
+      content = content:gsub ( "%[%[READ_FILE_.*%.moon%]%]", "[[" .. replacement .. "]]" )
+    end
     local lua_code, line_table = to_lua(content)
     if not lua_code then
       io.stderr:write("Error in: "..file, "\n")
