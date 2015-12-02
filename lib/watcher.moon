@@ -17,12 +17,10 @@ run_utility = (changed_file, mapper) ->
     log.debug "no mapping found for #{changed_file}"
 
 new_handler = (fse, mapper) ->
-  local changed_file, timer
+  local timer
   (handle, filename, events, status) ->
-
-    changed_file = "#{fse\getpath!}/#{filename}"
+    changed_file = fse\getpath! .. '/' .. filename
     log.debug "changed file #{changed_file}"
-
     unless timer
       timer = new_timer!
       timer\start 200, 0, ->
@@ -34,4 +32,5 @@ new_handler = (fse, mapper) ->
   {:mapper, :watch} = conf
   for watch_dir in *watch
     fse = new_fs_event!
-    fse\start watch_dir, {recursive: true, stat: true}, new_handler(fse, mapper)
+    handler = new_handler fse, mapper
+    fse\start watch_dir, recursive: true, stat: true, handler
