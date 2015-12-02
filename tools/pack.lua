@@ -43,6 +43,7 @@ end
 
 function replace_with_file(str, file, pat)
   local replacement = io.open( file ):read"*a"
+  replacement = replacement:gsub("%%", "%%%%")
   return str:gsub ( "%[%[READ_FILE_" .. pat .. "%]%]", "[[" .. replacement .. "]]" )
 end
 
