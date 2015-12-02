@@ -6,6 +6,7 @@
   {:is_dir, :is_file, :dirtree} = require "fs"
 
   config = {watch: {}, notifiers: {}}
+  loaded_notifiers = {}
   config_env = {
 
     log_level: (l) ->
@@ -27,7 +28,9 @@
           to_load = {n}
 
         for n in *to_load
+          continue if loaded_notifiers[n]
           status, notifier = pcall(-> return moonscript.loadfile(n)!)
+          loaded_notifiers[n] = true
           unless status
             log.debug "Failed to load notifier from #{n}: #{notifier}, skipping"
             continue
