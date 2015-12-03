@@ -88,10 +88,8 @@
   (opts={}) ->
     {:config_file, :args} = opts
 
-    spook_configuration = if config_file
-      assert moonscript.loadfile(config_file), "Failed to load #{config_file}"
-
-    if spook_configuration
+    if config_file
+      spook_configuration = assert moonscript.loadfile(config_file), "Failed to load #{config_file}"
       setfenv spook_configuration, config_env
       spook_configuration!
 
