@@ -1,8 +1,8 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
-spec_cmd = command "./spook -f spec/support/run_busted.lua", show_command: true
-exec_cmd = command "./spook -f", show_command: true
+spec_cmd = command "./spook -f spec/support/run_busted.lua"
+exec_cmd = command "./spook -f"
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
