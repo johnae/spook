@@ -1,8 +1,7 @@
--- these specs are very sensitive and also
+-- These specs are very sensitive and also
 -- depend on the system they're running on
--- that's why the watch time is quite generous (1500 ms),
--- unfortunately that means these are slow (compared to the
--- other specs)
+-- that's why the watch time is quite generous.
+-- Unfortunately that means these are slow.
 
 lfs = require "syscall.lfs"
 fs = require "fs"
@@ -65,8 +64,8 @@ describe 'watcher', ->
       watch = dir_list(dir1)
       file = "#{dir1}/myfile.txt"
       watcher {:mapper, :watch}
-      watch_for(1800)
-      create_file(400, file)
+      watch_for(2000)
+      create_file(500, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_called(1)
@@ -78,8 +77,8 @@ describe 'watcher', ->
       f\write("hello")
       f\close!
       watcher {:mapper, :watch}
-      watch_for(1800)
-      update_file(400, file)
+      watch_for(2000)
+      update_file(500, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_called(1)
@@ -92,8 +91,8 @@ describe 'watcher', ->
       f\write("hello")
       f\close!
       watcher {:mapper, :watch}
-      watch_for(1800)
-      delete_file(400, file)
+      watch_for(2000)
+      delete_file(500, file)
       uv.update_time!
       uv\run!
       assert.spy(mapper).was_not_called
