@@ -68,7 +68,7 @@ Arguments:
 
 Options:
    -v, --version         Show the Spook version you're running and exit
-   -s, --setup           Setup Spook on a new system - creates ~/.spook/notifiers and a default notifier
+   -s, --setup           Setup Spook - creates /home/john/.spook/notifiers and a default notifier (will overwrite /home/john/.spook/notifiers/terminal_notifier.moon)
    -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
                          Log level either ERR, WARN, INFO or DEBUG
