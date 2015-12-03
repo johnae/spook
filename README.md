@@ -302,6 +302,8 @@ There's a gist for the above I just clone to ~/.spook/notifiers/tmux here: [tmux
 
 There is also an OS X example here using terminal-notifier for system notifications: [osx notifier gist](https://gist.github.com/fc803fe80124a0fe1953)
 
+And finally an Ubuntu example using notify-send here: [ubuntu notifier gist](https://gist.github.com/johnae/ba58535c58bbeccea288)
+
 
 You may also use the commandline switch -n to add/test a notifier:
 
