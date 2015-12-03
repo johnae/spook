@@ -50,20 +50,20 @@
 
     watch: (...) ->
       args = {...}
-      f = remove args, #args
-      tmap = {}
+      watch = remove args, #args
+      change_handlers = {}
       watch_env = {
         :command
 
-        on_changed: (m, r) ->
-          tmap[#tmap + 1] = {m, r}
+        on_changed: (matcher, runner) ->
+          change_handlers[#change_handlers + 1] = {matcher, runner}
 
       }
       setmetatable watch_env, __index: _G
-      setfenv f, watch_env
-      f!
+      setfenv watch, watch_env
+      watch!
       for dir in *args
-        config.watch[dir] = tmap
+        config.watch[dir] = change_handlers
 
   }
 
