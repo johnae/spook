@@ -7,6 +7,7 @@ expand_file = (data, file) ->
 
 (cmd, opts={}) ->
   notify = opts.notify or _G.notify
+  only_if = opts.only_if or is_present
   log = _G.log
   setmetatable {
     :cmd
@@ -16,8 +17,9 @@ expand_file = (data, file) ->
     if replaced == 0
       cmdline = "#{t.cmd} #{rest}"
 
-    unless is_present rest
-      log.debug "No such file '#{rest}', skipping run of '#{cmdline}'"
+    unless only_if rest
+      log.debug "Skipping run of '#{cmdline}' since only_if returned false"
+      log.debug "  the default behavior is to not run when file (#{t.rest}) is missing"
       return
 
     run = ->
