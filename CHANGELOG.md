@@ -8,10 +8,10 @@ past them.
 - Notifiers can be loaded from a directory (specified in Spookfile)
 - Notifiers are now recommended to live in ~/.spook/notifiers
   The recommendation is to first run "spook --setup", then to
-  move your notifiers to ~/.spook/notifiers and then change your Spookfile
-  to point to this new location. "spook --setup" also adds the default
-  notifier to this directory - that is a useful notifier since it provides
-  terminal output - something you probably always want.
+  move your notifiers to ~/.spook/notifiers/some-directory and then change
+  your Spookfile to point to ~/.spook/notifiers. "spook --setup" also adds the default
+  notifier to a sub directory called "default" - that one is a useful notifier since it
+  provides terminal output - something you probably always want.
 - Notifiers CAN now provide a "runs" function which is expected to return true or false
   true means the notifier will run on the current system, false means it won't.
   This is so it's easier to sync a directory full of notifiers between machines or
@@ -46,7 +46,7 @@ Example info table for notifier.finish(sucess, info):
 ```
 
 The fact that there is no longer a built-in terminal notifier. This is a breaking change because you probably want
-the terminal output. Instead you're expected to run "spook --setup" which creates ~/.spook/notifiers/terminal_notifier.moon,
+the terminal output. Instead you're expected to run "spook --setup" which creates ~/.spook/notifiers/default/terminal_notifier.moon,
 that will enable the terminal notifications again. You must also add "notifier #{os.getenv('HOME')}/.spook/notifiers" to
 your Spookfile for it to load (you can have multiple such definitions if you want notifiers to load from some other place
 as well).

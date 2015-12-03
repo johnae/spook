@@ -9,14 +9,14 @@ parser\flag("-v --version", "Show the Spook version you're running and exit")\ac
   print(require "version")
   os.exit 0
 
-parser\flag("-s --setup", "Setup Spook - creates #{os.getenv('HOME')}/.spook/notifiers and a default notifier (will overwrite #{os.getenv('HOME')}/.spook/notifiers/terminal_notifier.moon)")\action ->
-  if fs.is_dir "#{os.getenv('HOME')}/.spook" and not fs.is_dir "#{os.getenv('HOME')}/.spook/notifiers"
+parser\flag("-s --setup", "Setup Spook - creates #{os.getenv('HOME')}/.spook/notifiers and a default notifier (will overwrite #{os.getenv('HOME')}/.spook/notifiers/default/terminal_notifier.moon)")\action ->
+  if fs.is_dir "#{os.getenv('HOME')}/.spook" and not fs.is_dir "#{os.getenv('HOME')}/.spook/notifiers/default"
     print "Don't forget to move any notifiers you had in '#{os.getenv('HOME')}/.spook'"
-    print "to '#{os.getenv('HOME')}/.spook/notifiers and update your Spookfile(s) to"
-    print "point to this new directory (so all of them will load)"
+    print "to '#{os.getenv('HOME')}/.spook/notifiers or any subdir and update your Spookfile(s) to"
+    print "point to '#{os.getenv('HOME')}/.spook/notifiers (all of them will load, from any subdirs)"
 
-  fs.mkdir_p "#{os.getenv('HOME')}/.spook/notifiers"
-  f = io.open "#{os.getenv('HOME')}/.spook/notifiers/terminal_notifier.moon", "wb"
+  fs.mkdir_p "#{os.getenv('HOME')}/.spook/notifiers/default"
+  f = io.open "#{os.getenv('HOME')}/.spook/notifiers/default/terminal_notifier.moon", "wb"
   -- a simple replacement string
   -- will replace the contents with
   -- whatever is in lib/terminal_notifier.moon

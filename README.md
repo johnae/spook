@@ -68,7 +68,7 @@ Arguments:
 
 Options:
    -v, --version         Show the Spook version you're running and exit
-   -s, --setup           Setup Spook - creates /home/john/.spook/notifiers and a default notifier (will overwrite /home/john/.spook/notifiers/terminal_notifier.moon)
+   -s, --setup           Setup Spook - creates /home/john/.spook/notifiers and a default notifier (will overwrite /home/john/.spook/notifiers/default/terminal_notifier.moon)
    -i, --initialize      Initialize an example Spookfile in the current dir
    -l <log_level>, --log-level <log_level>
                          Log level either ERR, WARN, INFO or DEBUG
@@ -91,9 +91,11 @@ It's a good idea to setup spook first on a new system. The simplest way to do th
 spook --setup
 ```
 
-That just creates $HOME/.spook/notifiers and places a default notifier in there. It's useful to keep that one
+That just creates $HOME/.spook/notifiers/default/terminal_notifier.moon in there. It's useful to keep that one
 there even when you create your own notifiers. It provides meaningful terminal output even though you might also
 want say OS X notifications, growl notifications or some other type of notifier (like a tmux notifier or ubuntu notifier).
+Generally it's probably good to leave that "default" directory alone. For your own notifiers, just create directories
+under $HOME/.spook/notifiers and place your notifiers there. Any notifiers from any subdirs will automatically load.
 
 
 ### The Spookfile
@@ -154,8 +156,9 @@ watch "playground", ->
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 
--- Define notifiers to use, a default one is created for you. All notifiers in specified dir
--- are loaded and if their "runs" function returns true they will also run.
+-- Define notifiers to use, a default one (including directory structure) is created for you
+-- when you run "spook --setup". All notifiers in specified dir are loaded and if their "runs"
+-- function returns true they will be run (if there is no runs function they will also run).
 -- Set log_level to DEBUG to see whether there's a failure in loading them. Either
 -- through command line switch -l or in this file.
 notifier "#{os.getenv('HOME')}/.spook/notifiers"
@@ -195,6 +198,12 @@ is irrelevant however but it's probably a good place for them - others working
 on a project might want different notifiers while still checking in the Spookfile
 in the repo. Using "commands" automatically ties into the the notifier api. For your
 own functions you have to do this yourself if you want/need notifications (see above for example).
+
+All notifiers under the directory (or any subdirs) defined in the Spookfile will be loaded as long
+as their "runs" function returns true or if the "runs" function is missing (probably best to define
+it regardless). Loading from all subdirs under ~/.spook/notifiers enables certain uses like cloning/updating
+different git-repos for different notifiers without clobbering any others.
+
 This is how a simple notifier might look:
 
 ```moonscript
@@ -278,7 +287,7 @@ finish = (success, info) ->
 :start, :finish, :runs
 ```
 
-There's a gist for the above I just clone to ~/.spook/notifiers here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
+There's a gist for the above I just clone to ~/.spook/notifiers/tmux here: [tmux notifier gist](https://gist.github.com/johnae/fc8e04acef49999fc5c9)
 
 There is also an OS X example here using terminal-notifier for system notifications: [osx notifier gist](https://gist.github.com/fc803fe80124a0fe1953)
 

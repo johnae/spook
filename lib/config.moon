@@ -21,7 +21,7 @@
       else if type(n) == "string"
         to_load = {}
         if is_dir n
-          for entry, attr in dirtree n
+          for entry, attr in dirtree n, true
             if entry\match "[^.].moon$"
               to_load[#to_load + 1] = entry
         else
