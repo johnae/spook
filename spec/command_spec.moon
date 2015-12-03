@@ -35,6 +35,12 @@ describe "command", ->
     cmd "/tmp"
     assert.spy(os_exec).was_called_with "ls -lah /tmp"
 
+  it "by default skips running the command when file does not exist", ->
+    cmd = command "ls -lah", notify: notify
+    assert.same {cmd: "ls -lah"}, cmd
+    cmd "/tmp/vffhasddiahdgadhgjabsfuahsifadisndjnuqh83283uwg"
+    assert.spy(os_exec).was_not_called!
+
   it "expands placeholder for file", ->
     cmd = command "ls -lah [file] | wc -l > [file].count", notify: notify
     assert.same {cmd: "ls -lah [file] | wc -l > [file].count"}, cmd
