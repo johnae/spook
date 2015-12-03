@@ -29,6 +29,12 @@ Installation is as straightforward as:
 PREFIX=/usr/local make install
 ```
 
+### Changelog
+
+There's a changelog in in the repo which may be useful to learn about any breaking changes, new features or
+other improvements. Please consult it when upgrading.
+
+
 ### Binaries
 
 If you prefer to just install the latest binary you can do so by running the following in a shell:
