@@ -15,7 +15,6 @@ string.split = (str, sep) ->
 table.index_of = (t, v) ->
   for i = 1, #t
     return i if t[i] == v
-
   nil
 
 table.merge = (t1, t2) ->
