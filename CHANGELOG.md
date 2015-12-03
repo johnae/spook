@@ -20,6 +20,8 @@ past them.
   "start" will receive a table with the keys description and detail. description, for commands, contains the full
   command line while detail has just the file that's run.
   "finish" will receive two arguments - success and info. Here, info contains the additional key .elapsed_time.
+- There are no default watch dirs defined. These were previously always added to any existing configuration. It was
+  a stupid thing really and could be seen as errors (usually) in debug mode.
 
 ### Breaking changes
 
