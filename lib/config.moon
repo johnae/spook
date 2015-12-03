@@ -78,7 +78,7 @@
 
   args_configuration = (args) ->
     log_level args.log_level unless args.log_level == nil
-    notifer args.notifier unless args.notifier == nil
+    notifier args.notifier unless args.notifier == nil
 
   setfenv default_configuration, config_env
   setfenv args_configuration, config_env
