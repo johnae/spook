@@ -26,6 +26,25 @@ past them.
 The fact that notifier.start now receives a table and notifier.finish receives success and a table. The tables
 contain the relevant information now.
 
+Example info table for notifier.start(info):
+
+```moonscript```
+{
+  description: "./bin/rspec -f d spec/my/awesome_spec.rb",
+  detail: "spec/my/awesome_spec.rb"
+}
+```
+
+Example info table for notifier.finish(sucess, info):
+
+```moonscript```
+{
+  description: "./bin/rspec -f d spec/my/awesome_spec.rb",
+  detail: "spec/my/awesome_spec.rb",
+  elapsed_time: 8.347
+}
+```
+
 The fact that there is no longer a built-in terminal notifier. This is a breaking change because you probably want
 the terminal output. Instead you're expected to run "spook --setup" which creates ~/.spook/notifiers/terminal_notifier.moon,
 that will enable the terminal notifications again. You must also add "notifier #{os.getenv('HOME')}/.spook/notifiers" to
