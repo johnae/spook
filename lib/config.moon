@@ -70,10 +70,6 @@
   setmetatable config_env, __index: _G
 
   default_configuration = ->
-    change_handler = (s) ->
-      print "Mapped file #{s}"
-    watch "lib", "spec", ->
-      on_changed "^lib/(.*)%.(.*)", (n, ext) -> change_handler "spec/#{n}.#{ext}"
     log_level "INFO"
 
   args_configuration = (args) ->

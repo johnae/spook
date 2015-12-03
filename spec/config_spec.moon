@@ -21,8 +21,6 @@ describe 'config', ->
       conf = config()!
 
     it 'has defaults', ->
-      watched = keys(conf.watch)
-      assert.same sorted({"lib", "spec"}), watched
       assert.same 2, conf.log_level
 
   describe 'from Spookfile', ->
