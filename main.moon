@@ -9,10 +9,9 @@ _G.log = require("log")(1)
 config = require("config")!
 {:run} = require "uv"
 moonscript = require "moonscript.base"
-{:concat, :remove, :index_of} = table
+{:index_of} = table
 
 if fi = index_of arg, "-f"
-
   file = arg[fi + 1]
   new_args = [a for i, a in ipairs arg when i>(fi + 1)]
   unless file
@@ -26,13 +25,10 @@ if fi = index_of arg, "-f"
   loaded_chunk!
 
 else
-
   cli = require "arguments"
   args = cli\parse!
 
-  spookfile_path = "Spookfile"
-  if args.config
-    spookfile_path = args.config
+  spookfile_path = args.config or "Spookfile"
 
   if args.log_level
     _G.log.level assert tonumber(args.log_level) or _G.log[args.log_level]
