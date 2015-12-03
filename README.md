@@ -114,7 +114,18 @@ that directory. The default Spookfile is a basic example that would work for a R
 The Spookfile is written as [moonscript](https://github.com/leafo/moonscript) and maps files to functions. It understands a simple
 DSL as well as just straight moonscript for additional things. There's a command helper for when a shell command should run in
 response to a change (which is probably the most common use case). Hooking in to the notifications api is recommended and is
-automatic when using the command helper. See below for more information on how all this works.
+automatic when using the command helper. The command helper supports one option - only_if. It can be used like this:
+
+```
+fs = require "fs"
+cmd = command "ls -lah", only_if: fs.is_present
+```
+
+So basically only_if should be a function, the only argument it gets is the mapped file. If only_if returns true, the
+command will run - otherwise it won't. The default is actually the above - the command won't run if the file doesn't
+exist. Clearly you could write whatever function you want but usually in my experience the default is what you want.
+
+See below for more information on how all this works.
 
 A functional example of mapping etc via the Spookfile (for a rails app in this case) might be:
 
