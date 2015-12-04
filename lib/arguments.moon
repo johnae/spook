@@ -38,17 +38,17 @@ log_level "INFO"
 -- restriction on running shell commands however -
 -- any function (in lua/moonscript) can be run
 watch "app", "lib", "spec", ->
-  cmd = command "./bin/rspec -f d"
-  on_changed "^(spec)/(spec_helper%.rb)", -> cmd "spec"
-  on_changed "^spec/(.*)_spec%.rb", (a) -> cmd "spec/#{a}_spec.rb"
-  on_changed "^lib/(.*)%.rb", (a) -> cmd "spec/lib/#{a}_spec.rb"
-  on_changed "^app/(.*)%.rb", (a) -> cmd "spec/#{a}_spec.rb"
+  rspec = command "./bin/rspec -f d"
+  on_changed "^(spec)/(spec_helper%.rb)", -> rspec "spec"
+  on_changed "^spec/(.*)_spec%.rb", (a) -> rspec "spec/#{a}_spec.rb"
+  on_changed "^lib/(.*)%.rb", (a) -> rspec "spec/lib/#{a}_spec.rb"
+  on_changed "^app/(.*)%.rb", (a) -> rspec "spec/#{a}_spec.rb"
 
 -- Perhaps some area where we experiment, sort of
 -- like a poor mans REPL
 watch "playground", ->
-  cmd = command "ruby"
-  on_changed "^playground/(.*)%.rb", (a) -> cmd "playground/#{a}.rb"
+  ruby = command "ruby"
+  on_changed "^playground/(.*)%.rb", (a) -> ruby "playground/#{a}.rb"
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
@@ -87,7 +87,7 @@ notifier "#{os.getenv('HOME')}/.spook/notifiers"
 -- Commands can be defined at top level too if more convenient, like:
 -- cmd1 = command "ls -lah"
 
--- Yes commands can be defined with a placeholder for the file which
+-- Commands can be defined with a placeholder for the file which
 -- can come in handy. You may use <file>, [file] or {file} one or more
 -- times. It is replaced with the path to the file given to the command
 -- when running it - in such cases it's no longer added as the last input
