@@ -6,7 +6,6 @@ expand_file = (data, file) ->
   data\gsub '([[{%<](file)[]}>])', file
 
 (cmd, opts={}) ->
-  spook = opts.spook or _G.spook
   only_if = opts.only_if or is_present
   log = _G.log
   setmetatable {
