@@ -1,4 +1,5 @@
 {:round} = math
+{:log} = _G
 
 (...) ->
   notify = {...}

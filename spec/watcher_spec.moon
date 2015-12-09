@@ -63,36 +63,39 @@ describe 'watcher', ->
     it 'when a new file is added', ->
       watch = dir_list(dir1)
       file = "#{dir1}/myfile.txt"
-      watcher {:mapper, :watch}
+      changes = {}
+      watcher {:mapper, :watch, :changes}
       watch_for(2000)
       create_file(500, file)
       uv.update_time!
       uv\run!
-      assert.spy(mapper).was_called(1)
+      assert.same {"#{dir1}/myfile.txt": mapper}, changes
 
     it 'when a file is changed', ->
       watch = dir_list(dir2)
       file = "#{dir2}/myfile.txt"
+      changes = {}
       f = assert(io.open(file, "w"))
       f\write("hello")
       f\close!
-      watcher {:mapper, :watch}
+      watcher {:mapper, :watch, :changes}
       watch_for(2000)
       update_file(500, file)
       uv.update_time!
       uv\run!
-      assert.spy(mapper).was_called(1)
+      assert.same {"#{dir2}/myfile.txt": mapper}, changes
 
 
     it 'when a file is deleted', ->
       watch = dir_list(dir3)
       file = "#{dir3}/myfile.txt"
+      changes = {}
       f = assert(io.open(file, "w"))
       f\write("hello")
       f\close!
-      watcher {:mapper, :watch}
+      watcher {:mapper, :watch, :changes}
       watch_for(2000)
       delete_file(500, file)
       uv.update_time!
       uv\run!
-      assert.spy(mapper).was_not_called
+      assert.same {"#{dir3}/myfile.txt": mapper}, changes

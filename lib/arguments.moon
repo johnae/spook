@@ -62,7 +62,7 @@ watch "playground", ->
 --   o\close!
 --   true -- return true or false for notications
 -- do_stuff = (file) ->
---   notify.begin description: "do_stuff #{file}", detail: file, -> handle_file file -- for terminal etc notifications
+--   spook.start description: "do_stuff #{file}", detail: file, -> handle_file file
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 

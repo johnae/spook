@@ -4,8 +4,9 @@ lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "moonscript"
 require "globals"
-_G.notify = require("notify")!
 _G.log = require("log")(1)
+_G.notify = require("notify")!
+_G.spook = require("spook")(notify)
 config = require("config")!
 {:run} = require "uv"
 moonscript = require "moonscript.base"
@@ -42,6 +43,7 @@ else
 
   colors = require "ansicolors"
   watcher = require "watcher"
+  runner = require "runner"
   file_mapper = require "file_mapper"
   dir_list = require "dir_list"
 
@@ -51,11 +53,12 @@ else
     notify[#notify + 1] = notifier
 
   watched = 0
+  changes = runner(spook)
   for dir, on_changed in pairs watch
     dirs = dir_list dir
     watched += #dirs
     mapper = file_mapper on_changed
-    watcher mapper: mapper, watch: dirs
+    watcher mapper: mapper, watch: dirs, :changes
     
   print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
   print ""
