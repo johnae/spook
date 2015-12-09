@@ -61,8 +61,7 @@ watch "playground", ->
 --   o\write new_content
 --   o\close!
 --   true -- return true or false for notications
--- do_stuff = (file) ->
---   spook.start description: "do_stuff #{file}", detail: file, -> handle_file file
+-- do_stuff = (file) -> description: "do_stuff #{file}", detail: file, -> handle_file file
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
 

@@ -29,17 +29,20 @@ describe "command", ->
   it "calls the command with the specified file", ->
     cmd = command "ls -lah", run: dummy_run
     assert.same {cmd: "ls -lah"}, cmd
-    cmd "/tmp"
+    note, exec = cmd "/tmp"
+    exec!
     assert.spy(os_exec).was_called_with "ls -lah /tmp"
 
   it "by default skips running the command when file does not exist", ->
     cmd = command "ls -lah", run: dummy_run
     assert.same {cmd: "ls -lah"}, cmd
-    cmd "/tmp/vffhasddiahdgadhgjabsfuahsifadisndjnuqh83283uwg"
-    assert.spy(os_exec).was_not_called!
+    note, exec = cmd "/tmp/vffhasddiahdgadhgjabsfuahsifadisndjnuqh83283uwg"
+    assert.nil note
+    assert.nil run
 
   it "expands placeholder for file", ->
     cmd = command "ls -lah [file] | wc -l > [file].count", run: dummy_run
     assert.same {cmd: "ls -lah [file] | wc -l > [file].count"}, cmd
-    cmd "/tmp"
+    note, exec = cmd "/tmp"
+    exec!
     assert.spy(os_exec).was_called_with "ls -lah /tmp | wc -l > /tmp.count"

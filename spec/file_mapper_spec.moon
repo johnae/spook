@@ -29,13 +29,14 @@ describe 'file_mapper', ->
     }
     mapper = file_mapper(mapping)
     
-    run = mapper "my/code/awesome.moon"
-    run!
+    note, exec = mapper("my/code/awesome.moon")!
+    exec!
     assert.spy(os_exec).was.called_with "test my/tests/awesome_spec.moon"
 
-    run = mapper "my/other/code/CODE_HERE.moon"
-    run!
+    note, exec = mapper("my/other/code/CODE_HERE.moon")!
+    exec!
     assert.spy(os_exec).was.called_with "test2 my/other/tests/CODE_HERE_spec.moon"
 
-    run = mapper "my/unmapped/code.moon"
-    assert.nil run
+    note, exec = mapper "my/unmapped/code.moon"
+    assert.nil note
+    assert.nil exec

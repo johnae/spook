@@ -11,19 +11,17 @@ expand_file = (data, file) ->
   log = _G.log
   setmetatable {
     :cmd
-  }, __call: (t, rest) ->
+  }, __call: (t, file) ->
 
-    cmdline, replaced = expand_file t.cmd, rest
+    cmdline, replaced = expand_file t.cmd, file
     if replaced == 0
-      cmdline = "#{t.cmd} #{rest}"
+      cmdline = "#{t.cmd} #{file}"
 
-    unless only_if rest
+    unless only_if file
       log.debug "Skipping run of '#{cmdline}' since only_if returned false"
-      log.debug "  the default behavior is to not run when file (#{t.rest}) is missing"
+      log.debug "  the default behavior is to not run when file (#{file}) is missing"
       return
 
-    run = ->
-      _, _, status = os.execute cmdline
-      status == 0
-
-    spook.start description: cmdline, detail: rest, run
+    return description: cmdline, detail: file, ->
+        _, _, status = os.execute cmdline
+        status == 0
