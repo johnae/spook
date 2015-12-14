@@ -1,7 +1,7 @@
 {:is_file} = require "fs"
 {:new_timer} = require "uv"
 
-run_utility = (spook, changed_file, mapper) ->
+handle_change = (spook, changed_file, mapper) ->
   unless is_file changed_file
     log.debug "file deleted: #{changed_file}"
     return
@@ -26,6 +26,6 @@ run_utility = (spook, changed_file, mapper) ->
   timer\start 200, 200, ->
     for file, mapper in pairs changes
       changes[file] = nil
-      run_utility spook, file, mapper
+      handle_change spook, file, mapper
     spook.clear!
   changes

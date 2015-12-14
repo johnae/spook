@@ -43,7 +43,7 @@ else
 
   colors = require "ansicolors"
   watcher = require "watcher"
-  runner = require "runner"
+  worker = require "worker"
   file_mapper = require "file_mapper"
   dir_list = require "dir_list"
 
@@ -53,7 +53,7 @@ else
     notify[#notify + 1] = notifier
 
   watched = 0
-  changes = runner(spook)
+  changes = worker spook
   for dir, on_changed in pairs watch
     dirs = dir_list dir
     watched += #dirs
