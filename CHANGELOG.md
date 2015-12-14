@@ -3,14 +3,14 @@
 ## 0.5.1
 
 One breaking change that probably won't affect anyone (don't have many users atm). See below for a
-list of the changes and more info on the one breaking change. Normally this wouldn't really be ok in
+list of the changes and more info on the one breaking change. Normally this might not really be ok in
 a point release (I think) but since the project is so new, the feature is probably not used by anyone and
 made the other changes easier to make I opted to do it anyway. Sorry if someone was actually affected - the
 change needed in any such code is extremely small - see below for examples.
 
 - Any custom handler functions (as opposed to commands) are now expected to return (not call) the
-  info table + the closure to run. It used to be that they called notify.begin. This is the one breaking
-  change.
+  info table + the function to run. It used to be that they called notify.begin. This is the one breaking
+  change. The return is a two value one where the first is the info table and the last is the function.
 - The table received by notifier.start/finish now contains the changed file in the field "changed_file".
 - Previous releases could exhibit stupid behavior when spook was running and, for example, you switched
   git branch (which in turn "changed" lots of files on disk). Spook could then end up in a situation where
@@ -38,6 +38,8 @@ handle = (file) ->
 
 run_handle = (file) -> description: "handle #{file}", detail: file, -> handle file
 ```
+
+Eg. they should return the info table and the function to handle the detected change.
 
 Again, this change may not be used by anyone currently.
 
