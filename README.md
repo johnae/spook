@@ -153,7 +153,7 @@ watch "playground", ->
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
--- handle_file = (file) ->
+-- file_handler = (file) ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
@@ -162,9 +162,9 @@ watch "playground", ->
 --   o\write new_content
 --   o\close!
 --   true -- return true or false for notications
--- do_stuff = (file) -> description: "do_stuff #{file}", detail: file, -> handle_file file
+-- my_change_handler = (file) -> description: "do_stuff #{file}", detail: file, -> file_handler file
 -- watch "stuff", ->
---   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
+--   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> my_change_handler "stuff/#{a}/#{b}.txt"
 
 -- Define notifiers to use, a default one (including directory structure) is created for you
 -- when you run "spook --setup". All notifiers in specified dir are loaded and if their "runs"

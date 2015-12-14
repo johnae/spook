@@ -26,7 +26,10 @@ handle = (file) ->
    "do stuff to file"
    true -- or false, depending on success
 
-run_handle = (file) -> notify.begin description: "handle #{file}", detail: file, -> handle file
+change_handler = (file) -> notify.begin description: "handle #{file}", detail: file, -> handle file
+
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) -> change_handler "other/dir/#{a}_spec.moon"
 ```
 
   But they're now expected to look like this:
@@ -36,7 +39,10 @@ handle = (file) ->
    "do stuff to file"
    true -- or false, depending on success
 
-run_handle = (file) -> description: "handle #{file}", detail: file, -> handle file
+change_handler = (file) -> description: "handle #{file}", detail: file, -> handle file
+
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) -> change_handler "other/dir/#{a}_spec.moon"
 ```
 
 Eg. they should return the info table and the function to handle the detected change.
