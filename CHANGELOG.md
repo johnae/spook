@@ -15,6 +15,16 @@ change needed in any such code is extremely small - see below for examples.
 - Previous releases could exhibit stupid behavior when spook was running and, for example, you switched
   git branch (which in turn "changed" lots of files on disk). Spook could then end up in a situation where
   the same command and file were run several times. This has been resolved.
+- There's now a package.path pointing to $HOME/.spook/lib as well as PROJECT_DIR/.spook/lib from where
+  additional code (in moonscript or lua) may be loaded in your Spookfile. Assuming you put "my_util.moon
+  under $HOME/.spook/lib/stuff, you would load that like:
+
+```moonscript
+utils = require "stuff.my_util"
+```
+
+Any files under the project dir .spook/lib named the same as in $HOME/.spook/lib take precedence so the global
+ones may be overridden that way.
 
 
 On the breaking change:

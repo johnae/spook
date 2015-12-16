@@ -312,6 +312,24 @@ You may also use the commandline switch -n to add/test a notifier:
 spook -n /path/to/some/notifier.moon
 ```
 
+### Extending Spook
+
+There's a package.path pointing to $HOME/.spook/lib as well as PROJECT_DIR/.spook/lib which means you can put any exensions in there (written
+in moonscript or lua) and load them easily from your Spookfile. This means you could extend functionality in infinite ways. This is really
+just convenience since you could just as easily add your own package paths directly to the Spookfile. However, to me it seems $HOME/.spook
+is a reasonable place to put such things as well PROJECT_DIR/.spook.
+
+Basically, let's say you've got some code in $HOME/.spook/lib/utils/boom.moon that you'd like to use in the Spookfile. This is how you'd do that:
+
+```moonscript
+boom = require "utils.boom"
+
+boom.blow_up!
+```
+
+That _may_ be overridden by a local file in PROJECT_DIR/.spook/lib which takes precedence (eg. named the same as the one in the global search path).
+
+
 ### Additional functions available in the global scope
 
 These can be used in the notifier:

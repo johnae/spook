@@ -1,9 +1,18 @@
+-- load the core
 require "vendor"
 require "lib"
 lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
-require "moonscript"
 require "globals"
+
+-- add some default load paths
+package.path = package.path .. ";#{getcwd!}/.spook/lib/?.lua"
+package.path = package.path .. ";#{getcwd!}/.spook/lib/?/init.lua"
+package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?.lua"
+package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?/init.lua"
+
+-- setup additional requirements
+require "moonscript"
 _G.log = require("log")(1)
 _G.notify = require("notify")!
 _G.spook = require("spook")(notify)
