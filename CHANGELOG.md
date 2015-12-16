@@ -8,22 +8,23 @@ a point release (I think) but since the project is so new, the feature is probab
 made the other changes easier to make I opted to do it anyway. Sorry if someone was actually affected - the
 change needed in any such code is extremely small - see below for examples.
 
-- Any custom handler functions (as opposed to commands) are now expected to return (not call) the
-  info table + the function to run. It used to be that they called notify.begin. This is the one breaking
-  change. The return is a two value one where the first is the info table and the last is the function.
+- Any custom handler functions (as opposed to commands) are now expected to return the info table + the
+  function to run (as opposed to calling notify.begin with those parameters). This is the one breaking change.
+  The return is a two value one where the first is the info table and the last is the function. This might not
+  be used by anyone (yet) and I'm not using it atm even.
 - The table received by notifier.start/finish now contains the changed file in the field "changed_file".
 - Previous releases could exhibit stupid behavior when spook was running and, for example, you switched
   git branch (which in turn "changed" lots of files on disk). Spook could then end up in a situation where
-  the same command and file were run several times. This has been resolved.
+  the same command and file were run several times. This has been resolved through a better design.
 - There's now a package.path pointing to $HOME/.spook/lib as well as PROJECT_DIR/.spook/lib from where
-  additional code (in moonscript or lua) may be loaded in your Spookfile. Assuming you put "my_util.moon
+  additional code (in moonscript or lua) may be loaded in your Spookfile. Assuming you put "my_util.moon"
   under $HOME/.spook/lib/stuff, you would load that like:
 
 ```moonscript
 utils = require "stuff.my_util"
 ```
 
-Any files under the project dir .spook/lib named the same as in $HOME/.spook/lib take precedence so the global
+Any files under PROJECT_DIR/.spook/lib named the same as in $HOME/.spook/lib take precedence so the global
 ones may be overridden that way.
 
 
