@@ -332,7 +332,7 @@ That _may_ be overridden by a local file in PROJECT_DIR/.spook/lib which takes p
 
 ### Additional functions available in the global scope
 
-These can be used in the notifier:
+These can be used in the notifier and any other code running in the context of spook (like stuff in $HOME/.spook/lib or code in the Spookfile):
 
 ```moonscript
 getcwd
