@@ -58,7 +58,7 @@ watch "dir", ->
 
 Eg. they should return the info table and the function to handle the detected change.
 
-Again, this change may not be used by anyone currently.
+Again, this feature might not be used by anyone currently.
 
 
 ## 0.5.0
