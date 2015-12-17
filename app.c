@@ -16,7 +16,6 @@ int main(int argc, char **argv)
 
   for(i = 0; i < argc; i++)
   {
-    // yes 0 based is correct
     lua_pushinteger(L, i);
     lua_pushstring(L, argv[i]);
     lua_settable(L, -3);
@@ -27,7 +26,7 @@ int main(int argc, char **argv)
   lua_getfield(L, -1, "preload");
   lua_remove(L, -2); // Remove package
 
-  // Store uv module definition at preload.uv
+  // store uv module at preload.uv
   lua_pushcfunction(L, luaopen_luv);
   lua_setfield(L, -2, "uv");
   lua_getglobal(L, "require");
