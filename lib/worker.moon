@@ -7,12 +7,12 @@ handle_change = (spook, changed_file, mapper) ->
     return
 
   log.debug "mapping file #{changed_file}..."
-  run = mapper changed_file
-  if run
-    note, exec = run!
-    if type(note) == "table" and exec
-      note.changed_file = changed_file
-      spook.start note, exec
+  rule = mapper changed_file
+  if rule
+    info, run = rule!
+    if type(info) == "table" and run
+      info.changed_file = changed_file
+      spook.start info, run
     else
       log.debug "The handler didn't return the expected response"
       log.debug "Got note of type #{type(note)} and exec of type #{type(exec)}"
