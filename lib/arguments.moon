@@ -1,7 +1,7 @@
 argparse = require "argparse"
 fs = require "fs"
 
-parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response", epilog: "For more see https://github.com/johnae/spook"
+parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)", epilog: "For more see https://github.com/johnae/spook"
 
 parser\flag("-v --version", "Show the Spook version you're running and exit")\action ->
   print(require "version")
