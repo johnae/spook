@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+- Fix a possible moonscript parsing issue on Darwin. Quite baffling. This fixes the "spook --setup" problem on Darwin.
+- Cleans up the help output to not include deprecated usage anymore.
+
+
 ## 0.5.1
 
 One breaking change that probably won't affect anyone (don't have many users atm). See below for a
