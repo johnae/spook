@@ -2,7 +2,7 @@ lfs = require "syscall.lfs"
 remove = table.remove
 
 is_dir = (dir) ->
-  return false unless type dir == "string"
+  return false unless type(dir) == "string"
   attr = lfs.attributes dir
   return false unless attr and attr.mode == "directory"
   true
