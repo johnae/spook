@@ -6,12 +6,20 @@ import insert from table
 import unpack from util
 
 -- implicit return does not work on these statements
-manual_return = Set{"foreach", "for", "while", "return"}
+manual_return = Set {
+  "foreach", "for", "while", "return"
+}
 
 -- Assigns and returns are bubbled into their bodies.
 -- All cascading statement transform functions accept a second arugment that
 -- is the transformation to apply to the last statement in their body
-cascading = Set{ "if", "unless", "with", "switch", "class", "do" }
+cascading = Set {
+  "if", "unless", "with", "switch", "class", "do"
+}
+
+terminating = Set {
+  "return", "break"
+}
 
 -- type of node as string
 ntype = (node) ->
@@ -23,6 +31,7 @@ ntype = (node) ->
     else
       "value"
 
+-- gets the class of a type if possible
 mtype = do
   moon_type = util.moon.type
   -- lets us check a smart node without throwing an error
@@ -31,22 +40,17 @@ mtype = do
     return "table" if mt and mt.smart_node
     moon_type val
 
--- does this always return a value
-has_value = (node) ->
-  if ntype(node) == "chain"
-    ctype = ntype(node[#node])
-    ctype != "call" and ctype != "colon"
-  else
-    true
+-- can this value be compiled in a line by itself
+value_can_be_statement = (node) ->
+  return false unless ntype(node) == "chain"
+  -- it's a function call
+  ntype(node[#node]) == "call"
 
 is_value = (stm) ->
   compile = require "moonscript.compile"
   transform = require "moonscript.transform"
 
   compile.Block\is_value(stm) or transform.Value\can_transform stm
-
-comprehension_has_value = (comp) ->
-  is_value comp[2]
 
 value_is_singular = (node) ->
   type(node) != "table" or node[1] != "exp" or #node == 2
@@ -182,9 +186,12 @@ smart_node_mt = setmetatable {}, {
 smart_node = (node) ->
   setmetatable node, smart_node_mt[ntype node]
 
+NOOP = {"noop"}
+
 {
   :ntype, :smart_node, :build, :is_value, :is_slice, :manual_return,
-  :cascading, :value_is_singular, :comprehension_has_value, :has_value,
-  :mtype
+  :cascading, :value_is_singular,
+  :value_can_be_statement, :mtype, :terminating
+  :NOOP
 }
 

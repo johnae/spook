@@ -15,6 +15,12 @@ string_chars = {
 }
 
 {
+  scoped: (node) =>
+    {_, before, value, after} = node
+    before and before\call @
+    with @value value
+      after and after\call @
+
   -- list of values separated by binary operators
   exp: (node) =>
     _comp = (i, value) ->
@@ -44,10 +50,13 @@ string_chars = {
   chain: (node) =>
     callee = node[2]
     callee_type = ntype callee
+    item_offset = 3
 
-    if callee == -1
+    if callee_type == "dot" or callee_type == "colon" or callee_type == "index"
       callee = @get "scope_var"
-      if not callee then user_error "Short-dot syntax must be called within a with block"
+      unless callee
+        user_error "Short-dot syntax must be called within a with block"
+      item_offset = 2
 
     -- TODO: don't use string literals as ref
     if callee_type == "ref" and callee[2] == "super" or callee == "super"
@@ -64,7 +73,7 @@ string_chars = {
       elseif t == "dot"
         ".", tostring arg
       elseif t == "colon"
-        ":", arg, chain_item(node[3])
+        ":", tostring arg
       elseif t == "colon_stub"
         user_error "Uncalled colon stub"
       else
@@ -77,7 +86,7 @@ string_chars = {
     callee_value = @line "(", callee_value, ")" if ntype(callee) == "exp"
 
     actions = with @line!
-      \append chain_item action for action in *node[3,]
+      \append chain_item action for action in *node[item_offset,]
 
     @line callee_value, actions
 
@@ -143,9 +152,7 @@ string_chars = {
           else
             @line "[", \value(key), "]"
 
-          \set "current_block", key
           out = @line assign, " = ", \value(value)
-          \set "current_block", nil
           out
         else
           @line \value tuple[1]

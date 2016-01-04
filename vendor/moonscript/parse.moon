@@ -3,6 +3,7 @@ lpeg = require "lpeg"
 
 lpeg.setmaxstack 10000 -- whoa
 
+
 err_msg = "Failed to parse:%s\n [%d] >>    %s"
 
 import Stack from require "moonscript.data"
@@ -27,8 +28,8 @@ Num = Space * (Num / (v) -> {"number", v})
 {
   :Indent, :Cut, :ensure, :extract_line, :mark, :pos, :flatten_or_mark,
   :is_assignable, :check_assignable, :format_assign, :format_single_assign,
-  :sym, :symx, :simple_string, :wrap_func_arg, :flatten_func,
-  :flatten_string_chain, :wrap_decorator, :check_lua_string, :self_assign
+  :sym, :symx, :simple_string, :wrap_func_arg, :join_chain,
+  :wrap_decorator, :check_lua_string, :self_assign
 } = require "moonscript.parse.util"
 
 
@@ -133,7 +134,7 @@ build_grammar = wrap_env debug_grammar, (root) ->
     Local: key"local" * ((op"*" + op"^") / mark"declare_glob" + Ct(NameList) / mark"declare_with_shadows")
 
     Import: key"import" * Ct(ImportNameList) * SpaceBreak^0 * key"from" * Exp / mark"import"
-    ImportName: (sym"\\" * Ct(Cc"colon_stub" * Name) + Name)
+    ImportName: (sym"\\" * Ct(Cc"colon" * Name) + Name)
     ImportNameList: SpaceBreak^0 * ImportName * ((SpaceBreak^1 + sym"," * SpaceBreak^0) * ImportName)^0
 
     BreakLoop: Ct(key"break"/trim) + Ct(key"continue"/trim)
@@ -183,7 +184,7 @@ build_grammar = wrap_env debug_grammar, (root) ->
     WordOperators: op"or" + op"and" + op"<=" + op">=" + op"~=" + op"!=" + op"==" + op".."
     BinaryOperator: (WordOperators + CharOperators) * SpaceBreak^0
 
-    Assignable: Cmt(DotChain + Chain, check_assignable) + Name + SelfName
+    Assignable: Cmt(Chain, check_assignable) + Name + SelfName
     Exp: Ct(Value * (BinaryOperator * Value)^0) / flatten_or_mark"exp"
 
     SimpleValue:
@@ -202,19 +203,16 @@ build_grammar = wrap_env debug_grammar, (root) ->
       FunLit +
       Num
 
-    ChainValue: -- a function call or an object access
-      StringChain +
-      ((Chain + DotChain + Callable) * Ct(InvokeArgs^-1)) / flatten_func
+    -- a function call or an object access
+    ChainValue: (Chain + Callable) * Ct(InvokeArgs^-1) / join_chain
 
     Value: pos(
       SimpleValue +
       Ct(KeyValueList) / mark"table" +
-      ChainValue)
+      ChainValue +
+      String)
 
     SliceValue: SimpleValue + ChainValue
-
-    StringChain: String *
-      (Ct((ColonCall + ColonSuffix) * ChainTail^-1) * Ct(InvokeArgs^-1))^-1 / flatten_string_chain
 
     String: Space * DoubleString + Space * SingleString + LuaString
     SingleString: simple_string("'")
@@ -232,35 +230,28 @@ build_grammar = wrap_env debug_grammar, (root) ->
 
     FnArgs: symx"(" * SpaceBreak^0 * Ct(ExpList^-1) * SpaceBreak^0 * sym")" + sym"!" * -P"=" * Ct""
 
-    ChainTail: ChainItem^1 * ColonSuffix^-1 + ColonSuffix
+    Chain: (Callable + String + -S".\\") * ChainItems / mark"chain" +
+      Space * (DotChainItem * ChainItems^-1 + ColonChain) / mark"chain"
 
-    -- a list of funcalls and indexes on a callable
-    Chain: Callable * ChainTail / mark"chain"
-
-    -- shorthand dot call for use in with statement
-    DotChain:
-      (sym"." * Cc(-1) * (_Name / mark"dot") * ChainTail^-1) / mark"chain" +
-      (sym"\\" * Cc(-1) * (
-        (_Name * Invoke / mark"colon") * ChainTail^-1 +
-        (_Name / mark"colon_stub")
-      )) / mark"chain"
+    ChainItems: ChainItem^1 * ColonChain^-1 + ColonChain
 
     ChainItem:
       Invoke +
+      DotChainItem +
       Slice +
-      symx"[" * Exp/mark"index" * sym"]" +
-      symx"." * _Name/mark"dot" +
-      ColonCall
+      symx"[" * Exp/mark"index" * sym"]"
+
+    DotChainItem: symx"." * _Name/mark"dot"
+    ColonChainItem: symx"\\" * _Name / mark"colon"
+    ColonChain: ColonChainItem * (Invoke * ChainItems^-1)^-1
 
     Slice: symx"[" * (SliceValue + Cc(1)) * sym"," * (SliceValue + Cc"")  *
       (sym"," * SliceValue)^-1 *sym"]" / mark"slice"
 
-    ColonCall: symx"\\" * (_Name * Invoke) / mark"colon"
-    ColonSuffix: symx"\\" * _Name / mark"colon_stub"
-
-    Invoke: FnArgs/mark"call" +
+    Invoke: FnArgs / mark"call" +
       SingleString / wrap_func_arg +
-      DoubleString / wrap_func_arg
+      DoubleString / wrap_func_arg +
+      #P"[" * LuaString / wrap_func_arg
 
     TableValue: KeyValue + Ct(Exp)
 
@@ -313,6 +304,7 @@ build_grammar = wrap_env debug_grammar, (root) ->
     ExpList: Exp * (sym"," * Exp)^0
     ExpListLow: Exp * ((sym"," + sym";") * Exp)^0
 
+    -- open args
     InvokeArgs: -P"-" * (ExpList * (sym"," * (TableBlock + SpaceBreak * Advance * ArgBlock * TableBlock^-1) + TableBlock)^-1 + TableBlock)
     ArgBlock: ArgLine * (sym"," * SpaceBreak * ArgLine)^0 * PopIndent
     ArgLine: CheckIndent * ExpList
