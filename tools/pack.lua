@@ -67,9 +67,13 @@ function scandir (root, path)
     files[hndl] = lua_code
   end
   for i, file in luafiles( root..path ) do
-    io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.lua$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
-    files[hndl] = io.open( file ):read"*a"
+    if not files[hndl] then
+      io.stderr:write("including: "..file, "\n")
+      files[hndl] = io.open( file ):read"*a"
+    else
+      io.stderr:write("skipping include of: "..file, " - already present\n")
+    end
   end
 end
 
