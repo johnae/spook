@@ -3,7 +3,10 @@
 ffi = require "ffi"
 ffi.cdef [[
 char *getcwd(char *buf, size_t size);
+int chdir(const char *path);
 ]]
+
+ffi_C = ffi.C
 
 string.split = require("moonscript.util").split
 
@@ -24,18 +27,26 @@ math.round = (num, dp) ->
 
 local g_timeval
 _G.gettimeofday = ->
-   g_timeval or= ffi.new("struct timeval")
-   ffi.C.gettimeofday g_timeval, nil
-   tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
+  g_timeval or= ffi.new("struct timeval")
+  ffi_C.gettimeofday g_timeval, nil
+  tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
 
 _G.getcwd = ->
-   buf = ffi.new "char[?]", 1024
-   ffi.C.getcwd buf, 1024
-   ffi.string buf
+  buf = ffi.new "char[?]", 1024
+  ffi_C.getcwd buf, 1024
+  ffi.string buf
+
+_G.chdir = (path, f) ->
+  cwd = getcwd!
+  r = ffi_C.chdir path
+  if f
+    f!
+    ffi_C.chdir cwd
+  r
 
 _G.project_name = ->
-   cwd = getcwd!\split("/")
-   cwd[#cwd]
+  cwd = getcwd!\split("/")
+  cwd[#cwd]
 
 _G.git_branch = ->
   b = io.popen "git symbolic-ref --short HEAD"

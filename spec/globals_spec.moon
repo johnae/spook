@@ -26,3 +26,13 @@ describe "globals", ->
     num = 11.667
     assert.equal 11.67, math.round(num, 2)
     assert.equal 11.7, math.round(num, 1)
+
+  it "getcwd gets the current working directory", ->
+    cwd = os.getenv("PWD")
+    assert.same cwd, getcwd!
+
+  it "chdir changes working directory", ->
+    cwd = getcwd!
+    chdir("/tmp")
+    assert.same "/tmp", getcwd!
+    chdir(cwd)
