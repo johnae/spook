@@ -1,4 +1,3 @@
-{:P, :C, :Ct, :match} = require "lpeg"
 {:floor} = math
 
 ffi = require "ffi"
@@ -6,11 +5,7 @@ ffi.cdef [[
 char *getcwd(char *buf, size_t size);
 ]]
 
-string.split = (str, sep) ->
-  sep = P(sep)
-  elem = C((1-sep)^0)
-  p = Ct(elem * (sep * elem)^0)
-  match p, str
+string.split = require("moonscript.util").split
 
 table.index_of = (t, v) ->
   for i = 1, #t
