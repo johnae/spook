@@ -106,6 +106,13 @@ parser\option("-n --notifier", "Expects a path to a notifier moonscript file or 
 
 parser\option("-c --config", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
 
+parser\option("-w --dir", "Expects the path to working directory - overrides the default of using wherever spook was launched")\args("1")\action (args, _, dir) ->
+  if fs.is_dir dir
+    chdir dir
+  else
+    print "#{dir} is not a directory"
+    os.exit 1
+
 parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
 
 parser
