@@ -8,6 +8,10 @@ describe "globals", ->
     str = "a,b,,c"
     assert.same {"a","b","","c"}, str\split(",")
 
+  it "string.split splits by reserved pattern operator", ->
+    str = "a.b..c"
+    assert.same {"a","b","","c"}, str\split(".")
+
   it "table.merge merges two tables", ->
     t1 = {a: 1, b: 2}
     t2 = {c: 3, a: 4}

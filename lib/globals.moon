@@ -8,7 +8,29 @@ int chdir(const char *path);
 
 ffi_C = ffi.C
 
-string.split = require("moonscript.util").split
+pattern_escapes = {
+  "(": "%(",
+  ")": "%)",
+  ".": "%.",
+  "%": "%%",
+  "+": "%+",
+  "-": "%-",
+  "*": "%*",
+  "?": "%?",
+  "[": "%[",
+  "]": "%]",
+  "^": "%^",
+  "$": "%$",
+  "\0": "%z"
+}
+
+escape_pattern = (str) -> str\gsub(".", pattern_escapes)
+
+string.split = (str, delim) ->
+  return {} if str == ""
+  str ..= delim
+  delim = escape_pattern(delim)
+  [m for m in str\gmatch("(.-)"..delim)]
 
 table.index_of = (t, v) ->
   for i = 1, #t
