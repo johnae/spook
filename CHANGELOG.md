@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.3
+
+- Updated argparse library to 0.5.0
+- string.split was simplified and improved somewhat (no longer using lpeg)
+- Added chdir function through ffi
+- Added -w (--dir) switch for changing working directory (based on chdir)
+- Updated built-in moonscript to 0.4.0
+- Prefer moonscript versions of files when compiling spook (and then skip the lua ones)
+- Tests were added for utility functions
+
+
 ## 0.5.2
 
 - Fix a possible moonscript parsing issue on Darwin. Quite baffling. This fixes the "spook --setup" problem on Darwin.
