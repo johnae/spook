@@ -73,6 +73,7 @@ Options:
                          Expects a path to a notifier moonscript file or a directory with notifiers
    -c <config>, --config <config>
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
+   -w <dir>, --dir <dir> Expects the path to working directory - overrides the default of using wherever spook was launched
    -f <file>, --file <file>
                          Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
    -h, --help            Show this help message and exit.
