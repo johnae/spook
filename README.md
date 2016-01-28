@@ -82,17 +82,17 @@ For more see https://github.com/johnae/spook
 
 ### First things first
 
-It's a good idea to setup spook first on a new system. The simplest way to do that is to just run:
+It's a good idea to first run spook with the setup switch on a new system. The way you do that is to just run:
 
 ```
 spook --setup
 ```
 
-That just creates $HOME/.spook/notifiers/default/terminal_notifier.moon in there. It's useful to keep that one
-there even when you create your own notifiers. It provides meaningful terminal output even though you might also
-want say OS X notifications, growl notifications or some other type of notifier (like a tmux notifier or ubuntu notifier).
-Generally it's probably good to leave that "default" directory alone. For your own notifiers, just create directories
-under $HOME/.spook/notifiers and place your notifiers there. Any notifiers from any subdirs will automatically load.
+That creates $HOME/.spook/notifiers/default/terminal_notifier.moon (and the needed directories). It's useful to keep that
+even when you create your own notifiers. It provides meaningful terminal output even though you might also want say OS X
+notifications, growl notifications or some other type of notifier (like a tmux notifier or linux notifier using notify-send).
+For your own notifiers, just create directories under $HOME/.spook/notifiers and place your notifiers there. Any notifiers
+from any sub-directories will automatically load.
 
 
 ### The Spookfile
