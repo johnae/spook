@@ -3,11 +3,9 @@ UNAME := $(shell uname)
 ARCH := $(shell uname -m)
 SPOOK_BASE_DIR := $(shell pwd)
 ifeq ($(UNAME), Darwin)
-ENABLE_LUA52COMPAT = sed -i '' 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 else
-ENABLE_LUA52COMPAT = sed -i 's/^\#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT/'
 CFLAGS = -Wall -O2 -Wl,-E
 EXTRAS = -lrt
 endif
@@ -54,14 +52,10 @@ ${LIBLUV_DEPS}:
 
 ${LUAJIT}:
 	git submodule update --init deps/luajit
-	cd deps/luajit/src && \
-		$(ENABLE_LUA52COMPAT) Makefile
 	cd deps/luajit && \
-		$(MAKE) PREFIX=${TOOLS}/luajit && \
+		$(MAKE) XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=${TOOLS}/luajit && \
 		$(MAKE) install PREFIX=${TOOLS}/luajit
 	  ln -sf ${TOOLS}/luajit/bin/luajit-2.1.0-beta1 ${TOOLS}/luajit/bin/luajit
-	cd deps/luajit/src && \
-		git checkout Makefile
 
 main.lua:
 	SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ./tools/compile_moon.lua main.moon > main.lua
