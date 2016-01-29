@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.4
+
+No new features in this one. Just some updated dependencies.
+
+- Update luv dependency to 1.8.0-1
+- Switch luajit dependency to use github repo (travis is blocked from pulling from luajit.org)
+
 ## 0.5.3
 
 - Updated argparse library to 0.5.0
