@@ -26,49 +26,56 @@ LIBUV_INCLUDE = deps/luv/deps/libuv/include
 ARCHIVES = $(LUAJIT_ARCHIVE)
 OBJECTS = main lib vendor
 
-.PHONY: release
+.PHONY: clean rebuild release libluv test
 
-all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
+all: spook
 
-spook:
+spook: ${LIBLUV_DEPS} ${OBJECTS}
+	@echo "BUILDING SPOOK"
 	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 rebuild: clean all
 
-test:
+test: spook
 	./spook -f spec/support/run_busted.lua
 
 install: all
 	cp spook $(PREFIX)/bin
 
-version_tag:
+lib/version.moon:
+	@echo "VERSION TAGGING"
 	@if [ "$(GITTAG)" != "" ]; then echo "'$(GITTAG)'" > lib/version.moon; else echo "'$(GITSHA)-dirty'" > lib/version.moon; fi
 
-
-${LIBLUV_DEPS}:
+libluv:
+	@echo "BUILDING LIBLUV"
 	git submodule update --init deps/luv
-	cd deps/luv && \
-		BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF $(MAKE)
+	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF 
+
+${LIBLUV_DEPS}: libluv;
 
 ${LUAJIT}:
+	@echo "BUILDING LUAJIT"
 	git submodule update --init deps/luajit
-	cd deps/luajit && \
-		$(MAKE) XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=${TOOLS}/luajit && \
-		$(MAKE) install PREFIX=${TOOLS}/luajit
-	  ln -sf ${TOOLS}/luajit/bin/luajit-2.1.0-beta1 ${TOOLS}/luajit/bin/luajit
+	$(MAKE) -C deps/luajit XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=${TOOLS}/luajit
+	$(MAKE) -C deps/luajit install PREFIX=${TOOLS}/luajit
+	ln -sf ${TOOLS}/luajit/bin/luajit-2.1.0-beta1 ${TOOLS}/luajit/bin/luajit
 
-main.lua:
+main.lua: ${LUAJIT}
+	@echo "BUILDING main.lua"
 	SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ./tools/compile_moon.lua main.moon > main.lua
 
-lib.lua:
+lib.lua: lib/version.moon ${LUAJIT}
+	@echo "BUILDING lib.lua"
 	cd lib && \
 		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../lib.lua
 
-vendor.lua:
+vendor.lua: ${LUAJIT}
+	@echo "BUILDING vendor.lua"
 	cd vendor && \
 		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../vendor.lua
 
 ${OBJECTS}: lib.lua vendor.lua main.lua
+	@echo "BUILDING luajit bytecode"
 	${LUAJIT_BIN} -b $@.lua $@.o
 
 clean-deps:
