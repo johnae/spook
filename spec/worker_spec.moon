@@ -1,4 +1,5 @@
 fs = require "fs"
+worker = require "worker"
 
 describe "worker", ->
   local spook, runner, changes, timer
@@ -17,7 +18,7 @@ describe "worker", ->
       start: spy.new -> nil
       clear: spy.new -> nil
     }
-    changes, timer = require("worker")(spook)
+    changes, timer = worker(spook)
     changes[test_file1] = -> 
       -> description: "run #{test_file1}", detail: "#{test_file1}", -> true
     changes[test_file2] = -> 

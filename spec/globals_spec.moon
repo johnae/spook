@@ -37,6 +37,6 @@ describe "globals", ->
 
   it "chdir changes working directory", ->
     cwd = getcwd!
-    chdir("/tmp")
-    assert.same "/tmp", getcwd!
+    chdir("#{cwd}/lib")
+    assert.same "#{cwd}/lib", getcwd!
     chdir(cwd)
