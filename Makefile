@@ -18,69 +18,77 @@ LUAJIT_INCLUDE = tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
 LUAJIT = tools/luajit/bin/luajit
 TOOLS=$(realpath tools)
-LUAJIT_BIN = $(realpath ${LUAJIT})
-LIBLUV = deps/luv
-LIBLUV_DEPS = ${LIBLUV}/build/libluv.a ${LIBLUV}/build/libuv.a
+LUAJIT_BIN = $(realpath $(LUAJIT))
+LIBLUV = deps/luv/build/libluv.a
 LIBLUV_INCLUDE = deps/luv/src
 LIBUV_INCLUDE = deps/luv/deps/libuv/include
-ARCHIVES = $(LUAJIT_ARCHIVE)
-OBJECTS = main lib vendor
+ARCHIVES = $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
+OBJECTS = main.o lib.o vendor.o
 
-.PHONY: release
+.PHONY: all clean clean-deps rebuild release test
 
-all: version_tag ${LIBLUV_DEPS} ${LUAJIT} ${OBJECTS} spook
+all: spook
 
-spook:
-	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+spook: $(LIBLUV) $(OBJECTS)
+	@echo "BUILDING SPOOK"
+	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LIBUV_INCLUDE) -I $(LIBLUV_INCLUDE) -I $(LUAJIT_INCLUDE) -lm -ldl -lpthread $(EXTRAS)
 
 rebuild: clean all
 
-test:
+test: spook
 	./spook -f spec/support/run_busted.lua
+
+hello:
+	@echo "hello"
 
 install: all
 	cp spook $(PREFIX)/bin
 
-version_tag:
+lib/version.moon:
+	@echo "VERSION TAGGING"
 	@if [ "$(GITTAG)" != "" ]; then echo "'$(GITTAG)'" > lib/version.moon; else echo "'$(GITSHA)-dirty'" > lib/version.moon; fi
 
-
-${LIBLUV_DEPS}:
+$(LIBLUV):
+	@echo "BUILDING LIBLUV"
 	git submodule update --init deps/luv
-	cd deps/luv && \
-		BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF $(MAKE)
+	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF
 
-${LUAJIT}:
+$(LUAJIT):
+	@echo "BUILDING LUAJIT"
 	git submodule update --init deps/luajit
-	cd deps/luajit && \
-		$(MAKE) XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=${TOOLS}/luajit && \
-		$(MAKE) install PREFIX=${TOOLS}/luajit
-	  ln -sf ${TOOLS}/luajit/bin/luajit-2.1.0-beta1 ${TOOLS}/luajit/bin/luajit
+	$(MAKE) -C deps/luajit XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=$(TOOLS)/luajit
+	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
+	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta1 $(TOOLS)/luajit/bin/luajit
 
-main.lua:
-	SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ./tools/compile_moon.lua main.moon > main.lua
+main.lua: $(LUAJIT)
+	@echo "BUILDING main.lua"
+	SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ./tools/compile_moon.lua main.moon > main.lua
 
-lib.lua:
+lib.lua: lib/version.moon $(LUAJIT)
+	@echo "BUILDING lib.lua"
 	cd lib && \
-		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../lib.lua
+		SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ../tools/pack.lua . > ../lib.lua
 
-vendor.lua:
+vendor.lua: $(LUAJIT)
+	@echo "BUILDING vendor.lua"
 	cd vendor && \
-		SPOOK_BASE_DIR=${SPOOK_BASE_DIR} ${LUAJIT_BIN} ../tools/pack.lua . > ../vendor.lua
+		SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ../tools/pack.lua . > ../vendor.lua
 
-${OBJECTS}: lib.lua vendor.lua main.lua
-	${LUAJIT_BIN} -b $@.lua $@.o
+%.o: %.lua
+	@echo "BUILDING luajit bytecode from $*.lua"
+	$(LUAJIT_BIN) -b $*.lua $*.o
 
 clean-deps:
 	rm -rf tools/luajit
 	cd deps/luajit && \
 		$(MAKE) clean
-
 	cd deps/luv && \
 		$(MAKE) clean
 
 clean:
-	rm -f spook main.o lib.o vendor.o main.lua vendor.lua lib.lua spook-*.gz lib/version.moon
+	rm -f $(OBJECTS)
+	rm -f main.lua vendor.lua lib.lua
+	rm -f spook spook-*.gz lib/version.moon
 
 tools/github-release:
 	cd /tmp && \
