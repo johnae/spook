@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.5
+
+No new features in this one either. Just tweaks to the Makefile and test fixes on Mac OS X.
+
+- make can now run parallelized correctly
+- tests are (again) passing on OS X
+
 ## 0.5.4
 
 No new features in this one. Just some updated dependencies.
