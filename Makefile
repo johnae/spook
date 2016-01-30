@@ -19,20 +19,19 @@ LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
 LUAJIT = tools/luajit/bin/luajit
 TOOLS=$(realpath tools)
 LUAJIT_BIN = $(realpath ${LUAJIT})
-LIBLUV = deps/luv
-LIBLUV_DEPS = ${LIBLUV}/build/libluv.a ${LIBLUV}/build/libuv.a
+LIBLUV = deps/luv/build/libluv.a
 LIBLUV_INCLUDE = deps/luv/src
 LIBUV_INCLUDE = deps/luv/deps/libuv/include
-ARCHIVES = $(LUAJIT_ARCHIVE)
+ARCHIVES = $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
 OBJECTS = main lib vendor
 
-.PHONY: clean rebuild release libluv test
+.PHONY: clean rebuild release test
 
 all: spook
 
-spook: ${LIBLUV_DEPS} ${OBJECTS}
+spook: ${LIBLUV} ${OBJECTS}
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) ${LIBLUV_DEPS} -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c main.o lib.o vendor.o $(ARCHIVES) -I ${LIBUV_INCLUDE} -I ${LIBLUV_INCLUDE} -I ${LUAJIT_INCLUDE} -lm -ldl -lpthread $(EXTRAS)
 
 rebuild: clean all
 
@@ -46,12 +45,10 @@ lib/version.moon:
 	@echo "VERSION TAGGING"
 	@if [ "$(GITTAG)" != "" ]; then echo "'$(GITTAG)'" > lib/version.moon; else echo "'$(GITSHA)-dirty'" > lib/version.moon; fi
 
-libluv:
+${LIBLUV}:
 	@echo "BUILDING LIBLUV"
 	git submodule update --init deps/luv
 	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF 
-
-${LIBLUV_DEPS}: libluv;
 
 ${LUAJIT}:
 	@echo "BUILDING LUAJIT"
