@@ -31,12 +31,19 @@ describe "globals", ->
     assert.equal 11.67, math.round(num, 2)
     assert.equal 11.7, math.round(num, 1)
 
-  it "getcwd gets the current working directory", ->
-    cwd = os.getenv("PWD")
-    assert.same cwd, getcwd!
+  describe "getting/changing directory", ->
+    local cwd
 
-  it "chdir changes working directory", ->
-    cwd = getcwd!
-    chdir("#{cwd}/lib")
-    assert.same "#{cwd}/lib", getcwd!
-    chdir(cwd)
+    before_each ->
+      cwd = os.getenv("PWD")
+
+    after_each ->
+      chdir(cwd)
+
+    it "getcwd gets the current working directory", ->
+      assert.same cwd, getcwd!
+
+    it "chdir changes working directory", ->
+      cwd = getcwd!
+      chdir("#{cwd}/lib")
+      assert.same "#{cwd}/lib", getcwd!
