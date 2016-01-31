@@ -9,24 +9,26 @@ else
 CFLAGS = -Wall -O2 -Wl,-E
 EXTRAS = -lrt
 endif
-GITTAG = $(shell git tag -l --contains HEAD)
-GITBRANCH = $(shell git symbolic-ref --short HEAD)
-GITSHA = $(shell git rev-parse --short HEAD)
+GITTAG := $(shell git tag -l --contains HEAD)
+GITBRANCH := $(shell git symbolic-ref --short HEAD)
+GITSHA := $(shell git rev-parse --short HEAD)
 ifeq ($(GITTAG), )
-SPOOK_VERSION = $(GITSHA)-dirty
+SPOOK_VERSION := $(GITSHA)-dirty
 else
-SPOOK_VERSION = $(GITTAG)
+SPOOK_VERSION := $(GITTAG)
 endif
-LUAJIT_INCLUDE = tools/luajit/include/luajit-2.1
-LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
-LUAJIT = tools/luajit/bin/luajit
-TOOLS=$(realpath tools)
+LUAJIT_INCLUDE := tools/luajit/include/luajit-2.1
+LUAJIT_ARCHIVE := tools/luajit/lib/libluajit-5.1.a
+LUAJIT := tools/luajit/bin/luajit
+TOOLS := $(realpath tools)
+## this has to be expanded dynamically since luajit
+## needs to be built first
 LUAJIT_BIN = $(realpath $(LUAJIT))
-LIBLUV = deps/luv/build/libluv.a
-LIBLUV_INCLUDE = deps/luv/src
-LIBUV_INCLUDE = deps/luv/deps/libuv/include
-ARCHIVES = $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
-OBJECTS = main.o lib.o vendor.o
+LIBLUV := deps/luv/build/libluv.a
+LIBLUV_INCLUDE := deps/luv/src
+LIBUV_INCLUDE := deps/luv/deps/libuv/include
+ARCHIVES := $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
+OBJECTS := main.o lib.o vendor.o
 
 .PHONY: all clean clean-deps rebuild release test
 
