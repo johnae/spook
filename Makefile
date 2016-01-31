@@ -12,6 +12,11 @@ endif
 GITTAG = $(shell git tag -l --contains HEAD)
 GITBRANCH = $(shell git symbolic-ref --short HEAD)
 GITSHA = $(shell git rev-parse --short HEAD)
+ifeq ($(GITTAG), )
+SPOOK_VERSION = $(GITSHA)-dirty
+else
+SPOOK_VERSION = $(GITTAG)
+endif
 LUAJIT_INCLUDE = tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
 LUAJIT = tools/luajit/bin/luajit
@@ -40,8 +45,8 @@ install: all
 	cp spook $(PREFIX)/bin
 
 lib/version.moon:
-	@echo "VERSION TAGGING"
-	@if [ "$(GITTAG)" != "" ]; then echo "'$(GITTAG)'" > lib/version.moon; else echo "'$(GITSHA)-dirty'" > lib/version.moon; fi
+	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
+	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
 
 $(LIBLUV):
 	@echo "BUILDING LIBLUV"
