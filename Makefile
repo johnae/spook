@@ -12,8 +12,6 @@ endif
 GITTAG = $(shell git tag -l --contains HEAD)
 GITBRANCH = $(shell git symbolic-ref --short HEAD)
 GITSHA = $(shell git rev-parse --short HEAD)
-LUAJIT_SRC = deps/luajit/src
-LUAJIT_LIBS = tools/luajit/lib
 LUAJIT_INCLUDE = tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE = tools/luajit/lib/libluajit-5.1.a
 LUAJIT = tools/luajit/bin/luajit
@@ -37,9 +35,6 @@ rebuild: clean all
 
 test: spook
 	./spook -f spec/support/run_busted.lua
-
-hello:
-	@echo "hello"
 
 install: all
 	cp spook $(PREFIX)/bin
