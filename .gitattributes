@@ -1,6 +1,6 @@
-spec/support/busted linguist-vendored
+spec/support/busted/* linguist-vendored
 spec/support/cliargs.lua linguist-vendored
-spec/support/luassert linguist-vendored
-spec/support/pl linguist-vendored
-spec/support/say linguist-vendored
-vendor linguist-vendored
+spec/support/luassert/* linguist-vendored
+spec/support/pl/* linguist-vendored
+spec/support/say/* linguist-vendored
+vendor/* linguist-vendored
