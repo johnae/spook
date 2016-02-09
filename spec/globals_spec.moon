@@ -47,3 +47,9 @@ describe "globals", ->
       cwd = getcwd!
       chdir("#{cwd}/lib")
       assert.same "#{cwd}/lib", getcwd!
+
+    it "chdir takes a function in which to temporarily change working directory", ->
+      cwd = getcwd!
+      chdir "#{cwd}/lib", ->
+        assert.same "#{cwd}/lib", getcwd!
+      assert.same cwd, getcwd!
