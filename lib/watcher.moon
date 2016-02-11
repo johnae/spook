@@ -1,4 +1,3 @@
-colors = require 'ansicolors'
 {:log} = _G
 {:new_fs_event} = require "uv"
 

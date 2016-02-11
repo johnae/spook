@@ -1,4 +1,5 @@
 {:dirtree, :is_dir} = require "fs"
+log = _G.log
 
 (...) ->
   watch_dirs = {}

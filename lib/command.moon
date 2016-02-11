@@ -1,4 +1,3 @@
-colors = require "ansicolors"
 {:is_present} = require "fs"
 
 expand_file = (data, file) ->

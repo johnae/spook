@@ -68,7 +68,7 @@ else
     watched += #dirs
     mapper = file_mapper on_changed
     watcher mapper: mapper, watch: dirs, :changes
-    
+
   print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
   print ""
   run!

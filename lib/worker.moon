@@ -1,5 +1,6 @@
 {:is_file} = require "fs"
 {:new_timer} = require "uv"
+log = _G.log
 
 handle_change = (spook, changed_file, mapper) ->
   unless is_file changed_file
@@ -15,7 +16,7 @@ handle_change = (spook, changed_file, mapper) ->
       spook.start info, run
     else
       log.debug "The handler didn't return the expected response"
-      log.debug "Got note of type #{type(note)} and exec of type #{type(exec)}"
+      log.debug "Got note of type #{type(info)} and exec of type #{type(run)}"
       log.debug "Skipping run."
   else
     log.debug "no mapping found for #{changed_file}"

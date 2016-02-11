@@ -1,5 +1,6 @@
 argparse = require "argparse"
 fs = require "fs"
+chdir = _G.chdir
 
 parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)", epilog: "For more see https://github.com/johnae/spook"
 
