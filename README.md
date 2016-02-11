@@ -10,7 +10,7 @@ is embedded and compiled with Lua 5.2 compatibility. Extensions are easily writt
 which also comes bundled.
 
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
-Currently only available for Linux x86_64 and Mac OS X x86_64.
+Currently only available for Linux x86_64.
 
 Buiding spook requires the usual tools + cmake, so you may need to to apt-get/brew/yum/etc install cmake before
 building it. Otherwise it should be as straightforward as:
