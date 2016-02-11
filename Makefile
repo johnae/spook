@@ -43,6 +43,9 @@ rebuild: clean all
 test: spook
 	./spook -f spec/support/run_busted.lua
 
+lint: spook
+	./spook -f spec/support/run_linter.moon lib/*
+
 install: all
 	cp spook $(PREFIX)/bin
 
