@@ -4,8 +4,10 @@ package.path = package.path .. ';lib/?.lua'
 package.path = package.path .. ';lib/?/init.lua'
 package.loaded.lfs = require('syscall.lfs')
 lint = require("moonscript.cmd.lint").lint_file
-lfs = require("lfs")
+moonscript = require "moonscript.base"
 colors = require("ansicolors")
+local lint_config
+pcall -> lint_config = moonscript.loadfile("lint_config.moon")!
 
 files = _G.arg
 lint_error = false
