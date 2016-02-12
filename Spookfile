@@ -11,7 +11,7 @@ watch "lib", "spec", ->
   on_changed "^spec/spec_helper%.moon", -> spec_cmd "spec"
   on_changed "^spec/(.*)%.moon", (a) -> spec_cmd "spec/#{a}.moon"
   on_changed "^lib/(.*)%.moon", (a) -> commands {
-    -> lint_cmd "lib/#{a}.moon", allow_fail: true,
+    -> lint_cmd "lib/#{a}.moon",
     -> spec_cmd "spec/#{a}_spec.moon"
   }
 
