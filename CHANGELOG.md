@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.5.6
+
+- multiple commands per change handler can be specified using the "commands" function
+- added linting as part of CI (and to Spookfile)
+- add option allow\_fail to command
+
+Using multiple commands looks like this:
+
+```
+list_cmd = command "ls -lah"
+build_cmd = command "build"
+show_cmd = command "echo '[file]'"
+
+watch "lib", ->
+   on_changed "^lib/(.*)%.moon" (a) -> commands {
+     -> list_cmd "lib/#{a}.moon",
+     -> build_cmd "lib/#{a}.moon",
+     -> show_cmd "lib/#{a}.moon"
+   }
+```
+
+If a command fails the rest of the chain is aborted.
+
+Allowing commands to fail without aborting chain or reporting an error to the notifier is done like this:
+
+```
+not_as_important_cmd = command "echo", allow_fail: true
+more_important_cmd = command "cp '[file'] /tmp/$(basename '[file]')"
+
+watch "lib", ->
+   on_changed "^lib/(.*)%.moon" (a) -> commands {
+     -> not_as_important_cmd "lib/#{a}.moon",
+     -> more_important_cmd "lib/#{a}.moon"
+   }
+```
+
+or when running the command:
+
+```
+not_as_important_cmd = command "echo"
+more_important_cmd = command "cp '[file'] /tmp/$(basename '[file]')"
+
+watch "lib", ->
+   on_changed "^lib/(.*)%.moon" (a) -> commands {
+     -> not_as_important_cmd "lib/#{a}.moon", allow_fail: true,
+     -> more_important_cmd "lib/#{a}.moon"
+   }
+```
+
+See this repos [Spookfile](Spookfile) for some hints.
+
+
 ## 0.5.5
 
 No new features in this one either. Just tweaks to the Makefile and test fixes on Mac OS X.
@@ -148,4 +200,3 @@ as well).
 ### Other changes
 
 - A CHANGEFILE.md has been added to the repo.
-  
