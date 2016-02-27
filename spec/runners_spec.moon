@@ -1,9 +1,29 @@
 runners = require "runners"
 
 describe "runners", ->
-  local mapping, mapper, os_exec, real_exec
+
+  describe "func", ->
+    func = runners.func
+
+    it "calls the function with the specified file", ->
+      spy_func = spy.new (file) -> true
+      func_runner = func name: "funky", handler: (file) ->
+        spy_func file
+      run = func_runner "/tmp"
+      run!
+      assert.spy(spy_func).was_called_with "/tmp"
+
+    it "the runner returns whatever the wrapped function does", ->
+      spy_func = spy.new (file) -> true
+      func_runner = func name: "funky", handler: (file) ->
+        spy_func file
+      run = func_runner "/tmp"
+      assert.true run!
+      spy_func = spy.new (file) -> false
+      assert.false run!
 
   describe "command", ->
+    local os_exec, real_exec
     command = runners.command
 
     before_each ->
