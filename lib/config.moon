@@ -1,8 +1,7 @@
 ->
   moonscript = require "moonscript"
   log = _G.log
-  command = require "command"
-  commands = require "commands"
+  {:command, :func} = require "runners"
   {:remove, :insert} = table
   {:is_dir, :is_file, :dirtree} = require "fs"
 
@@ -14,7 +13,7 @@
       config.log_level = assert tonumber(l) or log[l]
 
     :command
-    :commands
+    :func
 
     notifier: (n) ->
       notifiers = config.notifiers
@@ -56,7 +55,7 @@
       change_handlers = {}
       watch_env = {
         :command
-        :commands
+        :func
 
         on_changed: (matcher, runner) ->
           change_handlers[#change_handlers + 1] = {matcher, runner}

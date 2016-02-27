@@ -12,13 +12,14 @@ pcall -> lint_config = moonscript.loadfile("lint_config.moon")!
 files = _G.arg
 lint_error = false
 for file in *files
-  result, err = lint file
-  if result
-    lint_error = true
-    io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
-  elseif err
-    lint_error = true
-    io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
+  if file\match '.*%.moon'
+    result, err = lint file
+    if result
+      lint_error = true
+      io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
+    elseif err
+      lint_error = true
+      io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
 
 if lint_error
   os.exit 1

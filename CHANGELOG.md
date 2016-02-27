@@ -1,10 +1,14 @@
 # Changelog
 
-## 0.5.6
+## 0.6.0
 
-- multiple commands per change handler can be specified using the "commands" function
+There is a breaking change for function handlers. Probably not used by anyone. See below for more. Another
+possible breaking change for anyone who relied on the content of the info table sent to notifier.start/finish.
+
+- multiple commands per change handler can be specified by adding them together
 - added linting as part of CI (and to Spookfile)
-- add option allow\_fail to command
+- changed how function handlers and command handlers work wrt notifiers
+- the content of the info table in an event has changed
 
 Using multiple commands looks like this:
 
@@ -14,40 +18,41 @@ build_cmd = command "build"
 show_cmd = command "echo '[file]'"
 
 watch "lib", ->
-   on_changed "^lib/(.*)%.moon" (a) -> commands {
-     -> list_cmd "lib/#{a}.moon",
-     -> build_cmd "lib/#{a}.moon",
-     -> show_cmd "lib/#{a}.moon"
-   }
+   on_changed "^lib/(.*)%.moon" (a) ->
+     list_cmd("lib/#{a}.moon") +
+     build_cmd("lib/#{a}.moon") +
+     show_cmd("lib/#{a}.moon")
 ```
 
-If a command fails the rest of the chain is aborted.
+If a command fails the rest of the chain is aborted. The notifier.finish will receive a list of
+all the handlers that were able to run + the one that failed which will be the last in that list.
 
-Allowing commands to fail without aborting chain or reporting an error to the notifier is done like this:
-
-```
-not_as_important_cmd = command "echo", allow_fail: true
-more_important_cmd = command "cp '[file'] /tmp/$(basename '[file]')"
-
-watch "lib", ->
-   on_changed "^lib/(.*)%.moon" (a) -> commands {
-     -> not_as_important_cmd "lib/#{a}.moon",
-     -> more_important_cmd "lib/#{a}.moon"
-   }
-```
-
-or when running the command:
+Defining a function handler now works like this:
 
 ```
-not_as_important_cmd = command "echo"
-more_important_cmd = command "cp '[file'] /tmp/$(basename '[file]')"
+my_handler = func name: "my_handler", handler: (file) ->
+   "do stuff to file"
+   true -- or false, depending on success
 
-watch "lib", ->
-   on_changed "^lib/(.*)%.moon" (a) -> commands {
-     -> not_as_important_cmd "lib/#{a}.moon", allow_fail: true,
-     -> more_important_cmd "lib/#{a}.moon"
-   }
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) -> my_handler "other/dir/#{a}_spec.moon"
 ```
+
+Function handlers can be used together with command handlers like this:
+
+```
+my_handler = func name: "my_handler", handler: (file) ->
+   "do stuff to file"
+   true -- or false, depending on success
+
+my_cmd = command "ls -lah"
+
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) ->
+      my_handler "path/to/#{a}.moon" +
+      my_cmd "spec/#{a}_spec.moon"
+```
+
 
 See this repos [Spookfile](Spookfile) for some hints.
 

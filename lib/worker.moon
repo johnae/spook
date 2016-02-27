@@ -2,7 +2,9 @@
 {:new_timer} = require "uv"
 log = _G.log
 
-handle_change = (spook, changed_file, mapper) ->
+RUNS = {}
+
+handle_change = (changed_file, mapper) ->
   unless is_file changed_file
     log.debug "file deleted: #{changed_file}"
     return
@@ -10,23 +12,29 @@ handle_change = (spook, changed_file, mapper) ->
   log.debug "mapping file #{changed_file}..."
   rule = mapper changed_file
   if rule
-    info, run = rule!
-    if type(info) == "table" and run
-      info.changed_file = changed_file
-      spook.start info, run
+    runner = rule!
+    if runner
+      id = runner.id changed_file
+      if not RUNS[id]
+        RUNS[id] = true
+        runner changed_file
+      else
+        log.debug "Skipping run for id #{id} - last run too recent"
+
     else
       log.debug "The handler didn't return the expected response"
-      log.debug "Got note of type #{type(info)} and exec of type #{type(run)}"
+      log.debug "Got runner of type #{type(runner)}"
       log.debug "Skipping run."
   else
     log.debug "no mapping found for #{changed_file}"
 
-(spook) ->
+->
   changes = {}
   timer = new_timer!
   timer\start 200, 200, ->
     for file, mapper in pairs changes
       changes[file] = nil
-      handle_change spook, file, mapper
-    spook.clear!
+      handle_change file, mapper
+    for run, _ in pairs RUNS
+      RUNS[run] = nil
   changes

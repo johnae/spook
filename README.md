@@ -152,7 +152,7 @@ watch "playground", ->
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
--- file_handler = (file) ->
+-- file_handler = func name: "file_handler", handler: (file) ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
@@ -161,9 +161,9 @@ watch "playground", ->
 --   o\write new_content
 --   o\close!
 --   true -- return true or false for notications
--- my_change_handler = (file) -> description: "do_stuff #{file}", detail: file, -> file_handler file
+--
 -- watch "stuff", ->
---   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> my_change_handler "stuff/#{a}/#{b}.txt"
+--   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> file_handler "stuff/#{a}/#{b}.txt"
 
 -- Define notifiers to use, a default one (including directory structure) is created for you
 -- when you run "spook --setup". All notifiers in specified dir are loaded and if their "runs"
@@ -176,7 +176,7 @@ notifier "#{os.getenv('HOME')}/.spook/notifiers"
 --notifier {
 --  start: (info) ->
 --    print "changed_file: #{info.changed_file}"
---    print "#{info.description} "#{info.detail}"
+--    print "#{info.description}"
 --  finish: (success, info) ->
 --    print "changed_file: #{info.changed_file}"
 --    if success
@@ -199,6 +199,26 @@ notifier "#{os.getenv('HOME')}/.spook/notifiers"
 -- watch "some_place", ->
 --   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
 --   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
+--
+--
+-- commands and functions can be added together to run all of them after each other
+cmd1 = command "ls -lah"
+cmd2 = command "echo [file]"
+file_handler = func name: "file_handler", handler: (file) ->
+  f = assert io.open(file, 'r')
+  content = f\read!
+  f\close!
+  new_content = "do stuff do content: #{content}"
+  o = assert io.open('/tmp/new_file.txt', 'w')
+  o\write new_content
+  o\close!
+  true -- return true or false for notications
+
+watch "some_place", ->
+  on_changed "^some_place/(.*)/(.*).txt", (a, b) ->
+    cmd1("stuff/#{a}/#{b}_thing.txt") +
+    cmd2! +
+    file_handler "some/other/#{a}/#{b}_thing.txt"
 ```
 
 ### Notifications

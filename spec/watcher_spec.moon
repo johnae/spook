@@ -10,8 +10,6 @@ watcher = require "watcher"
 describe 'watcher', ->
   local dir1, dir2, dir3, mapper
 
-  timers = {}
-
   before_each ->
     fs.rm_rf "/tmp/spook-spec-base"
     dir1 = "/tmp/spook-spec-base/spook-spec1"

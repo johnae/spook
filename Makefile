@@ -45,6 +45,7 @@ test: spook
 
 lint: spook
 	./spook -f spec/support/run_linter.moon lib/*
+	./spook -f spec/support/run_linter.moon spec/*
 
 install: all
 	cp spook $(PREFIX)/bin

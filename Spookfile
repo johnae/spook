@@ -9,11 +9,12 @@ lint_cmd = command "./spook -f spec/support/run_linter.moon"
 -- files and what to run
 watch "lib", "spec", ->
   on_changed "^spec/spec_helper%.moon", -> spec_cmd "spec"
-  on_changed "^spec/(.*)%.moon", (a) -> spec_cmd "spec/#{a}.moon"
-  on_changed "^lib/(.*)%.moon", (a) -> commands {
-    -> lint_cmd "lib/#{a}.moon",
-    -> spec_cmd "spec/#{a}_spec.moon"
-  }
+  on_changed "^spec/(.*)%.moon", (a) ->
+    lint_cmd("spec/#{a}.moon") +
+    spec_cmd("spec/#{a}.moon")
+  on_changed "^lib/(.*)%.moon", (a) ->
+    lint_cmd("lib/#{a}.moon") +
+    spec_cmd("spec/#{a}_spec.moon")
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (a) -> exec_cmd "playground/#{a}.moon"

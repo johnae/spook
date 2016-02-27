@@ -1,9 +1,9 @@
 fs = require "fs"
 worker = require "worker"
+{:func} = require "runners"
 
 describe "worker", ->
-  local spook, runner, changes, timer
-  match = require "luassert.match"
+  local spec_handler, changes, timer
   test_file1 = "/tmp/spook-test-file1"
   test_file2 = "/tmp/spook-test-file2"
 
@@ -14,15 +14,13 @@ describe "worker", ->
     f = assert(io.open(test_file2, "w"))
     f\write("hello")
     f\close!
-    spook = {
-      start: spy.new -> nil
-      clear: spy.new -> nil
-    }
-    changes, timer = worker(spook)
+    spec_handler = spy.new -> true
+    spec_runner = func name: "spec_runner", handler: spec_handler
+    changes, timer = worker!
     changes[test_file1] = -> 
-      -> description: "run #{test_file1}", detail: "#{test_file1}", -> true
+      -> spec_runner "test_file1"
     changes[test_file2] = -> 
-      -> description: "run #{test_file2}", detail: "#{test_file2}", -> true
+      -> spec_runner "test_file2"
 
   after_each ->
     fs.rm_rf test_file1
@@ -30,5 +28,4 @@ describe "worker", ->
 
   it "runs all functions for current changes", ->
     run_uv_for 300
-    assert.spy(spook.start).was.called(2)
-    assert.spy(spook.clear).was.called(1)
+    assert.spy(spec_handler).was.called(2)
