@@ -1,3 +1,4 @@
+-- vim: syntax=moonscript
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
