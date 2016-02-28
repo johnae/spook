@@ -1,12 +1,7 @@
 {:floor} = math
 
+S = require "syscall"
 ffi = require "ffi"
-ffi.cdef [[
-char *getcwd(char *buf, size_t size);
-int chdir(const char *path);
-]]
-
-ffi_C = ffi.C
 
 pattern_escapes = {
   "(": "%(",
@@ -55,22 +50,21 @@ math.round = (num, dp) ->
   floor( num * m + 0.5 ) / m
 
 local g_timeval
+_gettimeofday = S.gettimeofday
 gettimeofday = ->
   g_timeval or= ffi.new("struct timeval")
-  ffi_C.gettimeofday g_timeval, nil
+  _gettimeofday(g_timeval)
   tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
 
-getcwd = ->
-  buf = ffi.new "char[?]", 1024
-  ffi_C.getcwd buf, 1024
-  ffi.string buf
+getcwd = S.getcwd
 
+_chdir = S.chdir
 chdir = (path, f) ->
   cwd = getcwd!
-  r = ffi_C.chdir path
+  r = _chdir path
   if f
     f!
-    ffi_C.chdir cwd
+    _chdir cwd
   r
 
 project_name = ->
