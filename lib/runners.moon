@@ -4,6 +4,7 @@
 sha256 = require "sha256"
 notify = _G.notify
 gettimeofday = _G.gettimeofday
+log = _G.log
 
 expand_file = (data, file) ->
   return nil unless data
@@ -29,7 +30,15 @@ list = (...) ->
       success = true
       ran = {}
       start_time = gettimeofday! / 1000.0
-      for runner in *runners
+      non_runnable = [runner for runner in *runners when not runner.runnable!]
+      runnable_runners = [runner for runner in *runners when runner.runnable!]
+      if #non_runnable > 0
+        for runner in *non_runnable
+          log.debug "Skipping run for #{tostring(runner)}, changed_file: #{changed_file}, mapped_file: #{runner.mapped_file}, perhaps the mapped file is missing?"
+      if #runnable_runners == 0
+        return nil, {}
+      for runner in *runnable_runners
+        next unless runner.runnable!
         {:mapped_file, :name, :args} = runner
         ev = {
           :mapped_file,
@@ -66,8 +75,9 @@ function_handler = (file, info={}) ->
 
       __call: (t, info={}) ->
         info = merge(info, changed_file: t.changed_file, mapped_file: t.mapped_file)
-        t.handler unpack(t.args), info
+        t.handler file, info
   }
+  fh.runnable = info.runnable or -> true
   list fh
 
 func = (info={}) ->
@@ -82,13 +92,11 @@ command = (cmd, opts={}) ->
     if replaced == 0
       cmdline = "#{cmd} #{file}"
 
-    unless only_if file
-      return
-
     _, _, status = os.execute cmdline
     status == 0
 
-  (file) -> function_handler(file, :handler, name: cmd)
+  (file) -> 
+    function_handler file, :handler, name: cmd, runnable: -> only_if file
 
 
 :command, :func, :function_handler
