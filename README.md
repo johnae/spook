@@ -201,7 +201,9 @@ notifier "#{os.getenv('HOME')}/.spook/notifiers"
 --   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
 --
 --
--- commands and functions can be added together to run all of them after each other
+-- commands and functions can be added together to run all of them in serial. If a cmd or
+-- function fails (non true return value), any later ones are skipped and the error is reported
+-- to the notifier.
 cmd1 = command "ls -lah"
 cmd2 = command "echo [file]"
 file_handler = func name: "file_handler", handler: (file) ->
