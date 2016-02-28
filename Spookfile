@@ -1,9 +1,21 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
+lint = require("moonscript.cmd.lint").lint_file
+colors = require "ansicolors"
+
 spec_cmd = command "./spook -f spec/support/run_busted.lua"
 exec_cmd = command "./spook -f"
-lint_cmd = command "./spook -f spec/support/run_linter.moon"
+lint_cmd = func name: "Lint", handler: (file) ->
+  result, err = lint file
+  if result
+    io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
+    return false
+  elseif err
+    io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
+    return false
+  io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
+  true
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
