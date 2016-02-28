@@ -59,4 +59,33 @@ rm_rf = (path, attr) ->
     else if attr
       os.remove path
 
-:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file, :is_present
+dir_table = (dir) ->
+  tbl = {}
+  for entry, attr in dirtree dir
+    path = entry\split('/')
+    name = path[#path]
+    if attr.mode == "directory"
+      tbl[name] = dir_table entry
+    else
+      tbl[name] = true
+  tbl
+
+dir_diff = (a, b) ->
+  d = {}
+  a or= {}
+  b or= {}
+  for k,v in pairs(a)
+    if type(v) == "table"
+      d[k] = dir_diff v, b[k]
+    else
+      unless b[k]
+        d[k] = "DELETED"
+  for k,v in pairs(b)
+    if type(v) == "table"
+      d[k] = dir_diff a[k], v
+    else
+      unless a[k]
+        d[k] = "CREATED"
+  d
+
+:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file, :is_present, :dir_table, :dir_diff

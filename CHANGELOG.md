@@ -1,5 +1,97 @@
 # Changelog
 
+## 0.6.0
+
+There is a breaking change for function handlers. Probably not used by anyone. See below for more. Another
+possible breaking change for anyone who relied on the content of the info table sent to notifier.start/finish.
+
+- multiple commands per change handler can be specified by adding them together
+- added linting as part of CI (and to Spookfile)
+- changed how function handlers and command handlers work wrt notifiers
+- the content of the info table in an event has changed
+
+Using multiple commands looks like this:
+
+```
+list_cmd = command "ls -lah"
+build_cmd = command "build"
+show_cmd = command "echo '[file]'"
+
+watch "lib", ->
+   on_changed "^lib/(.*)%.moon" (a) ->
+     list_cmd("lib/#{a}.moon") +
+     build_cmd("lib/#{a}.moon") +
+     show_cmd("lib/#{a}.moon")
+```
+
+If a command fails the rest of the chain is aborted. The notifier.finish will receive a list of
+all the handlers that were able to run + the one that failed which will be the last in that list.
+
+Defining a function handler now works like this:
+
+```
+my_handler = func name: "my_handler", handler: (file) ->
+   "do stuff to file"
+   true -- or false, depending on success
+
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) -> my_handler "other/dir/#{a}_spec.moon"
+```
+
+Function handlers can be used together with command handlers like this:
+
+```
+my_handler = func name: "my_handler", handler: (file) ->
+   "do stuff to file"
+   true -- or false, depending on success
+
+my_cmd = command "ls -lah"
+
+watch "dir", ->
+   on_changed "^path/to/(.*).moon", (a) ->
+      my_handler "path/to/#{a}.moon" +
+      my_cmd "spec/#{a}_spec.moon"
+```
+
+The info table sent to notifiers has changed somewhat. The start handler now receives a table like this:
+
+```
+{
+  changed_file: "the file that was changed triggering this",
+  mapped_file: "the file mapped from the changed file",
+  name: "a short name of what is now running",
+  args: "the arguments sent to what is now running",
+  description: "a longer name for what is now running"
+}
+```
+
+The info table sent to the finish handler has changed the most:
+
+```
+{
+  1: {
+    changed_file: "the file that was changed triggering this",
+    mapped_file: "the file mapped from the changed file",
+    name: "a short name of what is now running",
+    args: "the arguments sent to what is now running",
+    description: "a longer name for what is now running"
+    success: true
+  }
+  changed_file: "the file that was changed triggering this",
+  elapsed_time: 0.100,
+  id: "sha256 id for this run"
+}
+```
+
+So the finish handler event is both a k/v table and a list. The list
+contains all the things that have run (eg. commands and/or functions)
+and also contains the return values. If any command in the list fails
+later commands will not run and the last command in the list will be the
+one that failed.
+
+See this repos [Spookfile](Spookfile) for some hints.
+
+
 ## 0.5.5
 
 No new features in this one either. Just tweaks to the Makefile and test fixes on Mac OS X.
@@ -148,4 +240,3 @@ as well).
 ### Other changes
 
 - A CHANGEFILE.md has been added to the repo.
-  

@@ -1,7 +1,5 @@
-lfs = require "syscall.lfs"
 fs = require "fs"
 insert = table.insert
-sort = table.sort
 
 describe 'fs', ->
 

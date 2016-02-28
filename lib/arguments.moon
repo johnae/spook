@@ -51,7 +51,7 @@ watch "playground", ->
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
--- handle_file = (file) ->
+-- handle_file = func name: "handle_file", handler: (file) ->
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
@@ -60,9 +60,9 @@ watch "playground", ->
 --   o\write new_content
 --   o\close!
 --   true -- return true or false for notications
--- do_stuff = (file) -> description: "do_stuff #{file}", detail: file, -> handle_file file
+--
 -- watch "stuff", ->
---   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> do_stuff "stuff/#{a}/#{b}.txt"
+--   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> handle_file "stuff/#{a}/#{b}.txt"
 
 -- Define notifiers to use, a default one (including directory structure) is created for you
 -- when you run "spook --setup". All notifiers in specified dir are loaded and if their "runs"
@@ -96,6 +96,24 @@ notifier "#{os.getenv('HOME')}/.spook/notifiers"
 -- watch "some_place", ->
 --   on_changed "^some_place/(.*)/(.*).txt", (a, b) -> cmd1 "stuff/#{a}/#{b}_thing.txt"
 --   on_changed "^other_place/(.*)/(.*).txt", (a, b) -> cmd2 "other_stuff/#{a}/#{b}_thing.txt"
+
+-- Additionally, more than one command or function can be run in response to a change, for example:
+-- cmd1 = command "ls -lah"
+-- handle_file = func name: "handle_file", handler: (file) ->
+--   f = assert io.open(file, 'r')
+--   content = f\read!
+--   f\close!
+--   new_content = "do stuff do content: #{content}"
+--   o = assert io.open('/tmp/new_file.txt', 'w')
+--   o\write new_content
+--   o\close!
+--   true -- return true or false for notications
+-- watch "some_place", ->
+--   on_changed "^some_place/(.*)/(.*).txt", (a, b) ->
+--     cmd1("stuff/#{a}/#{b}_thing.txt") + handle_file("somewhere/else/#{a}/#{b}.json")
+--
+-- In the above example the if cmd1 should fail, handle_file will never be run and and the
+-- chain of commands is aborted.
 ]]
   f\write(content)
   f\close!

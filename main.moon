@@ -15,7 +15,6 @@ package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?/init.lua"
 require "moonscript"
 _G.log = require("log")(1)
 _G.notify = require("notify")!
-_G.spook = require("spook")(notify)
 config = require("config")!
 {:run} = require "uv"
 moonscript = require "moonscript.base"
@@ -62,7 +61,7 @@ else
     notify[#notify + 1] = notifier
 
   watched = 0
-  changes = worker spook
+  changes = worker!
   for dir, on_changed in pairs watch
     dirs = dir_list dir
     watched += #dirs

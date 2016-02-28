@@ -1,6 +1,4 @@
 config = require "config"
-dir_list = require "dir_list"
-moon = require "moon"
 
 describe 'config', ->
   local conf
