@@ -42,6 +42,7 @@ list = (...) ->
         {:mapped_file, :name, :args} = runner
         ev = {
           :mapped_file,
+          :changed_file,
           :name,
           :args,
           description: tostring(runner)
