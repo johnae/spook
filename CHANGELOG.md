@@ -53,6 +53,41 @@ watch "dir", ->
       my_cmd "spec/#{a}_spec.moon"
 ```
 
+The info table sent to notifiers has changed somewhat. The start handler now receives a table like this:
+
+```
+{
+  changed_file: "the file that was changed triggering this",
+  mapped_file: "the file mapped from the changed file",
+  name: "a short name of what is now running",
+  args: "the arguments sent to what is now running",
+  description: "a longer name for what is now running"
+}
+```
+
+The info table sent to the finish handler has changed the most:
+
+```
+{
+  1: {
+    changed_file: "the file that was changed triggering this",
+    mapped_file: "the file mapped from the changed file",
+    name: "a short name of what is now running",
+    args: "the arguments sent to what is now running",
+    description: "a longer name for what is now running"
+    success: true
+  }
+  changed_file: "the file that was changed triggering this",
+  elapsed_time: 0.100,
+  id: "sha256 id for this run"
+}
+```
+
+So the finish handler event is both a k/v table and a list. The list
+contains all the things that have run (eg. commands and/or functions)
+and also contains the return values. If any command in the list fails
+later commands will not run and the last command in the list will be the
+one that failed.
 
 See this repos [Spookfile](Spookfile) for some hints.
 

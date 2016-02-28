@@ -160,7 +160,7 @@ watch "playground", ->
 --   o = assert io.open('/tmp/new_file.txt', 'w')
 --   o\write new_content
 --   o\close!
---   true -- return true or false for notications
+--   true -- return true or false depending on whether this was a success
 --
 -- watch "stuff", ->
 --   on_changed "stuff/(.*)/(.*)%.txt", (a, b) -> file_handler "stuff/#{a}/#{b}.txt"
@@ -355,6 +355,12 @@ These can be used in the notifier and any other code running in the context of s
 
 ```moonscript
 getcwd
+```
+
+Change the working directory.
+
+```moonscript
+chdir("/some/dir")
 ```
 
 This returns the current working directory (where you run spook, probably your git checkout of your app).
