@@ -4,3 +4,4 @@ spec/support/luassert/* linguist-vendored
 spec/support/pl/* linguist-vendored
 spec/support/say/* linguist-vendored
 vendor/* linguist-vendored
+Spookfile linguist-language=MoonScript
