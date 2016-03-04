@@ -64,7 +64,7 @@ $(LUAJIT):
 	git submodule update --init deps/luajit
 	$(MAKE) -C deps/luajit XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=$(TOOLS)/luajit
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
-	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta1 $(TOOLS)/luajit/bin/luajit
+	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta2 $(TOOLS)/luajit/bin/luajit
 
 main.lua: $(LUAJIT)
 	@echo "BUILDING main.lua"
