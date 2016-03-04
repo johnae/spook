@@ -57,6 +57,7 @@ lib/version.moon:
 $(LIBLUV):
 	@echo "BUILDING LIBLUV"
 	git submodule update --init deps/luv
+	$(MAKE) -C deps/luv reset
 	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF
 
 $(LUAJIT):
