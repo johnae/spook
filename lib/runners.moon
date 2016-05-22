@@ -48,6 +48,7 @@ list = (...) ->
           description: tostring(runner)
         }
         notify.start(ev)
+        runner.changed_file = changed_file
         success and= runner!
         ev.success = success
         ran[#ran + 1] = ev

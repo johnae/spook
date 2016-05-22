@@ -5,13 +5,14 @@ describe "runners", ->
   describe "func", ->
     func = runners.func
 
-    it "calls the function with the specified file", ->
-      spy_func = spy.new (file) -> true
-      func_runner = func name: "funky", handler: (file) ->
-        spy_func file
+    it "calls the function with the specified file and info", ->
+      expected_info = {mapped_file: "/tmp", changed_file: "/tmp/some_file.txt"}
+      spy_func = spy.new (file, info) -> true
+      func_runner = func name: "funky", handler: (file, info) ->
+        spy_func file, info
       run = func_runner "/tmp"
-      run!
-      assert.spy(spy_func).was_called_with "/tmp"
+      run "/tmp/some_file.txt"
+      assert.spy(spy_func).was_called_with "/tmp", expected_info
 
     it "the runner returns whatever the wrapped function does", ->
       spy_func = spy.new (file) -> true
