@@ -227,6 +227,73 @@ watch "some_place", ->
     file_handler "some/other/#{a}/#{b}_thing.txt"
 ```
 
+### Motivating example of a func handler
+
+Let's say we have a project written in moonscript. However we want to to always include the
+lua version since not everyone likes moonscript and/or don't want to include moonscript as a
+project dependency. What I've seen is that people may use [Tup](http://gittup.org/tup/index.html)
+which is a fine tool indeed. However, you can have similar functionality using Spook and you can
+ensure relevant tests and linting are always run before the compile step. So how could we implement
+something like that? Well, it's not that hard and Spook comes with moonscript built in. Here goes:
+
+```moonscript
+log_level "INFO"
+
+colors = require "ansicolors"
+lint = require("moonscript.cmd.lint").lint_file
+to_lua = require("moonscript").to_lua
+
+spec_cmd = command "busted spec"
+
+lint_cmd = func name: "Lint", handler: (file) ->
+  result, err = lint file
+  if result
+    io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
+    return false
+  elseif err
+    io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
+    return false
+  io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
+  true
+
+to_lua_cmd = func name: "Compile lua", handler: (newname, ev) ->
+  changed_file = ev.changed_file
+  moonfile = io.open(changed_file)
+  content = moonfile\read "*a"
+  moonfile\close!
+  as_lua, line_table = to_lua content
+  unless as_lua
+    io.stdout\write colors("\n[ %{red}Compile to lua error in #{changed_file} ]\n%{white}#{line_table}\n\n")
+    return false
+  io.stdout\write colors("\n[ %{green}Compiled #{changed_file} to lua file #{newname}: %{white}All good ]\n\n")
+  lua_file = io.open(newname, 'w+')
+  lua_file\write as_lua
+  lua_file\close!
+  true
+
+-- Setup what directories to watch and what to do
+-- when a file is changed. "command" is a helper
+-- for setting up what command to run. There is no
+-- restriction on running shell commands however -
+-- any function (in lua/moonscript) can be run
+watch "lib", "spec", ->
+  on_changed "^(spec)/(spec_helper%.moon)", -> spec_cmd "spec"
+  on_changed "^spec/(.*)_spec%.moon", (a) ->
+    lint_cmd("spec/#{a}_spec.moon") +
+    spec_cmd("spec/#{a}_spec.moon")
+-- here we want to compile to lua as well
+  on_changed "^lib/(.*)%.moon", (a) ->
+    lint_cmd("lib/#{a}_spec.moon") +
+    spec_cmd("spec/#{a}_spec.moon") +
+    to_lua_cmd("lib/#{a}.lua")
+
+```
+
+And that's that. The above example also demonstrates that you really can include any library or
+code you want in the Spookfile. Of course, you may want to create separate files at some point and
+only require them from the Spookfile to prevent the Spookfile getting bloated.
+
+
 ### Notifications
 
 The default Spookfile that is generated via ```spook -i``` defines notifiers
