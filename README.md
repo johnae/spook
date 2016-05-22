@@ -152,7 +152,11 @@ watch "playground", ->
 
 -- If a "command" isn't what you want to run, as mentioned, any function
 -- can be run in response to a change. here's an example of how that might look:
--- file_handler = func name: "file_handler", handler: (file) ->
+-- file_handler = func name: "file_handler", handler: (file, info) ->
+--   -- the file parameter here is whatever on_changed gives the file_handler
+--   -- the info parameter is a table containing "changed_file" and "mapped_file".
+--   -- mapped_file is the same as the input parameter "file" and "changed_file" is
+--   -- of course whatever file was changed.
 --   f = assert io.open(file, 'r')
 --   content = f\read!
 --   f\close!
