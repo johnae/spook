@@ -1,4 +1,4 @@
-package.loaded.lint_config = {
+return {
   whitelist_globals = {
     ["lib/config.moon"] = {
       'log_level',

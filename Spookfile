@@ -3,6 +3,7 @@
 log_level "INFO"
 
 lint = require("moonscript.cmd.lint").lint_file
+package.loaded.lint_config = pcall -> loadfile('lint_config')()
 colors = require "ansicolors"
 
 spec_cmd = command "./spook -f spec/support/run_busted.lua"
