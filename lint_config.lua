@@ -4,6 +4,17 @@ return {
       'log_level',
       'notifier'
     },
+    ["lib/runners.moon"] = {
+      'properties',
+      'static',
+      'instance',
+      'accessors',
+      'new',
+      'super',
+      'missing_property',
+      'parent',
+      'meta'
+    },
     ["spec"] = {
       'it', 'describe', 'before_each', 'before', 'after', 'after_each',
       'raise', 'spy', 'context', 'run_uv_for', 'create_file', 'create_file_after',

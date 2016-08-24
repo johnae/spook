@@ -37,7 +37,7 @@ describe "runners", ->
 
     it "generates command lines", ->
       cmd = command "ls -lah"
-      assert.same "ls -lah", cmd![1].name
+      assert.same "ls -lah", cmd!.list[1].name
 
     it "calls the command with the specified file", ->
       cmd = command "ls -lah"

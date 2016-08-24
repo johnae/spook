@@ -26,7 +26,7 @@ describe 'config', ->
     before_each ->
       conf = config!(config_file: 'Spookfile')
 
-    it 'overwrites deafaults with supplied config', ->
+    it 'overwrites defaults with supplied config', ->
       watched = keys(conf.watch)
       assert.same sorted({"playground", "lib", "spec"}), watched
       assert.same 2, conf.log_level

@@ -9,6 +9,7 @@ is_dir = (dir) ->
 
 is_file = (path) ->
   return false if is_dir path
+  return false unless type(path) == "string"
   f = io.open path, "r"
   if f
     f\close!

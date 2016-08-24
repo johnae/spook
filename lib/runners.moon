@@ -1,3 +1,4 @@
+define = require'classy'.define
 {:is_present} = require "fs"
 {:merge, :concat} = table
 {:round} = math
@@ -12,80 +13,105 @@ expand_file = (data, file) ->
 
 (opts={}) ->
 
-list = (...) ->
-  runners = {...}
-  runners.id = (changed_file) ->
-    sha256 concat(["#{changed_file}#{tostring(runner)}" for runner in *runners], "\n")
+RunList = define 'RunList', ->
+  properties
+    runnables: =>
+      [r for r in *@list when r.runnable]
 
-  setmetatable runners, {
-    __add: (list1, list2) ->
+    non_runnables: =>
+      [r for r in *@list when not r.runnable]
+
+  instance
+    initialize: (...) =>
+      @list = {...}
+
+    id: (changed_file) =>
+      sha256 concat(["#{changed_file}#{tostring(runner)}" for runner in *@list], "\n")
+
+  meta
+    __add: (other) =>
       newlist = {}
-      for runner in *list1
+      for runner in *@list
         newlist[#newlist + 1] = runner
-      for runner in *list2
+      for runner in *other.list
         newlist[#newlist + 1] = runner
-      list unpack(newlist)
+      new unpack(newlist)
 
-    __call: (t, changed_file, event_name) ->
+    __call: (changed_file, event_name) =>
       success = true
       ran = {}
-      start_time = gettimeofday! / 1000.0
-      non_runnable = [runner for runner in *runners when not runner.runnable!]
-      runnable_runners = [runner for runner in *runners when runner.runnable!]
-      if #non_runnable > 0
-        for runner in *non_runnable
-          log.debug "Skipping run for #{tostring(runner)}, changed_file: #{changed_file}, mapped_file: #{runner.mapped_file}, perhaps the mapped file is missing?"
-      if #runnable_runners == 0
-        return nil, {}
-      for runner in *runnable_runners
-        next unless runner.runnable!
-        {:mapped_file, :name, :args} = runner
-        ev = {
-          :mapped_file,
-          :changed_file,
-          :name,
-          :args,
-          description: tostring(runner)
-        }
-        notify.start(ev)
+      start = gettimeofday! / 1000.0
+      non_runnables = @non_runnables
+      runnables = @runnables
+
+      for runner in *non_runnables
+        log.debug "Skipping run for #{tostring(runner)}, changed_file: #{changed_file}, mapped_file: #{runner.mapped_file}, perhaps the mapped file is missing?"
+
+      return nil, {} if #runnables == 0
+
+      for runner in *runnables
+        next unless runner.runnable
+        :mapped_file, :name, :args = runner
+        ev =
+          :mapped_file
+          :changed_file
+          :name
+          :args
+          description: tostring runner
+
+        notify.start ev
         runner.changed_file = changed_file
         success and= runner!
         ev.success = success
         ran[#ran + 1] = ev
         break unless success
 
-      end_time = gettimeofday! / 1000.0
-      ran.elapsed_time = round end_time - start_time, 3
-      ran.id = sha256 concat(["#{changed_file}#{tostring(runner)}" for runner in *runners], "\n")
+      finish = gettimeofday! / 1000.0
+      ran.elapsed_time = round finish - start, 3
+      ran.id = @id changed_file
       ran.event_name = event_name
       ran.changed_file = changed_file
 
-      notify.finish(success, ran)
+      notify.finish success, ran
       return success, ran
-  }
 
-function_handler = (file, info={}) ->
-  fh = setmetatable {
-    args: {file},
-    handler: info.handler,
-    mapped_file: file
-    name: (info.name or "#{info.handler}")
-  }, {
-      __tostring: (t) ->
-        name = info.name or "#{info.handler}"
-        "#{name} #{t.mapped_file}"
+FunctionHandler = define 'FunctionHandler', ->
+  accessors
+    info: {'handler'}
 
-      __call: (t, info={}) ->
-        info = merge(info, changed_file: t.changed_file, mapped_file: t.mapped_file)
-        t.handler file, info
-  }
-  fh.runnable = info.runnable or -> true
-  list fh
+  properties
+    runnable: =>
+      if @info.runnable
+        return @info.runnable!
+      true
+
+    handler: =>
+      @info.handler
+
+    name: => @info.name or "#{@handler}"
+
+  instance
+    initialize: (file, info={}) =>
+      @args = {file}
+      @mapped_file = file
+      @info = info
+
+    to_run_list: => RunList.new @
+
+  meta
+    __tostring: =>
+      "#{@name} #{@mapped_file}"
+
+    __call: (info={}) =>
+      info = merge info, changed_file: @changed_file, mapped_file: @mapped_file
+      @.handler @mapped_file, info
+
+function_handler = (file, info={}) -> FunctionHandler.new(file, info)\to_run_list!
 
 func = (info={}) ->
-  handler = assert(info.handler, "handler key must be set when creating a function handler")
+  handler = assert info.handler, "handler key must be set when creating a function handler"
   name = info.name
-  (file) -> function_handler(file, :handler, :name)
+  (file) -> function_handler file, :handler, :name
 
 command = (cmd, opts={}) ->
   only_if = opts.only_if or is_present
@@ -93,7 +119,6 @@ command = (cmd, opts={}) ->
     cmdline, replaced = expand_file cmd, file
     if replaced == 0
       cmdline = "#{cmd} #{file}"
-
     _, _, status = os.execute cmdline
     status == 0
 

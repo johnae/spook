@@ -4,6 +4,7 @@ require "lib"
 lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "globals"
+getcwd = getcwd
 
 -- add some default load paths
 package.path = package.path .. ";#{getcwd!}/.spook/lib/?.lua"
@@ -19,6 +20,9 @@ config = require("config")!
 {:run} = require "uv"
 moonscript = require "moonscript.base"
 {:index_of} = table
+arg = arg
+log = _G.log
+notify = _G.notify
 
 if fi = index_of arg, "-f"
   file = arg[fi + 1]
@@ -40,10 +44,11 @@ else
   spookfile_path = args.config or "Spookfile"
 
   if args.log_level
-    _G.log.level assert tonumber(args.log_level) or _G.log[args.log_level]
+    _G.log.level tonumber(args.log_level) or _G.log[args.log_level]
 
   conf = config config_file: spookfile_path, args: args
   unless conf
+    log.error "Error when configuring spook"
     os.exit 1
 
   unless args.log_level
