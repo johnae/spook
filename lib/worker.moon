@@ -14,7 +14,7 @@ handle_change = (changed_file, mapper) ->
   if rule
     runner = rule!
     if runner
-      id = runner.id changed_file
+      id = runner\id changed_file
       if not RUNS[id]
         RUNS[id] = true
         runner changed_file
