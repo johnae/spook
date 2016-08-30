@@ -110,8 +110,14 @@ function_handler = (file, info={}) -> FunctionHandler.new(file, info)\to_run_lis
 
 func = (info={}) ->
   handler = assert info.handler, "handler key must be set when creating a function handler"
+  only_if = info.only_if
+  info.only_if = nil
   name = info.name
-  (file) -> function_handler file, :handler, :name
+  (file) ->
+    local runnable
+    if only_if
+      runnable = -> only_if file
+    function_handler file, :handler, :name, :runnable
 
 command = (cmd, opts={}) ->
   only_if = opts.only_if or is_present
