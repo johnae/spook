@@ -11,8 +11,6 @@ expand_file = (data, file) ->
   return nil unless data
   data\gsub '([[{%<](file)[]}>])', file
 
-(opts={}) ->
-
 RunList = define 'RunList', ->
   properties
     runnables: =>
