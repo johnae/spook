@@ -24,19 +24,16 @@ TOOLS := $(realpath tools)
 ## this has to be expanded dynamically since luajit
 ## needs to be built first
 LUAJIT_BIN = $(realpath $(LUAJIT))
-LIBLUV := deps/luv/build/libluv.a
-LIBLUV_INCLUDE := deps/luv/src
-LIBUV_INCLUDE := deps/luv/deps/libuv/include
-ARCHIVES := $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
+ARCHIVES := $(LUAJIT_ARCHIVE)
 OBJECTS := main.o lib.o vendor.o
 
 .PHONY: all clean clean-deps rebuild release test
 
 all: spook
 
-spook: $(LIBLUV) $(OBJECTS)
+spook: $(OBJECTS)
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LIBUV_INCLUDE) -I $(LIBLUV_INCLUDE) -I $(LUAJIT_INCLUDE) -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm -ldl -lpthread $(EXTRAS)
 
 rebuild: clean all
 
@@ -53,12 +50,6 @@ install: all
 lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
 	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
-
-$(LIBLUV):
-	@echo "BUILDING LIBLUV"
-	git submodule update --init deps/luv
-	$(MAKE) -C deps/luv reset
-	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF
 
 $(LUAJIT):
 	@echo "BUILDING LUAJIT"

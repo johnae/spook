@@ -1,6 +1,3 @@
 [submodule "deps/luajit"]
 	path = deps/luajit
 	url = https://github.com/luajit/luajit.git
-[submodule "deps/luv"]
-	path = deps/luv
-	url = https://github.com/luvit/luv.git
