@@ -1,13 +1,18 @@
 local self = debug.getinfo(1).source:match("@(.*)$") 
 local base_dir = self:gsub("/run_busted.lua$", "")
-_G.arg = {arg[#arg]}
 
 package.path = package.path .. ';spec/support/?.lua'
 package.path = package.path .. ';spec/support/?/init.lua'
 package.path = package.path .. ';lib/?.lua'
 package.path = package.path .. ';lib/?/init.lua'
+package.path = package.path .. ';vendor/?.lua'
+package.path = package.path .. ';vendor/?/init.lua'
 package.loaded.lfs = require('syscall.lfs')
 
+local lpeg = require "lpeglj"
+package.loaded.lpeg = lpeg
+require 'syscall'
+require 'moonscript'
 local moonscript = require "moonscript.base"
 package.moonpath = moonscript.create_moonpath(package.path)
 local busted = assert(loadfile(base_dir .. '/busted/busted_bootstrap'))

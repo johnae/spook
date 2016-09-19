@@ -14,15 +14,13 @@ package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?/init.lua"
 
 -- setup additional requirements
 require "moonscript"
-_G.log = require("log")(1)
-_G.notify = require("notify")!
-config = require("config")!
-{:run} = require "uv"
+_G.log = require'log'
 moonscript = require "moonscript.base"
+colors = require 'ansicolors'
 {:index_of} = table
 arg = arg
 log = _G.log
-notify = _G.notify
+log.level log.INFO
 
 if fi = index_of arg, "-f"
   file = arg[fi + 1]
@@ -39,40 +37,44 @@ if fi = index_of arg, "-f"
 
 else
   cli = require "arguments"
+  run = require'event_loop'.run
+  Spook = require 'spook'
   args = cli\parse!
-
   spookfile_path = args.config or "Spookfile"
+  local spook, queue
 
-  if args.log_level
-    _G.log.level tonumber(args.log_level) or _G.log[args.log_level]
+  event_handler = =>
+    seen_paths = {}
+    while #queue > 0
+      event = queue\popright! -- latest event
+      if event.type == 'fs'
+        continue unless event.path -- ignore events without a path
+        continue if seen_paths[event.path] -- ignore events we've already seen
+        seen_paths[event.path] = true
+        matching = spook\match event
+        if matching and #matching > 0
+          for handler in *matching
+            r = handler!
+    @again!
 
-  conf = config config_file: spookfile_path, args: args
-  unless conf
-    log.error "Error when configuring spook"
-    os.exit 1
+  load_spookfile = ->
+    spook\stop! if spook
+    spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
+    spook = Spook.new!
+    _G.spook = spook
+    queue = spook.queue
+    success, err = pcall -> spook spookfile
+    unless success
+      print tostring(err)
+    spook\timer 0.35, event_handler
+    dir_or_dirs = (num) ->
+      num == 1 and 'directory' or 'directories'
+    if log[spook.log_level] > log.WARN
+      print colors "[ %{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively %{reset}]"
+      print colors "[ %{blue}Watching #{spook.numnr_dirs} #{dir_or_dirs(spook.num_dirs)} non-recursively %{reset}]"
+    spook\start!
 
-  unless args.log_level
-    _G.log.level conf.log_level
-
-  colors = require "ansicolors"
-  watcher = require "watcher"
-  worker = require "worker"
-  file_mapper = require "file_mapper"
-  dir_list = require "dir_list"
-
-  {:notifiers, :watch} = conf
-
-  for notifier in *notifiers
-    notify[#notify + 1] = notifier
-
-  watched = 0
-  changes = worker!
-  for dir, on_changed in pairs watch
-    dirs = dir_list dir
-    watched += #dirs
-    mapper = file_mapper on_changed
-    watcher mapper: mapper, watch: dirs, :changes
-
-  print colors "[ %{blue}Watching #{watched} directories%{reset} ]"
-  print ""
+  _G.load_spookfile = load_spookfile
+  load_spookfile!
   run!
+  --print ""

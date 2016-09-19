@@ -1,5 +1,11 @@
 [![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
 
+## Experimental unfinished version in this branch
+
+See the [CHANGELOG](CHANGELOG.md) for more information on this branch. Please note that the instructions below are for
+the currently released version and do not apply. Even though the Spookfile looks similar any current one will NOT work
+with this version.
+
 ## Spook
 
 Spook is aiming to be a light weight replacement for [guard](https://github.com/guard/guard) and much more.

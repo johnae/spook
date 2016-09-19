@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.7.0 - dev
+
+This has several breaking changes but also new features. The reason for all this is the removal of libuv and luv.
+The rationale for removing libuv/luv is to enable a finer grained fs events infrastructure. No longer is the only
+handler "on_changed". There's now also "on_deleted", "on_created", "on_moved", "on_modified" and "on_attrib". In
+addition to those, signals and timers can be directly defined as part of the Spookfile (or somewhere else by reaching
+for the global "spook" object which has the necessary functions on it).
+
+The "on_changed" handler has been changed so that it does NOT catch delete events. It does catch all the others however.
+For delete events, use "on_delete". For catching only specific events - don't use "on_changed" but rather "on_modified", "on_moved" etc.
+
+Windows support, which was theoretically possible previously through libuv/luv, is now much less likely. I don't use Windows myself and
+know of noone who has even tried using spook on that platform.
+
+All the watch handlers (eg. on_changed etc) receives the event as its first argument, the rest being the matches. So, always
+expect the event as the first argument. Eg.
+
+```moonscript
+on_changed '^some/dir/#{name}.moon', (event, name) ->
+  ...
+```
+
+As of now, this only supports Linux. I plan to support the BSD:s (including OS X) soon:ish.
+
+more to come here before any release.
+
 ## 0.6.0
 
 There is a breaking change for function handlers. Probably not used by anyone. See below for more. Another

@@ -1,7 +1,7 @@
 {:floor} = math
 
-S = require "syscall"
-ffi = require "ffi"
+S = require 'syscall'
+ffi = require 'ffi'
 
 pattern_escapes = {
   "(": "%(",
@@ -50,10 +50,10 @@ math.round = (num, dp) ->
   floor( num * m + 0.5 ) / m
 
 local g_timeval
-_gettimeofday = S.gettimeofday
+g_timeval = ffi.new("struct timeval")
 gettimeofday = ->
   g_timeval or= ffi.new("struct timeval")
-  _gettimeofday(g_timeval)
+  S.gettimeofday(g_timeval)
   tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
 
 getcwd = S.getcwd
@@ -66,29 +66,3 @@ chdir = (path, f) ->
     f!
     _chdir cwd
   r
-
-project_name = ->
-  cwd = getcwd!\split("/")
-  cwd[#cwd]
-
-git_branch = ->
-  b = io.popen "git symbolic-ref --short HEAD"
-  branch = b\read "*a"
-  b\close!
-  branch
-
-git_tag = ->
-  t = io.popen "git tag -l --contains HEAD"
-  tag = t\read "*a"
-  t\close!
-  return nil if tag == ""
-  tag
-
-git_sha = ->
-  s = io.popen "git rev-parse --short HEAD"
-  sha = s\read "*a"
-  s\close!
-  sha
-
-git_ref = ->
-  git_tag! or git_branch!

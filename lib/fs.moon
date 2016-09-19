@@ -1,3 +1,4 @@
+require 'globals'
 lfs = require "syscall.lfs"
 remove = table.remove
 

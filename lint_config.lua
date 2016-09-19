@@ -1,10 +1,20 @@
 return {
   whitelist_globals = {
+    ["."] = {
+      'on_changed',
+      'on_deleted',
+      'on_created',
+      'on_moved',
+      'watch',
+      'watchnr',
+      'notifier',
+      'log_level'
+    },
     ["lib/config.moon"] = {
       'log_level',
       'notifier'
     },
-    ["lib/runners.moon"] = {
+    ["lib"] = {
       'properties',
       'static',
       'instance',

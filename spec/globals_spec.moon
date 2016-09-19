@@ -1,3 +1,4 @@
+require "globals"
 describe "globals", ->
 
   it "string.split splits on separator", ->

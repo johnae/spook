@@ -2,14 +2,27 @@
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
-lint = require("moonscript.cmd.lint").lint_file
+moonlint = require("moonscript.cmd.lint").lint_file
 package.loaded.lint_config = pcall -> loadfile('lint_config')()
 colors = require "ansicolors"
+fs = require 'fs'
+notify = require('notify')!
 
-spec_cmd = command "./spook -f spec/support/run_busted.lua"
-exec_cmd = command "./spook -f"
-lint_cmd = func name: "Lint", handler: (file) ->
-  result, err = lint file
+spec = (file) ->
+  return true unless fs.is_file file
+  notify.info "RUNNING spec #{file}"
+  _, _, status = os.execute "./tools/luajit/bin/luajit spec/support/run_busted.lua #{file}"
+  status == 0
+
+exec = (file) ->
+  return true unless fs.is_file file
+  notify.info "RUNNING exec #{file}"
+  _, _, status = os.execute "./tools/luajit/bin/luajit run.lua #{file}"
+  status == 0
+
+lint = (file) ->
+  notify.info "LINTING #{file}"
+  result, err = moonlint file
   if result
     io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
     return false
@@ -19,19 +32,41 @@ lint_cmd = func name: "Lint", handler: (file) ->
   io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
   true
 
+notify.add 'terminal_notifier'
+
+notify_begin = (event, list) ->
+  notify.start event.path, event
+  success = true
+  for run in *list
+    step, func = run[1], run[2]
+    success and= func!
+    return notify.fail step, event unless success
+  notify.success event.path, event
+
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
-  on_changed "^spec/spec_helper%.moon", -> spec_cmd "spec"
-  on_changed "^spec/(.*)%.moon", (a) ->
-    lint_cmd("spec/#{a}.moon") +
-    spec_cmd("spec/#{a}.moon")
-  on_changed "^lib/(.*)%.moon", (a) ->
-    lint_cmd("lib/#{a}.moon") +
-    spec_cmd("spec/#{a}_spec.moon")
+
+  on_changed "^spec/spec_helper%.moon", (event) ->
+    notify_begin event, {
+      { "spec", -> spec "spec" }
+    }
+
+  on_changed "^spec/(.*)%.moon", (event, name) ->
+    notify_begin event, {
+      { "lint", -> lint "spec/#{name}.moon" },
+      { "spec", -> spec "spec/#{name}.moon" },
+    }
+
+  on_changed "^lib/(.*)%.moon", (event, name) ->
+    notify_begin event, {
+      { "lint", -> lint "lib/#{name}.moon" },
+      { "spec", -> spec "spec/#{name}_spec.moon" },
+    }
 
 watch "playground", ->
-  on_changed "^playground/(.*)%.moon", (a) -> exec_cmd "playground/#{a}.moon"
-  on_changed "^playground/(.*)%.lua", (a) -> exec_cmd "playground/#{a}.lua"
+  on_changed "^playground/(.*)%.moon", (event, name) ->
+    exec "playground/#{name}.moon"
 
-notifier "#{os.getenv('HOME')}/.spook/notifiers"
+  on_changed "^playground/(.*)%.lua", (event, name) ->
+    exec "playground/#{name}.lua"
