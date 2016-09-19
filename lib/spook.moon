@@ -20,6 +20,10 @@ define 'Spook', ->
         emitters[#emitters + 1] = s
       emitters
 
+    first_match_only:
+      get: => @_first_match_only
+      set: (bool) => @_first_match_only = bool
+
   instance
     initialize: =>
       @caller_env = {}
@@ -29,6 +33,7 @@ define 'Spook', ->
       @watchers = {}
       @num_dirs = 0
       @numnr_dirs = 0
+      @first_match_only = true
       @queue = Queue.new!
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
@@ -40,6 +45,7 @@ define 'Spook', ->
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) -> @log_level = v
+      @caller_env.first_match_only = (b) -> @first_match_only = b
       setmetatable @caller_env, __index: _G
 
     -- defines recursive watchers (eg. all directories underneath given directories)

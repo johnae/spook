@@ -59,3 +59,12 @@ describe 'spook', ->
         log_level 'DEBUG'
 
       assert.equal 'DEBUG', spook.log_level
+
+    it '#first_match_only is true by default', ->
+      assert.true spook.first_match_only
+
+    it 'configures first_match_only via supplied function', ->
+      spook ->
+        first_match_only false
+
+      assert.false spook.first_match_only

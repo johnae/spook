@@ -8,7 +8,8 @@ return {
       'watch',
       'watchnr',
       'notifier',
-      'log_level'
+      'log_level',
+      'first_match_only'
     },
     ["lib/config.moon"] = {
       'log_level',

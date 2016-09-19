@@ -54,7 +54,8 @@ else
         matching = spook\match event
         if matching and #matching > 0
           for handler in *matching
-            r = handler!
+            handler!
+            break if spook.first_match_only
     @again!
 
   load_spookfile = ->
