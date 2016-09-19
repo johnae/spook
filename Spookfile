@@ -1,8 +1,11 @@
 -- vim: syntax=moonscript
 -- How much logs do we want? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
+load_spookfile = load_spookfile
 
+package.loaded['moonscript.cmd.lint'] = nil
 moonlint = require("moonscript.cmd.lint").lint_file
+package.loaded.lint_config = nil
 package.loaded.lint_config = pcall -> loadfile('lint_config')()
 colors = require "ansicolors"
 fs = require 'fs'
@@ -58,11 +61,18 @@ watch "lib", "spec", ->
       { "spec", -> spec "spec/#{name}.moon" },
     }
 
+  on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
+    notify_begin event, {
+      { "lint", -> lint "lib/#{name}/event_loop.moon" },
+      { "spec", -> spec "spec/event_loop_spec.moon" },
+    }
+
   on_changed "^lib/(.*)%.moon", (event, name) ->
     notify_begin event, {
       { "lint", -> lint "lib/#{name}.moon" },
       { "spec", -> spec "spec/#{name}_spec.moon" },
     }
+
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (event, name) ->
@@ -70,3 +80,11 @@ watch "playground", ->
 
   on_changed "^playground/(.*)%.lua", (event, name) ->
     exec "playground/#{name}.lua"
+
+watchnr '.', ->
+  on_changed 'Spookfile', (event) ->
+    notify.info "Reloading Spookfile...", event
+    load_spookfile!
+  on_changed 'lint_config%.lua', (event) ->
+    notify.info "Reloading Spookfile...", event
+    load_spookfile!
