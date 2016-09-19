@@ -52,7 +52,6 @@ math.round = (num, dp) ->
 local g_timeval
 g_timeval = ffi.new("struct timeval")
 gettimeofday = ->
-  g_timeval or= ffi.new("struct timeval")
   S.gettimeofday(g_timeval)
   tonumber((g_timeval.tv_sec * 1000) + (g_timeval.tv_usec / 1000))
 
