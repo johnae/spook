@@ -83,16 +83,17 @@ Watcher = define 'Watcher', ->
         @paths = recurse_paths @paths
       @watch_for = watch_for
       @watchers = {}
-      EventHandlers[@fdnum] = @
 
     start: =>
       @stop!
+      EventHandlers[@fdnum] = @
       for p in *@paths
         wd = @fd\inotify_add_watch p, @watch_for
         @watchers[wd] = p
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
 
     stop: =>
+      EventHandlers[@fdnum] = nil
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
       for k, _ in pairs @watchers
         @fd\inotify_rm_watch k
@@ -112,20 +113,22 @@ Timer = define 'Timer', ->
       @interval = interval
       @callback = callback
       assert type(@callback) == 'function', "'callback' is required for a timer and must be a callable object (like a function)"
-      EventHandlers[@fdnum] = @
 
     start: =>
       @again!
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
 
     again: =>
+      EventHandlers[@fdnum] = @
       @fd\timerfd_settime nil, {0,@interval}
 
     stop: =>
+      EventHandlers[@fdnum] = nil
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
 
   meta
     __call: =>
+      EventHandlers[@fdnum] = nil
       -- if we don't read it, epoll will continue returning it (unless in edge triggered mode, but we don't use that here)
       S.util.timerfd_read @fdnum
       @callback!
@@ -140,13 +143,14 @@ Signal = define 'Signal', ->
       @fd = S.signalfd @signals
       @callback = callback
       assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
-      EventHandlers[@fdnum] = @
 
     start: =>
+      EventHandlers[@fdnum] = @
       S.sigprocmask("block", @signals)
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
 
     stop: =>
+      EventHandlers[@fdnum] = nil
       S.sigprocmask("unblock", @signals)
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
 
