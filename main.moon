@@ -22,6 +22,14 @@ arg = arg
 log = _G.log
 log.level log.INFO
 
+-- if there is an argument "-f" on the commandline
+-- we completely skip the default behavior and run
+-- whatever script path given within the context of
+-- spook. Quite similar to running the file with just
+-- luajit path/to/some/file, with the obvious difference
+-- that here it is run within the spook context and all
+-- that comes built-in is available (including moonscript, so
+-- moonscript files can be run as well as lua files).
 if fi = index_of arg, "-f"
   file = arg[fi + 1]
   new_args = [a for i, a in ipairs arg when i>(fi + 1)]
@@ -43,6 +51,10 @@ else
   spookfile_path = args.config or "Spookfile"
   local spook, queue
 
+  -- to prevent multiple events happening very quickly
+  -- on a specific file we need to run a handler on some
+  -- interval which coalesces the events into one (here it's
+  -- just the latest event, disregarding any previous ones).
   event_handler = =>
     seen_paths = {}
     while #queue > 0
@@ -58,6 +70,11 @@ else
             break if spook.first_match_only
     @again!
 
+  -- this is finally setting up spook from the Spookfile
+  -- this function is also made available globally which
+  -- makes it possible to reload the Spookfile from the Spookfile
+  -- itself (probably based on some event like a change to the
+  -- Spookfile).
   load_spookfile = ->
     spook\stop! if spook
     spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
@@ -67,6 +84,9 @@ else
     success, err = pcall -> spook spookfile
     unless success
       print tostring(err)
+    -- this is the actual event_handler above, the
+    -- 0.35 interval is something I've found works
+    -- reasonably well (it is how events are coalesced).
     spook\timer 0.35, event_handler
     dir_or_dirs = (num) ->
       num == 1 and 'directory' or 'directories'
