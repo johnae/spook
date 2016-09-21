@@ -33,7 +33,7 @@ all: spook
 
 spook: $(OBJECTS)
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm -ldl $(EXTRAS)
 
 rebuild: clean all
 
