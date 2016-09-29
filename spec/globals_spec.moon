@@ -13,14 +13,6 @@ describe "globals", ->
     str = "a.b..c"
     assert.same {"a","b","","c"}, str\split(".")
 
-  it "string.trim removes leading and trailing whitespace", ->
-    str = "      abc"
-    str2 = "abc    "
-    str3 = " 10 "
-    assert.equal "abc", str\trim!
-    assert.equal "abc", str2\trim!
-    assert.equal "10", str3\trim!
-
   it "table.merge merges two tables", ->
     t1 = {a: 1, b: 2}
     t2 = {c: 3, a: 4}
