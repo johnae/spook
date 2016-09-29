@@ -1,5 +1,7 @@
 require 'globals'
 lfs = require "syscall.lfs"
+S = require 'syscall'
+log = require'log'
 remove = table.remove
 
 is_dir = (dir) ->
@@ -21,6 +23,10 @@ is_file = (path) ->
 is_present = (path) ->
   is_dir(path) or is_file(path)
 
+can_access = (path, mode='r') ->
+  return false unless path
+  S.access path, mode
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
 
@@ -28,9 +34,15 @@ dirtree = (dir, recursive) ->
     dir = dir\sub 1,-2
 
   yieldtree = (dir, recursive) ->
+    unless can_access(dir)
+      log.debug "No access to #{dir}, skipping"
+      return
     for entry in lfs.dir dir
       if entry != "." and entry != ".."
         entry = "#{dir}/#{entry}"
+        unless can_access(entry)
+          log.debug "No access to #{entry}, skipping"
+          continue
         attr = lfs.attributes entry
         coroutine.yield entry, attr
         if recursive and attr.mode == "directory"
@@ -90,4 +102,4 @@ dir_diff = (a, b) ->
         d[k] = "CREATED"
   d
 
-:dirtree, :rm_rf, :mkdir_p, :is_dir, :is_file, :is_present, :dir_table, :dir_diff
+:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present, :dir_table, :dir_diff

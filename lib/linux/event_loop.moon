@@ -1,7 +1,8 @@
 S = require "syscall"
 Types = S.t
 define = require'classy'.define
-{:is_dir, :dirtree} = require 'fs'
+log = require'log'
+{:is_dir, :dirtree, :can_access} = require 'fs'
 
 epoll_fd = S.epoll_create 'cloexec'
 epoll_events = Types.epoll_events 1
@@ -9,6 +10,9 @@ epoll_events = Types.epoll_events 1
 subdirs = (dir) ->
   dirs = {dir}
   for entry, attr in dirtree dir, true
+    unless can_access(entry)
+      log.debug "No access to #{entry}, skipping"
+      continue
     if attr.mode == 'directory'
       dirs[#dirs + 1] = entry
   dirs
@@ -16,6 +20,9 @@ subdirs = (dir) ->
 recurse_paths = (paths) ->
   all_paths = {}
   for p in *paths
+    unless can_access(p)
+      log.debug "No access to #{p}, skipping"
+      continue
     if is_dir p
       for d in *subdirs(p)
         all_paths[#all_paths + 1] = d
@@ -79,6 +86,9 @@ Watcher = define 'Watcher', ->
       @callback = opts.callback
       assert type(@callback) == 'function', "'callback' is a required option and must be a callable object (like a function)"
       @paths = type(paths) == 'table' and paths or {paths}
+      @paths = [path for path in *@paths when can_access(path)]
+      if #@paths == 0
+        error "No given paths were accessible"
       if @recursive
         @paths = recurse_paths @paths
       @watch_for = watch_for
@@ -89,6 +99,7 @@ Watcher = define 'Watcher', ->
       EventHandlers[@fdnum] = @
       for p in *@paths
         wd = @fd\inotify_add_watch p, @watch_for
+        continue unless wd
         @watchers[wd] = p
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
 
