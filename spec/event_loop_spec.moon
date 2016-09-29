@@ -1,9 +1,15 @@
-{:Watcher, :Timer, :run_once} = require 'event_loop'
+{:Watcher, :Timer, :Signal, :Stdin, :run_once, :clear_all} = require 'event_loop'
 S = require "syscall"
 fs = require "fs"
 gettimeofday = gettimeofday
 
 describe 'Event Loop', ->
+
+  after = (interval, func) ->
+    t = Timer.new interval, (t) -> func!
+    t\start!
+
+  after_each -> clear_all!
 
   describe 'Timer', ->
 
@@ -48,10 +54,6 @@ describe 'Event Loop', ->
 
   describe 'Watcher', ->
     local dir, subdir1, subdir2, event_catcher
-
-    after = (interval, func) ->
-      t = Timer.new interval, (t) -> func!
-      t\start!
 
     before_each ->
       dir = "/tmp/spook-watcher-spec"
@@ -127,3 +129,23 @@ describe 'Event Loop', ->
           id: move_id
         }
       }
+
+  describe 'Signal', ->
+
+    it 'receives any given signals sent to process', ->
+      local received_hup, received_pipe, received_winch
+      shup = Signal.new "hup", (me) -> received_hup = true
+      spipe = Signal.new "pipe", (me) -> received_pipe = true
+      swinch = Signal.new "winch", (me) -> received_winch = true
+      shup\start!
+      spipe\start!
+      swinch\start!
+      after 0.01, ->
+        S.kill S.getpid!, "hup"
+      after 0.01, ->
+        S.kill S.getpid!, "pipe"
+      for i=1,10
+        run_once block_for: 10
+      assert.true received_hup
+      assert.true received_pipe
+      assert.nil received_winch

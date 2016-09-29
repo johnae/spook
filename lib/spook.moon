@@ -1,6 +1,8 @@
+require 'globals'
+empty = table.empty
 define = require'classy'.define
 log = require 'log'
-{:Watcher, :Timer, :Signal} = require "event_loop"
+{:Watcher, :Timer, :Signal, :Stdin} = require "event_loop"
 Queue = require 'queue'
 Event = require 'event'
 
@@ -10,14 +12,17 @@ define 'Spook', ->
       get: => @_log_level
       set: (v) =>
         @_log_level = v
-        log.log_level = log[@_log_level]
+        log.level log[@_log_level]
 
     all_event_emitters: =>
       emitters = [w for w in *@watchers]
       for t in *@timers
         emitters[#emitters + 1] = t
-      for s in *@signals
-        emitters[#emitters + 1] = s
+      if @_on_stdin
+        emitters[#emitters + 1] = @_on_stdin
+      unless empty @signals
+        for k, v in pairs @signals
+          emitters[#emitters + 1] = v
       emitters
 
     first_match_only:
@@ -41,10 +46,12 @@ define 'Spook', ->
         @handlers["on_#{wname}"] = (pattern, func) -> store[#store + 1] = {pattern, func}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watchnr', 'timer', 'signal'}
+      for f in *{'watch', 'watchnr', 'timer', 'on_signal', 'on_stdin'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
-      @caller_env.log_level = (v) -> @log_level = v
+      @caller_env.log_level = (v) ->
+        if @_log_level == log.INFO
+          @log_level = v
       @caller_env.first_match_only = (b) -> @first_match_only = b
       setmetatable @caller_env, __index: _G
 
@@ -82,13 +89,23 @@ define 'Spook', ->
       @timers[#@timers + 1] = Timer.new interval, callback
       @timers[#@timers]
 
+    on_stdin: (callback) =>
+      if old = @_on_stdin
+        old\stop!
+      @_on_stdin = Stdin.new callback
+      @_on_stdin
+
     -- this is currently a bit dangerous since what one would do on say SIGINT
     -- is probably some cleanup action after which os.exit is called. But what
     -- if someone adds SIGINT and a callback and in some other place the same
     -- thing is done expecting to also run? Need a better way here.
-    signal:  (signals, callback) =>
-      @signals[#@signals + 1] = Signal.new signals, callback
-      @signals[#@signals]
+    on_signal:  (signal, callback) =>
+      signal = signal\lower!
+      assert signal\match("[%s,]") == nil, "Signals can't contain whitespace or commas, for several - please specify them individually"
+      if old = @signals[signal]
+        old\stop!
+      @signals[signal] = Signal.new signal, callback
+      @signals[signal]
 
     start: =>
       for e in *@all_event_emitters

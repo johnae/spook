@@ -1,6 +1,6 @@
 S = require "syscall"
 Types = S.t
-define = require'classy'.define
+:define = require'classy'
 log = require'log'
 {:is_dir, :dirtree, :can_access} = require 'fs'
 
@@ -144,6 +144,15 @@ Timer = define 'Timer', ->
       S.util.timerfd_read @fdnum
       @callback!
 
+signalset = S.sigprocmask!
+signalblock = (signals) ->
+  signalset\add signals
+  S.sigprocmask("block", signalset)
+
+signalunblock = (signals) ->
+  signalset\del signals
+  S.sigprocmask("block", signalset)
+
 Signal = define 'Signal', ->
   properties
     fdnum: => @fd\getfd!
@@ -157,18 +166,39 @@ Signal = define 'Signal', ->
 
     start: =>
       EventHandlers[@fdnum] = @
-      S.sigprocmask("block", @signals)
+      signalblock @signals
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
 
     stop: =>
       EventHandlers[@fdnum] = nil
-      S.sigprocmask("unblock", @signals)
+      signalunblock @signals
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
 
   meta
     __call: =>
       S.util.signalfd_read @fdnum
       @callback!
+
+Stdin = define 'Stdin', ->
+  instance
+    initialize: (callback) =>
+      @fdnum = 0 -- stdin fileno
+      @callback = callback
+      assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
+
+    start: =>
+      EventHandlers[@fdnum] = @
+      epoll_fd\epoll_ctl 'add', @fdnum, 'oneshot'
+
+    stop: =>
+      EventHandlers[@fdnum] = nil
+      epoll_fd\epoll_ctl 'del', @fdnum, 'oneshot'
+
+  meta
+    __call: =>
+      input = @fd\read!
+      @start! -- re-arm, since using oneshot
+      @callback input
 
 run_once = (opts={}) ->
   process = opts.process or -> nil
@@ -183,4 +213,8 @@ run = (opts={}) ->
   while true
     run_once opts
 
-:Watcher, :Timer, :Signal, :epoll_fd, :run, :run_once
+clear_all = ->
+  for k, v in pairs EventHandlers
+    v\stop! if v
+
+:Watcher, :Timer, :Signal, :Stdin, :epoll_fd, :run, :run_once, :clear_all
