@@ -79,6 +79,8 @@ else
     spook\stop! if spook
     spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
     spook = Spook.new!
+    if args.log_level
+      spook.log_level = args.log_level if args.log_level
     _G.spook = spook
     queue = spook.queue
     success, err = pcall -> spook spookfile
@@ -98,4 +100,3 @@ else
   _G.load_spookfile = load_spookfile
   load_spookfile!
   run!
-  --print ""
