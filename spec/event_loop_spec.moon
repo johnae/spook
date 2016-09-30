@@ -140,10 +140,8 @@ describe 'Event Loop', ->
       shup\start!
       spipe\start!
       swinch\start!
-      after 0.01, ->
-        S.kill S.getpid!, "hup"
-      after 0.01, ->
-        S.kill S.getpid!, "pipe"
+      after 0.01, -> S.kill S.getpid!, "hup"
+      after 0.01, -> S.kill S.getpid!, "pipe"
       for i=1,10
         run_once block_for: 10
       assert.true received_hup
