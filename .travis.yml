@@ -1,0 +1,14 @@
+os:
+  - linux
+  - osx
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode8
+  allow_failures:
+    - os: osx
+
+script:
+  - make
+  - make test
