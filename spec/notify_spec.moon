@@ -10,31 +10,36 @@ describe "notify", ->
 
     info = something: 'here'
     desc = 'blah'
-    started_at = nil
-    ended_at = nil
+    -- not perfect, therefore testing using is.near
+    n1_started_at = nil
+    n1_ended_at = nil
+    n2_started_at = nil
+    n2_ended_at = nil
     n1 = {
       start: spy.new (name, event) ->
-        -- TODO: this is stupid and might fail occasionally
-        started_at or= gettimeofday! / 1000.0
+        n1_started_at or= gettimeofday! / 1000.0
         assert.equal desc, name
-        assert.same {something: info.something, :started_at}, event
+        assert.equal info.something, event.something
+        assert.is.near n1_started_at*1000, event.started_at*1000, 10
       success: spy.new (name, event) ->
-        -- TODO: this is stupid and might fail occasionally
-        ended_at or= gettimeofday! / 1000.0
+        n1_ended_at or= gettimeofday! / 1000.0
         assert.equal desc, name
-        assert.same {something: info.something, :started_at, :ended_at}, event
+        assert.equal info.something, event.something
+        assert.is.near n1_started_at*1000, event.started_at*1000, 10
+        assert.is.near n1_ended_at*1000, event.ended_at*1000, 10
     }
     n2 = {
       start: spy.new (name, event) ->
-        -- TODO: this is stupid and might fail occasionally
-        started_at or= gettimeofday! / 1000.0
+        n2_started_at or= gettimeofday! / 1000.0
         assert.equal desc, name
-        assert.same {something: info.something, :started_at}, event
+        assert.equal info.something, event.something
+        assert.is.near n2_started_at*1000, event.started_at*1000, 10
       fail: spy.new (name, event) ->
-        -- TODO: this is stupid and might fail occasionally
-        ended_at or= gettimeofday! / 1000.0
+        n2_ended_at or= gettimeofday! / 1000.0
         assert.equal desc, name
-        assert.same {something: info.something, :started_at, :ended_at}, event
+        assert.equal info.something, event.something
+        assert.is.near n2_started_at*1000, event.started_at*1000, 10
+        assert.is.near n2_ended_at*1000, event.ended_at*1000, 10
     }
     notify.add n1
     notify.add n2
