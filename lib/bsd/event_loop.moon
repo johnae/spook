@@ -64,4 +64,8 @@ run = (opts={}) ->
   while true
     run_once opts
 
-:Timer, :kqueue_fd, :run, :run_once
+clear_all = ->
+  for k, v in pairs EventHandlers
+    v\stop! if v
+
+:Timer, :kqueue_fd, :run, :run_once, :clear_all
