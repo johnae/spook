@@ -72,7 +72,7 @@ describe 'Event Loop', ->
       after 0.01, -> create_file "#{dir}/testfile.txt", "some content"
       after 0.01, -> create_file "#{subdir1}/testfile.txt", "some content"
       for i=1,4
-        run_once block_for: 11
+        run_once block_for: 50
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{dir}/testfile.txt"
@@ -102,7 +102,7 @@ describe 'Event Loop', ->
       w\start!
 
       for i=1,4
-        run_once block_for: 11
+        run_once block_for: 50
 
       assert.spy(event_catcher).was.called_with {
         {
