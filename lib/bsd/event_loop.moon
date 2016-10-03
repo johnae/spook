@@ -42,12 +42,12 @@ Timer = define 'Timer', ->
 
     again: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = @
-      kqueue_fd\kevent Types.kevents({@__kevdata!}), nil
+      kqueue_fd\kevent Types.kevents({@__kevdata!})
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
       ev = Types.kevents {@__kevdata(flags: 'delete, oneshot')}
-      kqueue_fd\kevent ev, nil
+      kqueue_fd\kevent ev
 
   meta
     __call: =>
@@ -85,16 +85,40 @@ Signal = define 'Signal', ->
     start: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = @
       signalblock @signal
-      kqueue_fd\kevent Types.kevents({@__kevdata!}), nil
+      kqueue_fd\kevent Types.kevents({@__kevdata!})
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
       signalunblock @signal
-      ev = Types.kevents {@__kevdata(flags: 'delete')}
+      kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
 
   meta
     __call: =>
       @callback!
+
+Stdin = define 'Stdin', ->
+  instance
+    initialize: (callback) =>
+      @fd = 0 -- stdin fileno
+      @callback = callback
+      @filter = 'read'
+      @filter_num = Constants.EVFILT[@filter]
+      @flags = 'add'
+      assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
+
+    __kevdata: (opts={}) =>
+      :flags = opts
+      :filter, :fd = @
+      flags or= @flags
+      :filter, :flags, :fd
+
+    start: =>
+      EventHandlers["#{@filter_num}_#{@fd}"] = @
+      kqueue_fd\kevent Types.kevents({@__kevdata!}), nil
+
+    stop: =>
+      EventHandlers["#{@filter_num}_#{@fd}"] = nil
+      kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
 
 run_once = (opts={}) ->
   process = opts.process or -> nil
@@ -114,4 +138,4 @@ clear_all = ->
   for k, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :kqueue_fd, :run, :run_once, :clear_all
+:Timer, :Signal, :Stdin, :kqueue_fd, :run, :run_once, :clear_all
