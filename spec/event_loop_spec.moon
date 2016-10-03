@@ -5,10 +5,6 @@ gettimeofday = gettimeofday
 
 describe 'Event Loop', ->
 
-  after = (interval, func) ->
-    t = Timer.new interval, (t) -> func!
-    t\start!
-
   after_each -> clear_all!
 
   describe 'Timer', ->
@@ -68,11 +64,13 @@ describe 'Event Loop', ->
     it 'watches for events in a single directory', ->
       w = Watcher.new dir, 'create, delete, move, modify', callback: (w, events) ->
         event_catcher events
+
       w\start!
-      after 0.01, -> create_file "#{dir}/testfile.txt", "some content"
-      after 0.01, -> create_file "#{subdir1}/testfile.txt", "some content"
-      for i=1,4
-        run_once block_for: 50
+      create_file "#{dir}/testfile.txt", "some content"
+      -- this shouldn't be reported - non-recursive
+      create_file "#{subdir1}/testfile.txt", "some content"
+      run_once block_for: 50
+
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{dir}/testfile.txt"
@@ -81,6 +79,18 @@ describe 'Event Loop', ->
         {
           path: "#{dir}/testfile.txt"
           action: 'modified'
+        }
+      }
+
+      os.remove "#{dir}/testfile.txt"
+      -- this shouldn't be reported - non-recursive
+      os.remove "#{subdir1}/testfile.txt"
+      run_once block_for: 50
+
+      assert.spy(event_catcher).was.called_with {
+        {
+          path: "#{dir}/testfile.txt"
+          action: 'deleted'
         }
       }
 
@@ -94,15 +104,13 @@ describe 'Event Loop', ->
             move_id = e.id
         event_catcher events
 
-      after 0.01, ->
-        create_file "#{subdir1}/testfile.txt", "some content"
-        create_file "#{subdir2}/testfile.txt", "some content"
-        S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
-
       w\start!
 
-      for i=1,4
-        run_once block_for: 50
+      create_file "#{subdir1}/testfile.txt", "some content"
+      create_file "#{subdir2}/testfile.txt", "some content"
+      S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
+
+      run_once block_for: 50
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -140,10 +148,10 @@ describe 'Event Loop', ->
       shup\start!
       spipe\start!
       swinch\start!
-      after 0.01, -> S.kill S.getpid!, "hup"
-      after 0.01, -> S.kill S.getpid!, "pipe"
-      for i=1,10
-        run_once block_for: 10
+      S.kill S.getpid!, "hup"
+      S.kill S.getpid!, "pipe"
+      for i=1,2
+        run_once block_for: 50
       assert.true received_hup
       assert.true received_pipe
       assert.nil received_winch
