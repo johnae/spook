@@ -107,11 +107,7 @@ describe 'Event Loop', ->
       w\start!
 
       create_file "#{subdir1}/testfile.txt", "some content"
-      create_file "#{subdir2}/testfile.txt", "some content"
-      S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
-
       run_once block_for: 50
-
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{subdir1}/testfile.txt"
@@ -120,7 +116,11 @@ describe 'Event Loop', ->
         {
           path: "#{subdir1}/testfile.txt"
           action: 'modified'
-        },
+        }
+      }
+      create_file "#{subdir2}/testfile.txt", "some content"
+      run_once block_for: 50
+      assert.spy(event_catcher).was.called_with {
         {
           path: "#{subdir2}/testfile.txt"
           action: 'created'
@@ -128,15 +128,27 @@ describe 'Event Loop', ->
         {
           path: "#{subdir2}/testfile.txt"
           action: 'modified'
-        },
+        }
+      }
+
+    it 'detects file moves', ->
+      w = Watcher.new dir, 'create, delete, move, modify', recursive: true, callback: (w, events) ->
+        event_catcher events
+
+      create_file "#{subdir1}/testfile.txt", "some content"
+      w\start!
+
+      S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
+      run_once block_for: 50
+      assert.spy(event_catcher).was.called_with {
         {
           from: "#{subdir1}/testfile.txt"
           to: "#{subdir2}/newname.txt"
           path: "#{subdir2}/newname.txt"
           action: 'moved'
-          id: move_id
         }
       }
+
 
   describe 'Signal', ->
 

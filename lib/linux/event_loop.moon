@@ -65,7 +65,7 @@ Watcher = define 'Watcher', ->
         if #moves > 0
           cookies = {k.cookie, true for k in *moves}
           for cookie, _ in pairs cookies
-            data = action: 'moved', id: cookie
+            data = action: 'moved'
             related = [ev for ev in *moves when ev.cookie == cookie]
             for ev in *related
               wd = ev.wd
