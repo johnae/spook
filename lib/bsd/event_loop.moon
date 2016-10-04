@@ -96,10 +96,11 @@ Signal = define 'Signal', ->
     __call: =>
       @callback!
 
-Stdin = define 'Stdin', ->
+Read = define 'Read', ->
   instance
-    initialize: (callback) =>
-      @fd = 0 -- stdin fileno
+    initialize: (fd, callback) =>
+      @fd = fd
+      @fdnum = @fd\getfd!
       @callback = callback
       @filter = 'read'
       @filter_num = Constants.EVFILT[@filter]
@@ -138,4 +139,4 @@ clear_all = ->
   for k, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :Stdin, :kqueue_fd, :run, :run_once, :clear_all
+:Timer, :Signal, :Read, :kqueue_fd, :run, :run_once, :clear_all

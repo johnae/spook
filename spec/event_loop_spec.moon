@@ -1,5 +1,6 @@
-{:Watcher, :Timer, :Signal, :Stdin, :run_once, :clear_all} = require 'event_loop'
+{:Watcher, :Timer, :Signal, :Read, :run_once, :clear_all} = require 'event_loop'
 S = require "syscall"
+Types = S.t
 fs = require "fs"
 gettimeofday = gettimeofday
 
@@ -167,3 +168,26 @@ describe 'Event Loop', ->
       assert.true received_hup
       assert.true received_pipe
       assert.nil received_winch
+
+  describe 'Read', ->
+    local socket, msg, buf
+
+    before_each ->
+      buf = Types.buffer 512
+      msg = "Hello from Spook"
+
+      socket = assert S.socket('inet', 'dgram, nonblock')
+      saddr = assert Types.sockaddr_in(0, 'loopback')
+      assert socket\bind(saddr)
+
+    it 'notifies with data when given descriptor is readable', ->
+      local received
+      read = Read.new socket, (data) =>
+        received = data
+
+      read\start!
+      addr = assert socket\getsockname!
+      csock = assert S.socket('inet', 'dgram')
+      csock\sendto msg, #msg, 0, addr
+      run_once block_for: 50
+      assert.equal "Hello from Spook", received

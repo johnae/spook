@@ -179,25 +179,26 @@ Signal = define 'Signal', ->
       S.util.signalfd_read @fdnum
       @callback!
 
-Stdin = define 'Stdin', ->
+Read = define 'Read', ->
   instance
-    initialize: (callback) =>
-      @fdnum = 0 -- stdin fileno
+    initialize: (fd, callback) =>
+      @fd = fd
+      @fdnum = fd\getfd!
       @callback = callback
+      @options = 'in'
       assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
 
     start: =>
       EventHandlers[@fdnum] = @
-      epoll_fd\epoll_ctl 'add', @fdnum, 'oneshot'
+      epoll_fd\epoll_ctl 'add', @fdnum, @options
 
     stop: =>
       EventHandlers[@fdnum] = nil
-      epoll_fd\epoll_ctl 'del', @fdnum, 'oneshot'
+      epoll_fd\epoll_ctl 'del', @fdnum, @options
 
   meta
     __call: =>
       input = @fd\read!
-      @start! -- re-arm, since using oneshot
       @callback input
 
 run_once = (opts={}) ->
@@ -217,4 +218,4 @@ clear_all = ->
   for k, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Stdin, :epoll_fd, :run, :run_once, :clear_all
+:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all
