@@ -182,8 +182,7 @@ Signal = define 'Signal', ->
 Read = define 'Read', ->
   instance
     initialize: (fd, callback) =>
-      @fd = fd
-      @fdnum = fd\getfd!
+      @fdnum = type(fd) == 'number' and fd or fd\getfd!
       @callback = callback
       @options = 'in'
       assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
@@ -198,8 +197,15 @@ Read = define 'Read', ->
 
   meta
     __call: =>
-      input = @fd\read!
+      input = S.read @fdnum
       @callback input
+
+Stdin = define 'Stdin', ->
+  parent Read
+  instance
+    initialize: (callback) =>
+      super @, 0, callback
+      @options = 'oneshot'
 
 run_once = (opts={}) ->
   process = opts.process or -> nil
@@ -218,4 +224,4 @@ clear_all = ->
   for k, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all
+:Watcher, :Timer, :Signal, :Read, :Stdin, :epoll_fd, :run, :run_once, :clear_all

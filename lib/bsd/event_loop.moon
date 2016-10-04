@@ -99,8 +99,7 @@ Signal = define 'Signal', ->
 Read = define 'Read', ->
   instance
     initialize: (fd, callback) =>
-      @fd = fd
-      @fdnum = @fd\getfd!
+      @fdnum = type(fd) == 'number' and fd or fd\getfd!
       @callback = callback
       @filter = 'read'
       @filter_num = Constants.EVFILT[@filter]
@@ -121,6 +120,16 @@ Read = define 'Read', ->
       EventHandlers["#{@filter_num}_#{@fd}"] = nil
       kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
 
+  meta
+    __call: =>
+      input = S.read @fdnum
+      @callback input
+
+Stdin = define 'Stdin', ->
+  parent Read
+   initialize: (callback) =>
+     super @, 0, callback
+
 run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 10 -- default 10 ms blocking wait
@@ -139,4 +148,4 @@ clear_all = ->
   for k, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :Read, :kqueue_fd, :run, :run_once, :clear_all
+:Timer, :Signal, :Read, :Stdin, :kqueue_fd, :run, :run_once, :clear_all

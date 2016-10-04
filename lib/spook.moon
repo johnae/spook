@@ -2,7 +2,7 @@ require 'globals'
 empty = table.empty
 define = require'classy'.define
 log = require 'log'
-{:Watcher, :Timer, :Signal, :Stdin} = require "event_loop"
+{:Watcher, :Timer, :Signal, :Stdin, :Read} = require "event_loop"
 Queue = require 'queue'
 Event = require 'event'
 
@@ -18,6 +18,8 @@ define 'Spook', ->
       emitters = [w for w in *@watchers]
       for t in *@timers
         emitters[#emitters + 1] = t
+      for r in *@readers
+        emitters[#emitters + 1] = r
       if @_on_stdin
         emitters[#emitters + 1] = @_on_stdin
       unless empty @signals
@@ -33,6 +35,7 @@ define 'Spook', ->
     initialize: =>
       @caller_env = {}
       @timers = {}
+      @readers = {}
       @signals = {}
       @at_exit = {}
       @watchers = {}
@@ -46,7 +49,7 @@ define 'Spook', ->
         @handlers["on_#{wname}"] = (pattern, func) -> store[#store + 1] = {pattern, func}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watchnr', 'timer', 'on_signal', 'on_stdin'}
+      for f in *{'watch', 'watchnr', 'timer', 'on_signal', 'on_read', 'on_stdin'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) ->
@@ -94,6 +97,10 @@ define 'Spook', ->
         old\stop!
       @_on_stdin = Stdin.new callback
       @_on_stdin
+
+    on_read: (fd, callback) =>
+      @readers[#@readers + 1] = Read.new fd, callback
+      @readers[#@readers]
 
     -- this is currently a bit dangerous since what one would do on say SIGINT
     -- is probably some cleanup action after which os.exit is called. But what
