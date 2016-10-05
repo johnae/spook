@@ -110,14 +110,14 @@ Read = define 'Read', ->
       :flags = opts
       :filter, :fd = @
       flags or= @flags
-      :filter, :flags, :fd
+      :filter, :flags, fd: @fdnum
 
     start: =>
-      EventHandlers["#{@filter_num}_#{@fd}"] = @
+      EventHandlers["#{@filter_num}_#{@fdnum}"] = @
       kqueue_fd\kevent Types.kevents({@__kevdata!}), nil
 
     stop: =>
-      EventHandlers["#{@filter_num}_#{@fd}"] = nil
+      EventHandlers["#{@filter_num}_#{@fdnum}"] = nil
       kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
 
   meta
@@ -127,6 +127,7 @@ Read = define 'Read', ->
 
 Stdin = define 'Stdin', ->
   parent Read
+  instance
    initialize: (callback) =>
      super @, 0, callback
 

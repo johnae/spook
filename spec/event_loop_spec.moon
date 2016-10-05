@@ -176,7 +176,8 @@ describe 'Event Loop', ->
       buf = Types.buffer 512
       msg = "Hello from Spook"
 
-      socket = assert S.socket('inet', 'dgram, nonblock')
+      socket = assert S.socket('inet', 'dgram')
+      socket\nonblock!
       saddr = assert Types.sockaddr_in(0, 'loopback')
       assert socket\bind(saddr)
 
