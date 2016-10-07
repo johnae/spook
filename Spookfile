@@ -9,82 +9,72 @@ package.loaded.lint_config = nil
 package.loaded.lint_config = pcall -> loadfile('lint_config')()
 colors = require "ansicolors"
 fs = require 'fs'
-notify = require('notify')!
+:note, :notifies = require('notifications')!
+note.add 'terminal_notifier'
 
 spec = (file) ->
   return true unless fs.is_file file
-  notify.info "RUNNING spec #{file}"
+  note.info "RUNNING spec #{file}"
   _, _, status = os.execute "./tools/luajit/bin/luajit spec/support/run_busted.lua #{file}"
-  status == 0
+  assert status == 0, "spec #{file} failed"
 
 exec = (file) ->
   return true unless fs.is_file file
-  notify.info "RUNNING exec #{file}"
+  note.info "RUNNING exec #{file}"
   _, _, status = os.execute "./tools/luajit/bin/luajit run.lua #{file}"
-  status == 0
+  assert status == 0, "exec #{file} failed"
 
 lint = (file) ->
-  notify.info "LINTING #{file}"
+  note.info "LINTING #{file}"
   result, err = moonlint file
-  if result
+  success = if result
     io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
-    return false
+    false
   elseif err
     io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
-    return false
-  io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
-  true
-
-notify.add 'terminal_notifier'
-
-notify_begin = (event, list) ->
-  notify.start event.path, event
-  success = true
-  for run in *list
-    step, func = run[1], run[2]
-    success and= func!
-    return notify.fail step, event unless success
-  notify.success event.path, event
+    false
+  else
+    true
+  if success
+    io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
+  assert success == true
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
 
   on_changed "^spec/spec_helper%.moon", (event) ->
-    notify_begin event, {
-      { "spec", -> spec "spec" }
-    }
+    notifies event.path, event, ->
+      spec "spec"
 
   on_changed "^spec/(.*)%.moon", (event, name) ->
-    notify_begin event, {
-      { "lint", -> lint "spec/#{name}.moon" },
-      { "spec", -> spec "spec/#{name}.moon" },
-    }
+    notifies event.path, event, ->
+      lint "spec/#{name}.moon"
+      spec "spec/#{name}.moon"
 
   on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
-    notify_begin event, {
-      { "lint", -> lint "lib/#{name}/event_loop.moon" },
-      { "spec", -> spec "spec/event_loop_spec.moon" },
-    }
+    notifies event.path, event, ->
+      lint "lib/#{name}/event_loop.moon"
+      spec "spec/event_loop_spec.moon"
 
   on_changed "^lib/(.*)%.moon", (event, name) ->
-    notify_begin event, {
-      { "lint", -> lint "lib/#{name}.moon" },
-      { "spec", -> spec "spec/#{name}_spec.moon" },
-    }
-
+    notifies event.path, event, ->
+      lint "lib/#{name}.moon"
+      spec "spec/#{name}_spec.moon"
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (event, name) ->
-    exec "playground/#{name}.moon"
+    notifies event.path, event, ->
+      exec "playground/#{name}.moon"
 
   on_changed "^playground/(.*)%.lua", (event, name) ->
-    exec "playground/#{name}.lua"
+    notifies event.path, event, ->
+      exec "playground/#{name}.lua"
 
 watchnr '.', ->
   on_changed 'Spookfile', (event) ->
-    notify.info "Reloading Spookfile...", event
-    load_spookfile!
+    notifies "Reloading Spookfile...", event, ->
+      load_spookfile!
   on_changed 'lint_config%.lua', (event) ->
-    notify.info "Reloading Spookfile...", event
-    load_spookfile!
+    notifies "Reloading Spookfile...", event, ->
+      load_spookfile!

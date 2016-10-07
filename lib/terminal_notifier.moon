@@ -1,19 +1,20 @@
 colors = require 'ansicolors'
 round = math.round
-time_calc = (event) ->
-  round event.ended_at - event.started_at, 3
+time_calc = (start, finish) -> round finish - start, 3
 
 {
-  info: (msg, event) ->
+  info: (msg, info) ->
     print colors("[ %{dim}#{msg}%{reset} ]")
 
-  success: (msg, event) ->
-    msg = colors("[ %{green}PASSED")
-    print msg .. colors "%{white} in #{time_calc(event)} seconds%{reset} ]"
+  success: (msg, info) ->
+    msg = colors("[ %{green}SUCCEEDED")
+    :start_at, success_at: end_at = info
+    print msg .. colors "%{white} in #{time_calc(start_at, end_at)} seconds%{reset} ]"
     print ''
 
-  fail: (msg, event) ->
+  fail: (msg, info) ->
     msg = colors("[ %{red}FAILED")
-    print msg .. colors "%{white} in #{time_calc(event)} seconds%{reset} ]"
+    :start_at, fail_at: end_at = info
+    print msg .. colors "%{white} in #{time_calc(start_at, end_at)} seconds%{reset} ]"
     print ''
 }
