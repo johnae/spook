@@ -11,15 +11,36 @@ parser\flag("-v --version", "Show the Spook version you're running and exit")\ac
 parser\flag("-i --initialize", "Initialize an example Spookfile in the current dir")\action ->
   f = io.open("Spookfile", "wb")
   content = [[
--- How much output do we want?
+-- vim: syntax=moon
+-- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
-rspec = (file) ->
-  _, _, status = os.execute "./bin/rspec -f d #{file}"
-  status == 0
+-- Require some things that come with spook
+fs = require 'fs'
+:note, :notifies = require('notifications')!
+note.add 'terminal_notifier' -- this does a require since it's a string
+-- a notifier could be added right here, like:
+-- node.add {
+--   start: (msg, info) ->
+--     print "Start, yay"
+--   success: (msg, info) ->
+--     print "Success, yay!"
+--   fail: (msg, info) ->
+--     print "Fail, nay!"
 
+-- Define a function for running rspec
+rspec = (file) ->
+  return true unless fs.is_file file
+  note.info "RUNNING rspec #{file}"
+  _, _, status = os.execute "./bin/rspec -f d #{file}"
+  assert status == 0, "rspec #{file} - failed"
+
+-- And another for running ruby
 ruby = (file) ->
+  return true unless fs.is_file file
+  note.info "RUNNING ruby #{file}"
   _, _, status = os.execute "ruby #{file}"
+  assert status == 0, "ruby #{file} - failed"
   status == 0
 
 -- Setup what directories to watch and what to do
@@ -27,16 +48,35 @@ ruby = (file) ->
 -- for setting up what command to run. There is no
 -- restriction on running shell commands however -
 -- any function (in lua/moonscript) can be run
-watch "app", "lib", "spec", ->
-  on_changed "^(spec)/(spec_helper%.rb)", (event) -> rspec "spec"
-  on_changed "^spec/(.*)_spec%.rb", (event, a) -> rspec "spec/#{a}_spec.rb"
-  on_changed "^lib/(.*)%.rb", (event, a) -> rspec "spec/lib/#{a}_spec.rb"
-  on_changed "^app/(.*)%.rb", (event, a) -> rspec "spec/#{a}_spec.rb"
+watch 'app', 'lib', 'spec', ->
+  on_changed '^(spec)/(spec_helper%.rb)', (event) ->
+    notifies event.path, event, ->
+      rspec 'spec'
 
--- Perhaps some area where we experiment, sort of
--- like a poor mans REPL
-watch "playground", ->
-  on_changed "^playground/(.*)%.rb", (event, a) -> ruby "playground/#{a}.rb"
+  on_changed '^spec/(.*)_spec%.rb', (event, name) ->
+    notifies event.path, event, ->
+      rspec "spec/#{a}_spec.rb"
+
+  on_changed '^lib/(.*)%.rb', (event, name) ->
+    notifies event.path, event, ->
+      rspec "spec/lib/#{a}_spec.rb"
+
+  on_changed '^app/(.*)%.rb', (event, name) ->
+    notifies event.path, event, ->
+      rspec "spec/#{a}_spec.rb"
+
+-- Just some experimentation perhaps?
+-- Here we skip notifications.
+watch 'playground', ->
+  on_changed '^playground/(.*)%.rb', (event, name) ->
+    ruby "playground/#{a}.rb"
+
+-- Let's reload this file when changing it, therefore
+-- spook itself can be reconfigured without restarting it.
+watchnr '.', ->
+  on_changed 'Spookfile', (event) ->
+    note.info 'Reloading Spookfile...'
+    load_spookfile!
 
 ]]
   f\write(content)
