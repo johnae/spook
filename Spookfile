@@ -73,8 +73,8 @@ watch "playground", ->
 
 watchnr '.', ->
   on_changed 'Spookfile', (event) ->
-    notifies "Reloading Spookfile...", event, ->
-      load_spookfile!
+    note.info "Reloading Spookfile..."
+    load_spookfile!
   on_changed 'lint_config%.lua', (event) ->
-    notifies "Reloading Spookfile...", event, ->
-      load_spookfile!
+    note.info "Reloading Spookfile..."
+    load_spookfile!
