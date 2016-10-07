@@ -1,5 +1,5 @@
--- vim: syntax=moonscript
--- How much logs do we want? (ERR, WARN, INFO, DEBUG)
+-- vim: syntax=moon
+-- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 load_spookfile = load_spookfile
 
