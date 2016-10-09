@@ -44,10 +44,15 @@ ruby = (file) ->
   status == 0
 
 -- Setup what directories to watch and what to do
--- when a file is changed. "command" is a helper
--- for setting up what command to run. There is no
--- restriction on running shell commands however -
--- any function (in lua/moonscript) can be run
+-- when a file is changed. For notifications, the
+-- function(s) to run should be wrapped in a "notifies"
+-- call as below. The first argument to notifies is
+-- the name of the event. Some notifiers may use this
+-- for reporting. The second argument are the options,
+-- those can be any table really. Certain keys in that
+-- that table will be set by the notification system - such
+-- as a timestamp for every notification run (which can
+-- be used later to calculate how long a task took).
 watch 'app', 'lib', 'spec', ->
   on_changed '^(spec)/(spec_helper%.rb)', (event) ->
     notifies event.path, event, ->
