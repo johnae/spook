@@ -13,7 +13,7 @@ time_calc = (start, finish) -> round finish - start, 3
     print ''
 
   fail: (msg, info) ->
-    msg = colors("[ %{red}FAILED")
+    msg = colors("[ %{red}FAILED (#{msg})")
     :start_at, fail_at: end_at = info
     print msg .. colors "%{white} in #{time_calc(start_at, end_at)} seconds%{reset} ]"
     print ''
