@@ -93,10 +93,12 @@ load_spookfile = ->
   spook\timer 0.35, event_handler
   dir_or_dirs = (num) ->
     num == 1 and 'directory' or 'directories'
+  file_or_files = (num) ->
+    num == 1 and 'file' or 'files'
 
   if log[spook.log_level] > log.WARN
     print colors "[ %{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively %{reset}]"
-    print colors "[ %{blue}Watching #{spook.numnr_dirs} #{dir_or_dirs(spook.num_dirs)} non-recursively %{reset}]"
+    print colors "[ %{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)} %{reset}]"
 
   spook\start!
 

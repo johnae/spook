@@ -40,16 +40,16 @@ describe 'spook', ->
         assert.equal 2, #spook.watches.changed
         assert.equal 1, #spook.watches.moved
 
-    describe '#watchnr', ->
-      it 'configures non recursive dir watches via supplied function', ->
+    describe '#watch_file', ->
+      it 'configures a single file watch via supplied function', ->
         spook ->
-          watchnr 'lib', 'spec', ->
-            on_changed "^spec/spec_helper%.moon", -> print "spec_helper"
-            on_deleted "^spec/spec_helper%.moon", -> print "spec_helper"
-            on_moved "^spec/spec_helper%.moon", -> print "spec_helper"
-            on_changed "^lib/something%.moon", -> print "something"
+          watch_file 'Spookfile', ->
+            on_changed (event) -> print "spec_helper"
+            on_deleted (event) -> print "spec_helper"
+            on_moved (event) -> print "spec_helper"
+            on_changed (event) -> print "something"
 
-        assert.equal 2, spook.numnr_dirs
+        assert.equal 1, spook.file_watches
         assert.equal 1, #spook.watches.deleted
         assert.equal 2, #spook.watches.changed
         assert.equal 1, #spook.watches.moved

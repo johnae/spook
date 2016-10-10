@@ -20,7 +20,7 @@ until_success = (func) ->
   last_task = func
   success, result = pcall func
   return error(result) unless success
-  last_task =nil
+  last_task = nil
 
 command = (cmd) ->
   (file) ->
@@ -84,10 +84,12 @@ watch "playground", ->
       notifies event.path, event, ->
         exec "playground/#{name}.lua"
 
-watchnr '.', ->
-  on_changed 'Spookfile', (event) ->
+watch_file 'Spookfile', ->
+  on_changed (event) ->
     note.info "Reloading Spookfile..."
     load_spookfile!
-  on_changed 'lint_config%.lua', (event) ->
+
+watch_file 'lint_config.lua', ->
+  on_changed (event) ->
     note.info "Reloading Spookfile..."
     load_spookfile!

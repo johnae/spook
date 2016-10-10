@@ -1,5 +1,5 @@
 require 'globals'
-empty = table.empty
+:empty, :concat = table
 define = require'classy'.define
 log = require 'log'
 {:Watcher, :Timer, :Signal, :Stdin, :Read} = require "event_loop"
@@ -40,7 +40,7 @@ define 'Spook', ->
       @at_exit = {}
       @watchers = {}
       @num_dirs = 0
-      @numnr_dirs = 0
+      @file_watches = 0
       @first_match_only = true
       @queue = Queue.new!
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
@@ -49,7 +49,7 @@ define 'Spook', ->
         @handlers["on_#{wname}"] = (pattern, func) -> store[#store + 1] = {pattern, func}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watchnr', 'timer', 'on_signal', 'on_read', 'on_stdin'}
+      for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read', 'on_stdin'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) ->
@@ -73,7 +73,22 @@ define 'Spook', ->
       func!
       @watchers[#@watchers]
 
+    watch_file: (file, func) =>
+      dir = '.'
+      path = file\split '/'
+      if #path > 1
+        file = path[#path]
+        dir = concat [comp for comp in *path when comp!=path[#path]], '/'
+      old_handlers = @handlers
+      @handlers = {}
+      for wname, store in pairs @watches
+        @handlers["on_#{wname}"] = (func) -> store[#store + 1] = {file, func}
+      @watchnr dir, func
+      @file_watches += 1
+      @handlers = old_handlers
+
     -- defines non-recursive watchers (eg. only given directories are watched)
+    -- only used internally for now.
     watchnr: (...) =>
       args = {...}
       dirs = [d for i, d in ipairs args when i<#args]
@@ -83,7 +98,6 @@ define 'Spook', ->
       @watchers[#@watchers + 1] = Watcher.new dirs, 'create, delete, modify, move, attrib', callback: (w, events) ->
         for e in *events
           @queue\pushright Event.new('fs', e)
-      @numnr_dirs += #@watchers[#@watchers].paths
       setfenv func, @handlers
       func!
       @watchers[#@watchers]

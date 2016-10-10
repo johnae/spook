@@ -7,6 +7,7 @@ return {
       'on_moved',
       'watch',
       'watchnr',
+      'watch_file',
       'notifier',
       'log_level',
       'first_match_only'
