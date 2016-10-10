@@ -66,7 +66,9 @@ event_handler = =>
       matching = spook\match event
       if matching and #matching > 0
         for handler in *matching
-          handler!
+          success, result = pcall handler
+          unless success
+            log.debug "An error occurred in change_handler: #{result}"
           break if spook.first_match_only -- the default
   @again!
 

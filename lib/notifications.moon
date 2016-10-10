@@ -15,7 +15,7 @@ gettimeofday = gettimeofday
     add: (notifier) ->
       n = notifier
       if type(n) == 'string'
-        status, n = pcall -> require n
+        status, n = pcall require, n
         unless n
           log.error "Failed to load notifier: #{notifier}"
           return
@@ -29,8 +29,10 @@ gettimeofday = gettimeofday
     notifies: (name, info, func) ->
       note.start name, info
       success = true
-      status, result = pcall -> func!
+      status, result = pcall func
       success and= status
-      return note.fail result, info unless success
+      unless success
+        note.fail result, info
+        return error result
       note.success name, info
   }

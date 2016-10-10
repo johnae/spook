@@ -7,22 +7,30 @@ package.loaded['moonscript.cmd.lint'] = nil
 moonlint = require("moonscript.cmd.lint").lint_file
 package.loaded.lint_config = nil
 package.loaded.lint_config = pcall -> loadfile('lint_config')()
+
 colors = require "ansicolors"
 fs = require 'fs'
+
 :note, :notifies = require('notifications')!
 note.add 'terminal_notifier'
 
-spec = (file) ->
-  return true unless fs.is_file file
-  note.info "RUNNING spec #{file}"
-  _, _, status = os.execute "./tools/luajit/bin/luajit spec/support/run_busted.lua #{file}"
-  assert status == 0, "spec #{file} failed"
+local last_task
+until_success = (func) ->
+  func = last_task if last_task
+  last_task = func
+  success, result = pcall func
+  return error(result) unless success
+  last_task =nil
 
-exec = (file) ->
-  return true unless fs.is_file file
-  note.info "RUNNING exec #{file}"
-  _, _, status = os.execute "./tools/luajit/bin/luajit run.lua #{file}"
-  assert status == 0, "exec #{file} failed"
+command = (cmd) ->
+  (file) ->
+    return true unless fs.is_file file
+    note.info "RUNNING #{cmd} #{file}"
+    _, _, status = os.execute "#{cmd} #{file}"
+    assert status == 0, "#{cmd} #{file}"
+
+spec = command "./tools/luajit/bin/luajit spec/support/run_busted.lua"
+exec = command "./tools/luajit/bin/luajit run.lua"
 
 lint = (file) ->
   note.info "LINTING #{file}"
@@ -37,39 +45,44 @@ lint = (file) ->
     true
   if success
     io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
-  assert success == true
+  assert success == true, "lint #{file}"
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
-
   on_changed "^spec/spec_helper%.moon", (event) ->
-    notifies event.path, event, ->
-      spec "spec"
+    until_success ->
+      notifies event.path, event, ->
+        spec "spec"
 
   on_changed "^spec/(.*)%.moon", (event, name) ->
-    notifies event.path, event, ->
-      lint "spec/#{name}.moon"
-      spec "spec/#{name}.moon"
+    until_success ->
+      notifies event.path, event, ->
+        lint "spec/#{name}.moon"
+        spec "spec/#{name}.moon"
 
   on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
-    notifies event.path, event, ->
-      lint "lib/#{name}/event_loop.moon"
-      spec "spec/event_loop_spec.moon"
+    until_success ->
+      notifies event.path, event, ->
+        lint "lib/#{name}/event_loop.moon"
+        spec "spec/event_loop_spec.moon"
 
   on_changed "^lib/(.*)%.moon", (event, name) ->
-    notifies event.path, event, ->
-      lint "lib/#{name}.moon"
-      spec "spec/#{name}_spec.moon"
+    until_success ->
+      notifies event.path, event, ->
+        lint "lib/#{name}.moon"
+        spec "spec/#{name}_spec.moon"
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (event, name) ->
-    notifies event.path, event, ->
-      exec "playground/#{name}.moon"
+    until_success ->
+      notifies event.path, event, ->
+        exec "playground/#{name}.moon"
 
   on_changed "^playground/(.*)%.lua", (event, name) ->
-    notifies event.path, event, ->
-      exec "playground/#{name}.lua"
+    until_success ->
+      notifies event.path, event, ->
+        exec "playground/#{name}.lua"
 
 watchnr '.', ->
   on_changed 'Spookfile', (event) ->
