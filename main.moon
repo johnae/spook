@@ -41,62 +41,63 @@ if fi = index_of arg, "-f"
     assert loadfile(file), "Failed to load file: #{file}"
   else -- assume it's moonscript
     assert moonscript.loadfile(file), "Failed to load file: #{file}"
-  loaded_chunk!
+  return loaded_chunk!
 
-else
-  cli = require "arguments"
-  run = require'event_loop'.run
-  Spook = require 'spook'
-  args = cli\parse!
-  spookfile_path = args.config or "Spookfile"
-  local spook, queue
 
-  -- to prevent multiple events happening very quickly
-  -- on a specific file we need to run a handler on some
-  -- interval which coalesces the events into one (here it's
-  -- just the latest event, disregarding any previous ones).
-  event_handler = =>
-    seen_paths = {}
-    while #queue > 0
-      event = queue\popright! -- latest event
-      if event.type == 'fs'
-        continue unless event.path -- ignore events without a path
-        continue if seen_paths[event.path] -- ignore events we've already seen
-        seen_paths[event.path] = true
-        matching = spook\match event
-        if matching and #matching > 0
-          for handler in *matching
-            handler!
-            break if spook.first_match_only
-    @again!
+cli = require "arguments"
+run = require'event_loop'.run
+Spook = require 'spook'
+args = cli\parse!
+spookfile_path = args.config or "Spookfile"
+local spook, queue
 
-  -- this is finally setting up spook from the Spookfile
-  -- this function is also made available globally which
-  -- makes it possible to reload the Spookfile from the Spookfile
-  -- itself (probably based on some event like a change to the
-  -- Spookfile).
-  load_spookfile = ->
-    spook\stop! if spook
-    spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
-    spook = Spook.new!
-    if args.log_level
-      spook.log_level = args.log_level if args.log_level
-    _G.spook = spook
-    queue = spook.queue
-    success, err = pcall -> spook spookfile
-    unless success
-      print tostring(err)
-    -- this is the actual event_handler above, the
-    -- 0.35 interval is something I've found works
-    -- reasonably well (it is how events are coalesced).
-    spook\timer 0.35, event_handler
-    dir_or_dirs = (num) ->
-      num == 1 and 'directory' or 'directories'
-    if log[spook.log_level] > log.WARN
-      print colors "[ %{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively %{reset}]"
-      print colors "[ %{blue}Watching #{spook.numnr_dirs} #{dir_or_dirs(spook.num_dirs)} non-recursively %{reset}]"
-    spook\start!
+-- to prevent multiple events happening very quickly
+-- on a specific file we need to run a handler on some
+-- interval which coalesces the events into one (here it's
+-- just the latest event, disregarding any previous ones).
+event_handler = =>
+  seen_paths = {}
+  while #queue > 0
+    event = queue\popright! -- latest event
+    if event.type == 'fs'
+      continue unless event.path -- ignore events without a path
+      continue if seen_paths[event.path] -- ignore events we've already seen
+      seen_paths[event.path] = true
+      matching = spook\match event
+      if matching and #matching > 0
+        for handler in *matching
+          handler!
+          break if spook.first_match_only -- the default
+  @again!
 
-  _G.load_spookfile = load_spookfile
-  load_spookfile!
-  run!
+-- this is finally setting up spook from the Spookfile
+-- this function is also made available globally which
+-- makes it possible to reload the Spookfile from the Spookfile
+-- itself (probably based on some event like a change to the
+-- Spookfile).
+load_spookfile = ->
+  spook\stop! if spook
+  spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
+  spook = Spook.new!
+  if args.log_level
+    spook.log_level = args.log_level if args.log_level
+  _G.spook = spook
+  queue = spook.queue
+  success, result = pcall -> spook spookfile
+  print tostring(result) unless success
+  -- this is the actual event_handler above, the
+  -- 0.35 interval is something I've found works
+  -- reasonably well (on Linux at least).
+  spook\timer 0.35, event_handler
+  dir_or_dirs = (num) ->
+    num == 1 and 'directory' or 'directories'
+
+  if log[spook.log_level] > log.WARN
+    print colors "[ %{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively %{reset}]"
+    print colors "[ %{blue}Watching #{spook.numnr_dirs} #{dir_or_dirs(spook.num_dirs)} non-recursively %{reset}]"
+
+  spook\start!
+
+_G.load_spookfile = load_spookfile
+load_spookfile!
+run!
