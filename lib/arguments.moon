@@ -78,8 +78,8 @@ watch 'playground', ->
 
 -- Let's reload this file when changing it, therefore
 -- spook itself can be reconfigured without restarting it.
-watchnr '.', ->
-  on_changed 'Spookfile', (event) ->
+watch_file 'Spookfile', ->
+  on_changed (event) ->
     note.info 'Reloading Spookfile...'
     load_spookfile!
 
