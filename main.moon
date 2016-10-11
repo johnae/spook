@@ -48,7 +48,7 @@ cli = require "arguments"
 run = require'event_loop'.run
 Spook = require 'spook'
 args = cli\parse!
-spookfile_path = args.config or "Spookfile"
+spookfile_path = args.config or os.getenv('SPOOKFILE') or "Spookfile"
 local spook, queue
 
 -- to prevent multiple events happening very quickly
