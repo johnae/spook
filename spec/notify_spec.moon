@@ -1,10 +1,10 @@
 gettimeofday = gettimeofday
 
-describe "notifications", ->
-  local note
+describe "notify", ->
+  local notify
 
   before_each ->
-    :note = require("notifications")!
+    notify = require("notify")!
 
   it "notifies all registered notifiers", ->
 
@@ -41,12 +41,12 @@ describe "notifications", ->
         assert.is.near n2_start_at*1000, data.start_at*1000, 10
         assert.is.near n2_fail_at*1000, data.fail_at*1000, 10
     }
-    note.add n1
-    note.add n2
-    note.start 'blah', info
+    notify.add n1
+    notify.add n2
+    notify.start 'blah', info
     assert.spy(n1.start).was.called 1
     assert.spy(n2.start).was.called 1
-    note.success 'blah', info
+    notify.success 'blah', info
     assert.spy(n1.success).was.called 1
-    note.fail 'blah', info
+    notify.fail 'blah', info
     assert.spy(n2.fail).was.called 1

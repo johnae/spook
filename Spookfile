@@ -11,29 +11,54 @@ package.loaded.lint_config = pcall -> loadfile('lint_config')()
 colors = require "ansicolors"
 fs = require 'fs'
 
-:note, :notifies = require('notifications')!
-note.add 'terminal_notifier'
+notify = require('notify') ->
+  add 'terminal_notifier'
+  add 'notifier'
 
 local last_task
 until_success = (func) ->
   func = last_task if last_task
   last_task = func
   success, result = pcall func
-  return error(result) unless success
+  return error result unless success
   last_task = nil
 
 command = (cmd) ->
   (file) ->
-    return true unless fs.is_file file
-    note.info "RUNNING #{cmd} #{file}"
+    notify.info "RUNNING #{cmd} #{file}"
     _, _, status = os.execute "#{cmd} #{file}"
     assert status == 0, "#{cmd} #{file}"
+
+notifies = (name, info, list) ->
+  func, arg = list!
+  return unless func
+  run = (f, a) ->
+    success, result = pcall f, a
+    unless success
+      notify.fail name, info
+      error result
+  notify.start name, info
+  run func, arg
+  run func, arg for func, arg in list
+  notify.success name, info
+
+-- This is so that matches mapping to non-existant files can be completely skipped
+runnable = (check, ...) ->
+  args = {...}
+  assert #args > 0 and #args % 2 == 0, "runnable() takes an even number of args larger than zero, got #{#args} args"
+  current = -1
+  ->
+    current += 2
+    while args[current+1] and not check(args[current+1])
+      log.debug "Skipping #{args[current+1]} since the check function returned false"
+      current += 2
+    args[current], args[current+1]
 
 spec = command "./tools/luajit/bin/luajit spec/support/run_busted.lua"
 exec = command "./tools/luajit/bin/luajit run.lua"
 
 lint = (file) ->
-  note.info "LINTING #{file}"
+  notify.info "LINTING #{file}"
   result, err = moonlint file
   success = if result
     io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
@@ -52,44 +77,49 @@ lint = (file) ->
 watch "lib", "spec", ->
   on_changed "^spec/spec_helper%.moon", (event) ->
     until_success ->
-      notifies event.path, event, ->
-        spec "spec"
+      notifies event.path, event, runnable(
+        fs.is_present
+        lint, "spec/spec_helper.moon"
+        spec, "spec"
+      )
 
   on_changed "^spec/(.*)%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, ->
-        lint "spec/#{name}.moon"
-        spec "spec/#{name}.moon"
+      notifies event.path, event, runnable(
+        fs.is_present
+        lint, "spec/#{name}.moon"
+        spec, "spec/#{name}.moon"
+      )
 
   on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, ->
-        lint "lib/#{name}/event_loop.moon"
-        spec "spec/event_loop_spec.moon"
+      notifies event.path, event, runnable(
+        fs.is_present
+        lint, "lib/#{name}/event_loop.moon"
+        spec, "spec/event_loop_spec.moon"
+      )
 
   on_changed "^lib/(.*)%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, ->
-        lint "lib/#{name}.moon"
-        spec "spec/#{name}_spec.moon"
+      notifies event.path, event, runnable(
+        fs.is_present
+        lint, "lib/#{name}.moon"
+        spec, "spec/#{name}_spec.moon"
+      )
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (event, name) ->
-    until_success ->
-      notifies event.path, event, ->
-        exec "playground/#{name}.moon"
+      exec "playground/#{name}.moon"
 
   on_changed "^playground/(.*)%.lua", (event, name) ->
-    until_success ->
-      notifies event.path, event, ->
-        exec "playground/#{name}.lua"
+      exec "playground/#{name}.lua"
 
 watch_file 'Spookfile', ->
   on_changed (event) ->
-    note.info "Reloading Spookfile..."
+    notify.info "Reloading Spookfile..."
     load_spookfile!
 
 watch_file 'lint_config.lua', ->
   on_changed (event) ->
-    note.info "Reloading Spookfile..."
+    notify.info "Reloading Spookfile..."
     load_spookfile!
