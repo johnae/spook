@@ -22,6 +22,13 @@ arg = arg
 log = _G.log
 log.level log.INFO
 
+loadfail = (file, result) ->
+  print colors "%{red}FATAL: Failed to load '#{file}'"
+  print colors "%{white}#{result}" if result
+  print ""
+  print colors "%{dim}This usually indicates a syntax error"
+  os.exit 1
+
 -- if there is an argument "-f" on the commandline
 -- we completely skip the default behavior and run
 -- whatever script path given within the context of
@@ -37,12 +44,12 @@ if fi = index_of arg, "-f"
     log.error "The -f option requires an argument"
     os.exit 1
   _G.arg = new_args
-  loaded_chunk = if file\match "[^.]%.lua$"
-    assert loadfile(file), "Failed to load file: #{file}"
-  else -- assume it's moonscript
-    assert moonscript.loadfile(file), "Failed to load file: #{file}"
-  return loaded_chunk!
-
+  success, chunk = if file\match("[^.]%.lua$")
+    loadfile(file)
+  else
+    moonscript.loadfile(file)
+  loadfail file, chunk unless success
+  return chunk!
 
 cli = require "arguments"
 run = require'event_loop'.run
@@ -79,14 +86,16 @@ event_handler = =>
 -- Spookfile).
 load_spookfile = ->
   spook\stop! if spook
-  spookfile = assert moonscript.loadfile(spookfile_path), "Failed to load Spookfile"
+  success, result = pcall moonscript.loadfile, spookfile_path
+  loadfail spookfile_path, result unless success
+  spookfile = result
   spook = Spook.new!
   if args.log_level
     spook.log_level = args.log_level if args.log_level
   _G.spook = spook
   queue = spook.queue
   success, result = pcall -> spook spookfile
-  print tostring(result) unless success
+  loadfail spookfile_path, result unless success
   -- this is the actual event_handler above, the
   -- 0.35 interval is something I've found works
   -- reasonably well (on Linux at least).
