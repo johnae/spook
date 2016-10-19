@@ -6,7 +6,7 @@ load_spookfile = load_spookfile
 package.loaded['moonscript.cmd.lint'] = nil
 moonlint = require("moonscript.cmd.lint").lint_file
 package.loaded.lint_config = nil
-package.loaded.lint_config = pcall -> loadfile('lint_config')()
+package.loaded.lint_config = pcall -> loadfile('lint_config')!
 
 colors = require "ansicolors"
 fs = require 'fs'
@@ -25,35 +25,45 @@ until_success = (func) ->
 
 command = (cmd) ->
   (file) ->
-    notify.info "RUNNING #{cmd} #{file}"
-    _, _, status = os.execute "#{cmd} #{file}"
-    assert status == 0, "#{cmd} #{file}"
+    cmdline = "#{cmd} #{file}"
+    notify.info cmdline
+    _, _, status = os.execute cmdline
+    assert status == 0, cmdline
+
+-- This is so that one can filter
+-- out commands not runnable (like when
+-- the mapped file doesn't exist)
+task_filter = (filter_func) ->
+  (...) ->
+    args = {...}
+    assert #args > 0 and #args % 2 == 0, "a cmd_filter takes an even number of args larger than zero, got #{#args} args"
+    current = -1
+    ->
+      current += 2
+      while args[current+1] and not filter_func(args[current+1])
+        log.debug "Skipping #{args[current+1]} since the filter_func function returned false"
+        current += 2
+      args[current], args[current+1]
 
 notifies = (name, info, list) ->
+  run = (func, ...) ->
+    success, result = pcall func, ...
+    unless success
+      notify.fail result, info
+      error result
   func, arg = list!
   return unless func
-  run = (f, a) ->
-    success, result = pcall f, a
-    unless success
-      notify.fail name, info
-      error result
   notify.start name, info
   run func, arg
   run func, arg for func, arg in list
   notify.success name, info
 
--- This is so that matches mapping to non-existant files can be completely skipped
-runnable = (check, ...) ->
-  args = {...}
-  assert #args > 0 and #args % 2 == 0, "runnable() takes an even number of args larger than zero, got #{#args} args"
-  current = -1
-  ->
-    current += 2
-    while args[current+1] and not check(args[current+1])
-      log.debug "Skipping #{args[current+1]} since the check function returned false"
-      current += 2
-    args[current], args[current+1]
-
+-- we use this for notifications, by filtering out
+-- the commands not runnable (because the mapped files
+-- aren't present), we don't unnecessarily notify on
+-- start / fail / success when nothing can actually
+-- happen. For a spec runner, this makes sense.
+task_list = task_filter fs.is_present
 spec = command "./tools/luajit/bin/luajit spec/support/run_busted.lua"
 exec = command "./tools/luajit/bin/luajit run.lua"
 
@@ -77,35 +87,35 @@ lint = (file) ->
 watch "lib", "spec", ->
   on_changed "^spec/spec_helper%.moon", (event) ->
     until_success ->
-      notifies event.path, event, runnable(
-        fs.is_present
-        lint, "spec/spec_helper.moon"
-        spec, "spec"
-      )
+      notifies event.path, event,
+        task_list(
+          lint, "spec/spec_helper.moon"
+          spec, "spec"
+        )
 
   on_changed "^spec/(.*)%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, runnable(
-        fs.is_present
-        lint, "spec/#{name}.moon"
-        spec, "spec/#{name}.moon"
-      )
+      notifies event.path, event,
+        task_list(
+          lint, "spec/#{name}.moon"
+          spec, "spec/#{name}.moon"
+        )
 
   on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, runnable(
-        fs.is_present
-        lint, "lib/#{name}/event_loop.moon"
-        spec, "spec/event_loop_spec.moon"
-      )
+      notifies event.path, event,
+        task_list(
+          lint, "lib/#{name}/event_loop.moon"
+          spec, "spec/event_loop_spec.moon"
+        )
 
   on_changed "^lib/(.*)%.moon", (event, name) ->
     until_success ->
-      notifies event.path, event, runnable(
-        fs.is_present
-        lint, "lib/#{name}.moon"
-        spec, "spec/#{name}_spec.moon"
-      )
+      notifies event.path, event,
+        task_list(
+          lint, "lib/#{name}.moon"
+          spec, "spec/#{name}_spec.moon"
+        )
 
 watch "playground", ->
   on_changed "^playground/(.*)%.moon", (event, name) ->
