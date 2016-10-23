@@ -13,9 +13,7 @@ package.loaded.lint_config = pcall -> loadfile('lint_config')!
 colors = require "ansicolors"
 fs = require 'fs'
 
-notify = require('notify') ->
-  add 'terminal_notifier'
-  add 'notifier'
+notify = require('notify')!.add 'terminal_notifier', 'notifier'
 
 -- spookfile_helpers is not included inside the spook binary,
 -- it's rather just some helpers in a file in this repo.
@@ -26,7 +24,7 @@ notify = require('notify') ->
   :command
   :task_filter
   :notifies
-} = require('spookfile_helpers') notify
+} = require('spookfile_helpers')(notify)
 
 -- we use this for notifications, by filtering out
 -- the commands not runnable (because the mapped files
