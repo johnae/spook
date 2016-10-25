@@ -17,10 +17,10 @@ log_level "INFO"
 
 -- Require some things that come with spook
 fs = require 'fs'
-:note, :notifies = require('notifications')!
-note.add 'terminal_notifier' -- this does a require since it's a string
--- a notifier could be added right here, like:
--- node.add {
+notify = require('notify')!.add 'terminal_notifier'
+-- if the added notifier is a string it will be loaded using
+-- 'require'. It can also be specified right here, like:
+-- notify.add {
 --   start: (msg, info) ->
 --     print "Start, yay"
 --   success: (msg, info) ->
@@ -28,7 +28,11 @@ note.add 'terminal_notifier' -- this does a require since it's a string
 --   fail: (msg, info) ->
 --     print "Fail, nay!"
 
--- Define a function for running rspec
+-- Define a function for running rspec.
+-- Please see https://github.com/johnae/spook
+-- for more advanced examples which you may
+-- be interested in if you want to replace
+-- guard.
 rspec = (file) ->
   return true unless fs.is_file file
   note.info "RUNNING rspec #{file}"
@@ -55,20 +59,16 @@ ruby = (file) ->
 -- be used later to calculate how long a task took).
 watch 'app', 'lib', 'spec', ->
   on_changed '^(spec)/(spec_helper%.rb)', (event) ->
-    notifies event.path, event, ->
-      rspec 'spec'
+    rspec 'spec'
 
   on_changed '^spec/(.*)_spec%.rb', (event, name) ->
-    notifies event.path, event, ->
-      rspec "spec/#{a}_spec.rb"
+    rspec "spec/#{a}_spec.rb"
 
   on_changed '^lib/(.*)%.rb', (event, name) ->
-    notifies event.path, event, ->
-      rspec "spec/lib/#{a}_spec.rb"
+    rspec "spec/lib/#{a}_spec.rb"
 
   on_changed '^app/(.*)%.rb', (event, name) ->
-    notifies event.path, event, ->
-      rspec "spec/#{a}_spec.rb"
+    rspec "spec/#{a}_spec.rb"
 
 -- Just some experimentation perhaps?
 -- Here we skip notifications.
@@ -80,7 +80,7 @@ watch 'playground', ->
 -- spook itself can be reconfigured without restarting it.
 watch_file 'Spookfile', ->
   on_changed (event) ->
-    note.info 'Reloading Spookfile...'
+    notify.info 'Reloading Spookfile...'
     load_spookfile!
 
 ]]
