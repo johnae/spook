@@ -1,30 +1,24 @@
 # Changelog
 
-## 0.7.0 - dev
+## 0.7.0
 
-This has several breaking changes but also new features. The reason for all this is the removal of libuv and luv.
-The rationale for removing libuv/luv is to enable a finer grained fs events infrastructure. No longer is the only
-handler "on_changed". There's now also "on_deleted", "on_created", "on_moved", "on_modified" and "on_attrib". In
-addition to those, signals and timers can be directly defined as part of the Spookfile (or somewhere else by reaching
-for the global "spook" object which has the necessary functions on it).
+This has several breaking changes but also new features. The reason for all this is the removal of libuv and luv and the wish to implement many more features. The rationale for removing libuv/luv is to enable a finer grained fs events infrastructure. No longer is the only handler "on_changed". There's now also "on_deleted", "on_created", "on_moved", "on_modified" and "on_attrib". In addition to those, signals and timers with associated handlers can be directly defined as part of the Spookfile (or somewhere else by reaching for the global "spook" object which has the necessary functions on it).
 
-The "on_changed" handler has been changed so that it does NOT catch delete events. It does catch all the others however.
+The "on_changed" handler has been changed so that it does NOT catch delete events at all. It does catch all the others however.
 For delete events, use "on_delete". For catching only specific events - don't use "on_changed" but rather "on_modified", "on_moved" etc.
 
-Windows support, which was theoretically possible previously through libuv/luv, is now much less likely. I don't use Windows myself and
-know of noone who has even tried using spook on that platform.
+Windows support, which was theoretically possible previously through libuv/luv, is now much less likely (though not impossible since there are ffi bindings for the windows api:s). I don't use Windows myself and know of noone who has even tried using spook on that platform.
 
-All the watch handlers (eg. on_changed etc) receives the event as its first argument, the rest being the matches. So, always
-expect the event as the first argument. Eg.
+All the watch handlers (eg. on_changed etc) receives the event as its first argument, the rest being the matches. So, always expect the event as the first argument. Eg.
 
 ```moonscript
 on_changed '^some/dir/#{name}.moon', (event, name) ->
   ...
 ```
 
-As of now, this only supports Linux. I plan to support the BSD:s (including OS X) soon:ish.
+As of now, this only supports Linux. I plan to support the BSD:s (including OS X) at some point. The BSD:s especially lack a fully featured fs watcher implementation. Sockets, timers etc. should all work on BSD:s. You're welcome to help out with this.
 
-more to come here before any release.
+Since spook is now meant as a more comprehensive and therefore less specific solution, some things have been rearchitected and many removed. I still use spook as a test-runner a la rspec so it's still really a main use case. I plan on rewriting my (hacky as hell) i3bar thing [Eye3](https://github.com/johnae/eye3) to use spook now instead since that should be absolutely possible (and was something I wanted to make possible with this version of spook).
 
 ## 0.6.0
 
