@@ -3,6 +3,7 @@ Types = S.t
 :define = require'classy'
 log = require'log'
 {:is_dir, :dirtree, :can_access} = require 'fs'
+:concat = table
 
 epoll_fd = S.epoll_create 'cloexec'
 epoll_events = Types.epoll_events 1
@@ -85,10 +86,10 @@ Watcher = define 'Watcher', ->
       @recursive = opts.recursive or false
       @callback = opts.callback
       assert type(@callback) == 'function', "'callback' is a required option and must be a callable object (like a function)"
-      @paths = type(paths) == 'table' and paths or {paths}
-      @paths = [path for path in *@paths when can_access(path)]
+      paths = type(paths) == 'table' and paths or {paths}
+      @paths = [path for path in *paths when can_access(path)]
       if #@paths == 0
-        error "No given paths were accessible"
+        error "None of the given paths (#{concat ["'#{path}'" for path in * paths], ', '}) were accessible"
       if @recursive
         @paths = recurse_paths @paths
       @watch_for = watch_for
