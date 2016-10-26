@@ -1,37 +1,114 @@
--- vim: syntax=moonscript
--- How much logs do we want? (ERR, WARN, INFO, DEBUG)
+-- vim: syntax=moon
+-- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
-lint = require("moonscript.cmd.lint").lint_file
-package.loaded.lint_config = pcall -> loadfile('lint_config')()
-colors = require "ansicolors"
+-- Make it a local for use in handlers
+load_spookfile = _G.load_spookfile
 
-spec_cmd = command "./spook -f spec/support/run_busted.lua"
-exec_cmd = command "./spook -f"
-lint_cmd = func name: "Lint", handler: (file) ->
-  result, err = lint file
-  if result
+-- If the spookfile is reloaded we just ensure we reload
+-- the other stuff too.
+package.loaded['moonscript.cmd.lint'] = nil
+moonlint = require("moonscript.cmd.lint").lint_file
+package.loaded.lint_config = nil
+package.loaded.lint_config = pcall -> loadfile('lint_config')!
+
+-- Require some things that come with spook
+colors = require "ansicolors"
+fs = require 'fs'
+
+-- notify takes an arbitrary number of arguments where each is
+-- a notifier - either for requiring or the table of functions
+-- to use. Let's add the built-in terminal_notifier.
+notify = require('notify')!.add 'terminal_notifier'
+
+-- If we find 'notifier' in the path, let's
+-- add that notifier also.
+success, notifier = pcall require, 'notifier'
+notify.add notifier if success
+
+-- spookfile_helpers is not included inside the spook binary,
+-- it's rather just some helpers in a file in this repo.
+-- In general it's probably a good idea to keep helpers around
+-- in some other file.
+{
+  :until_success
+  :command
+  :task_filter
+  :notifies
+} = require('spookfile_helpers')(notify)
+
+-- we use this for notifications, by filtering out
+-- the commands not runnable (because the mapped files
+-- aren't present), we don't unnecessarily notify on
+-- start / fail / success when nothing can actually
+-- happen. For a spec runner, this makes sense.
+task_list = task_filter fs.is_present
+spec = command "./tools/luajit/bin/luajit spec/support/run_busted.lua"
+exec = command "./tools/luajit/bin/luajit run.lua"
+
+lint = (file) ->
+  notify.info "LINTING #{file}"
+  result, err = moonlint file
+  success = if result
     io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
-    return false
+    false
   elseif err
     io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
-    return false
-  io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
-  true
+    false
+  else
+    true
+  if success
+    io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
+  assert success == true, "lint #{file}"
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run
 watch "lib", "spec", ->
-  on_changed "^spec/spec_helper%.moon", -> spec_cmd "spec"
-  on_changed "^spec/(.*)%.moon", (a) ->
-    lint_cmd("spec/#{a}.moon") +
-    spec_cmd("spec/#{a}.moon")
-  on_changed "^lib/(.*)%.moon", (a) ->
-    lint_cmd("lib/#{a}.moon") +
-    spec_cmd("spec/#{a}_spec.moon")
+  on_changed "^spec/spec_helper%.moon", (event) ->
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          lint, "spec/spec_helper.moon"
+          spec, "spec"
+        )
+
+  on_changed "^spec/(.*)%.moon", (event, name) ->
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          lint, "spec/#{name}.moon"
+          spec, "spec/#{name}.moon"
+        )
+
+  on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          lint, "lib/#{name}/event_loop.moon"
+          spec, "spec/event_loop_spec.moon"
+        )
+
+  on_changed "^lib/(.*)%.moon", (event, name) ->
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          lint, "lib/#{name}.moon"
+          spec, "spec/#{name}_spec.moon"
+        )
 
 watch "playground", ->
-  on_changed "^playground/(.*)%.moon", (a) -> exec_cmd "playground/#{a}.moon"
-  on_changed "^playground/(.*)%.lua", (a) -> exec_cmd "playground/#{a}.lua"
+  on_changed "^playground/(.*)%.moon", (event, name) ->
+      exec "playground/#{name}.moon"
 
-notifier "#{os.getenv('HOME')}/.spook/notifiers"
+  on_changed "^playground/(.*)%.lua", (event, name) ->
+      exec "playground/#{name}.lua"
+
+watch_file 'Spookfile', ->
+  on_changed (event) ->
+    notify.info "Reloading Spookfile..."
+    load_spookfile!
+
+watch_file 'lint_config.lua', ->
+  on_changed (event) ->
+    notify.info "Reloading Spookfile..."
+    load_spookfile!

@@ -15,25 +15,24 @@ WARN = 1
 INFO = 2
 DEBUG = 3
 
-(level) ->
-  log_level = level or INFO
-  {
-    :ERR
-    :WARN
-    :INFO
-    :DEBUG
-    level: (l) ->
-      log_level = l
+log_level = INFO
+{
+  :ERR
+  :WARN
+  :INFO
+  :DEBUG
+  level: (l) ->
+    log_level = l
 
-    info: (...) ->
-      log(log_level, INFO, ...)
-  
-    error: (...) ->
-      log(log_level, ERR, ...)
-  
-    warn: (...) ->
-      log(log_level, WARN, ...)
-  
-    debug: (...) ->
-      log(log_level, DEBUG, ...)
-  }
+  info: (...) ->
+    log(log_level, INFO, ...)
+
+  error: (...) ->
+    log(log_level, ERR, ...)
+
+  warn: (...) ->
+    log(log_level, WARN, ...)
+
+  debug: (...) ->
+    log(log_level, DEBUG, ...)
+}

@@ -1,8 +1,8 @@
 PREFIX ?= /usr/local
-UNAME := $(shell uname)
+UNAME := $(shell uname | tr 'A-Z' 'a-z')
 ARCH := $(shell uname -m)
 SPOOK_BASE_DIR := $(shell pwd)
-ifeq ($(UNAME), Darwin)
+ifeq ($(UNAME), darwin)
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 else
@@ -24,28 +24,25 @@ TOOLS := $(realpath tools)
 ## this has to be expanded dynamically since luajit
 ## needs to be built first
 LUAJIT_BIN = $(realpath $(LUAJIT))
-LIBLUV := deps/luv/build/libluv.a
-LIBLUV_INCLUDE := deps/luv/src
-LIBUV_INCLUDE := deps/luv/deps/libuv/include
-ARCHIVES := $(LUAJIT_ARCHIVE) $(LIBLUV) deps/luv/build/libuv.a
+ARCHIVES := $(LUAJIT_ARCHIVE)
 OBJECTS := main.o lib.o vendor.o
 
 .PHONY: all clean clean-deps rebuild release test
 
 all: spook
 
-spook: $(LIBLUV) $(OBJECTS)
+spook: $(OBJECTS)
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LIBUV_INCLUDE) -I $(LIBLUV_INCLUDE) -I $(LUAJIT_INCLUDE) -lm -ldl -lpthread $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm -ldl $(EXTRAS)
 
 rebuild: clean all
 
 test: spook
-	./spook -f spec/support/run_busted.lua
+	$(LUAJIT_BIN) spec/support/run_busted.lua spec
 
 lint: spook
-	./spook -f spec/support/run_linter.moon lib/*
-	./spook -f spec/support/run_linter.moon spec/*
+	$(LUAJIT_BIN) spec/support/run_linter.lua lib/*
+	$(LUAJIT_BIN) spec/support/run_linter.lua spec/*
 
 install: all
 	cp spook $(PREFIX)/bin
@@ -53,12 +50,6 @@ install: all
 lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
 	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
-
-$(LIBLUV):
-	@echo "BUILDING LIBLUV"
-	git submodule update --init deps/luv
-	$(MAKE) -C deps/luv reset
-	$(MAKE) -C deps/luv BUILD_MODULE=OFF WITH_SHARED_LUAJIT=OFF
 
 $(LUAJIT):
 	@echo "BUILDING LUAJIT"
@@ -79,7 +70,7 @@ lib.lua: lib/version.moon $(LUAJIT)
 vendor.lua: $(LUAJIT)
 	@echo "BUILDING vendor.lua"
 	cd vendor && \
-		SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ../tools/pack.lua . > ../vendor.lua
+		OS=$(UNAME) SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ../tools/pack.lua . > ../vendor.lua
 
 %.o: %.lua
 	@echo "BUILDING luajit bytecode from $*.lua"
@@ -99,8 +90,8 @@ clean:
 
 tools/github-release:
 	cd /tmp && \
-		if [ "$(UNAME)" = "Darwin" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/darwin-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/darwin/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi && \
-	if [ "$(UNAME)" = "Linux" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/linux-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/linux/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi
+		if [ "$(UNAME)" = "darwin" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/darwin-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/darwin/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi && \
+	if [ "$(UNAME)" = "linux" ]; then wget https://github.com/aktau/github-release/releases/download/v0.5.3/linux-amd64-github-release.tar.bz2 -O /tmp/github-release.tar.bz2 && tar jxf github-release.tar.bz2 && mv bin/linux/amd64/github-release $(TOOLS)/github-release && chmod +x $(TOOLS)/github-release; fi
 	rm -rf /tmp/bin /tmp/*gitub-release*
 
 release-create: tools/github-release

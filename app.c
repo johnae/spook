@@ -3,8 +3,6 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-#include "uv.h"
-#include "luv.h"
 
 int main(int argc, char **argv)
 {
@@ -26,9 +24,6 @@ int main(int argc, char **argv)
   lua_getfield(L, -1, "preload");
   lua_remove(L, -2); // Remove package
 
-  // store uv module at preload.uv
-  lua_pushcfunction(L, luaopen_luv);
-  lua_setfield(L, -2, "uv");
   lua_getglobal(L, "require");
   lua_pushliteral(L, "main");
 

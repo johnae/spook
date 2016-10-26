@@ -2,21 +2,31 @@
 {:log} = _G
 gettimeofday = gettimeofday
 
-(...) ->
-  notify = {...}
-  start = (info) ->
-    for notifier in *notify
-      notifier.start info if notifier.start
-  finish = (success, info) ->
-    for notifier in *notify
-      notifier.finish success, info if notifier.finish
-  setmetatable notify, __index:
-    :start
-    :finish
-    begin: (info, fn) ->
-      start_time = gettimeofday! / 1000.0
-      start info
-      success = fn!
-      end_time = gettimeofday! / 1000.0
-      info.elapsed_time = round end_time-start_time, 3
-      finish success, info
+notify_mt = {
+  __index: (k, v) =>
+    (name, info={}) ->
+      info["#{k}_at"] = gettimeofday! / 1000.0
+      for notifier in *@notifiers
+        notifier[k] name, info if notifier[k]
+}
+
+->
+  self = {notifiers: {}}
+  self.add = (...) ->
+    notifiers = {...}
+    for notifier in *notifiers
+      if type(notifier) == 'string'
+        package.loaded[notifier] = nil -- for proper reloading
+        status, result = pcall require, notifier
+        unless status
+          log.error "Could not find notifier: '#{notifier}' anywhere in the package.path"
+          continue
+        unless result
+          log.error "Failed to load notifier: '#{notifier}'"
+          continue
+        self.notifiers[#self.notifiers + 1] = result
+      else
+        self.notifiers[#self.notifiers + 1] = notifier
+    self
+  self.clear = -> self.notifiers = {}
+  setmetatable self, notify_mt

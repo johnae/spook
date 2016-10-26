@@ -57,20 +57,20 @@ copy_value = (copies) =>
     default_function_env = setmetatable {:new}, __index: _G
 
     static = (opts) ->
-      for name, def in pairs opts
+      for field_name, def in pairs opts
         if type(def) == 'function'
           setfenv def, default_function_env
-        new_class[name] = def
+        new_class[field_name] = def
 
     instance = (opts) ->
-      for name, def in pairs opts
+      for field_name, def in pairs opts
         if type(def) == 'function'
           setfenv def, default_function_env
-        __instance[name] = def
+        __instance[field_name] = def
 
     include = instance -- same thing, different name
 
-    parent = (parent) -> parent_class = parent
+    parent = (p) -> parent_class = p
 
     missing_prop =
       get: (k) => rawget @, k
@@ -93,10 +93,10 @@ copy_value = (copies) =>
             set: (v) => @[field][key] = v
 
     meta = (opts={}) ->
-      for name, def in pairs opts
+      for field_name, def in pairs opts
         if type(def) == 'function'
           setfenv def, default_function_env
-        __meta[name] = def
+        __meta[field_name] = def
 
     class_initializer_env = setmetatable {
       :include
@@ -121,12 +121,12 @@ copy_value = (copies) =>
     if parent_class
       for k, v in pairs parent_class.is_a
         is_a[k] = v
-      for name, def in pairs parent_class
-        new_class[name] = def unless new_class[name]
-      for name, def in pairs parent_class.__properties
-        __properties[name] = def unless __properties[name]
-      for name, def in pairs parent_class.__instance
-        if new_def = __instance[name]
+      for field_name, def in pairs parent_class
+        new_class[field_name] = def unless new_class[field_name]
+      for field_name, def in pairs parent_class.__properties
+        __properties[field_name] = def unless __properties[field_name]
+      for field_name, def in pairs parent_class.__instance
+        if new_def = __instance[field_name]
           -- this enables calling "super" in a function to
           -- run the same name function from parent
           if type(new_def) == 'function'
@@ -134,10 +134,10 @@ copy_value = (copies) =>
             env.super = def
             setfenv new_def, env
         else
-          __instance[name] = def
-        __instance[name] = def unless __instance[name]
-      for name, def in pairs parent_class.__meta
-        __meta[name] = def unless __meta[name]
+          __instance[field_name] = def
+        __instance[field_name] = def unless __instance[field_name]
+      for field_name, def in pairs parent_class.__meta
+        __meta[field_name] = def unless __meta[field_name]
 
     __meta.__index = (k) =>
       if v = rawget __instance, k
