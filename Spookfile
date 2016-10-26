@@ -1,7 +1,9 @@
 -- vim: syntax=moon
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
-load_spookfile = load_spookfile
+
+-- Make it a local for use in handlers
+load_spookfile = _G.load_spookfile
 
 -- If the spookfile is reloaded we just ensure we reload
 -- the other stuff too.
@@ -10,10 +12,21 @@ moonlint = require("moonscript.cmd.lint").lint_file
 package.loaded.lint_config = nil
 package.loaded.lint_config = pcall -> loadfile('lint_config')!
 
+-- Require some things that come with spook
 colors = require "ansicolors"
 fs = require 'fs'
 
-notify = require('notify')!.add 'terminal_notifier', 'notifier'
+-- notify takes an arbitrary number of arguments where each is
+-- a notifier - either for requiring or the table of functions
+-- to use. Let's add the built-in terminal_notifier.
+notify = require('notify')!.add 'terminal_notifier'
+
+-- If we find 'notifier' in the path, let's
+-- add that notifier also.
+local notifier
+status, result = pcall require, 'notifier'
+if status
+  notify.add result
 
 -- spookfile_helpers is not included inside the spook binary,
 -- it's rather just some helpers in a file in this repo.
