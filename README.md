@@ -1,6 +1,6 @@
 [![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
 
-## Some notes on the 0.7.0 version
+## Some notes on the 0.7.0 version vs previous versions
 
 This version has had it's innards ripped out and thrown away (so no more libuv/libluv). It's using just system calls now (so inotify, epoll and kqueue more or less directly). This was mainly so that I could enable more fine grained filesystem events watching. I also think this, in the end, will enable alot more use cases than as the lightweight [guard](https://github.com/guard/guard) replacement it originally was meant to be (it still works perfectly fine for that).
 
