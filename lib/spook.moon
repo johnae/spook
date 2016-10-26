@@ -57,6 +57,8 @@ define 'Spook', ->
           @log_level = v
       @caller_env.first_match_only = (b) -> @first_match_only = b
       setmetatable @caller_env, __index: _G
+      -- always have something defined here that does the proper thing
+      @on_signal 'int', (s) -> os.exit(1)
 
     -- defines recursive watchers (eg. all directories underneath given directories)
     watch: (...) =>
