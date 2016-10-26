@@ -15,6 +15,9 @@ parser\flag("-i --initialize", "Initialize an example Spookfile in the current d
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
+-- Make it a local for use in handlers
+load_spookfile = _G.load_spookfile
+
 -- Require some things that come with spook
 fs = require 'fs'
 notify = require('notify')!.add 'terminal_notifier'
