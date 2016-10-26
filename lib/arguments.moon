@@ -20,6 +20,9 @@ load_spookfile = _G.load_spookfile
 
 -- Require some things that come with spook
 fs = require 'fs'
+-- notify takes an arbitrary number of arguments where each is
+-- a notifier - either for requiring or the table of functions
+-- to use.
 notify = require('notify')!.add 'terminal_notifier'
 -- if the added notifier is a string it will be loaded using
 -- 'require'. It can also be specified right here, like:
@@ -31,6 +34,11 @@ notify = require('notify')!.add 'terminal_notifier'
 --   fail: (msg, info) ->
 --     print "Fail, nay!"
 -- }
+
+-- If we find 'notifier' in the path, let's
+-- add that notifier also.
+success, notifier = pcall require, 'notifier'
+notify.add notifier if success
 
 -- Define a function for running rspec.
 -- Please see https://github.com/johnae/spook
@@ -75,7 +83,7 @@ watch 'app', 'lib', 'spec', ->
     rspec "spec/#{a}_spec.rb"
 
 -- Just some experimentation perhaps?
--- Here we skip notifications.
+-- Here we don't bother with notifications.
 watch 'playground', ->
   on_changed '^playground/(.*)%.rb', (event, name) ->
     ruby "playground/#{a}.rb"

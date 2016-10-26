@@ -23,10 +23,8 @@ notify = require('notify')!.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
 -- add that notifier also.
-local notifier
-status, result = pcall require, 'notifier'
-if status
-  notify.add result
+success, notifier = pcall require, 'notifier'
+notify.add notifier if success
 
 -- spookfile_helpers is not included inside the spook binary,
 -- it's rather just some helpers in a file in this repo.
