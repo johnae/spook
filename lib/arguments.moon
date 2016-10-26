@@ -37,6 +37,7 @@ notify = require('notify')!.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
 -- add that notifier also.
+package.loaded[notifier] = nil -- unset it for to reload
 success, notifier = pcall require, 'notifier'
 notify.add notifier if success
 
