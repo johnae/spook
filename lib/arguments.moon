@@ -27,6 +27,7 @@ notify = require('notify')!.add 'terminal_notifier'
 --     print "Success, yay!"
 --   fail: (msg, info) ->
 --     print "Fail, nay!"
+-- }
 
 -- Define a function for running rspec.
 -- Please see https://github.com/johnae/spook
