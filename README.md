@@ -10,7 +10,7 @@ See the [CHANGELOG](CHANGELOG.md) for more information. The 0.6.x versions ofc w
 
 ## Spook
 
-Spook used to be a light weight replacement for [guard](https://github.com/guard/guard) but is much more since the 0.7.0 version.
+Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but is much more since the 0.7.0 version.
 It's still early days but I'm using it every day for work. It is mostly written in [Lua](http://www.lua.org)
 and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a single binary
 with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript),
