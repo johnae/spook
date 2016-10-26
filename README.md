@@ -122,12 +122,12 @@ fs = require 'fs'
 -- notify takes an arbitrary number of arguments where each is
 -- a notifier - either for requiring or the table of functions
 -- to use. Let's add the built-in terminal_notifier.
-notify = require('notify')!.add 'terminal_notifier'
+notify = require('notify')!
+notify.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
--- add that notifier also.
-success, notifier = pcall require, 'notifier'
-notify.add notifier if success
+-- add that notifier also. We fail silently otherwise.
+pcall notify.add, 'notifier'
 
 -- spookfile_helpers is not included inside the spook binary,
 -- it's rather just some helpers in a file in this repo.
@@ -263,9 +263,6 @@ spook\on_read some_fd, (data) ->
 This is how a simple notifier might look (load it using notify.add):
 
 ```moonscript
--- "runs" is expected to return true or false and determines whether the notifier can run at all (eg. dependencies satisfied)
--- this way it's possible to put all kinds of notifiers in ~/.spook/notifiers and sync them across systems without
--- having to change the Spookfile.
 getcwd = _G.getcwd
 project_name = ->
   cwd = getcwd!\split '/'
