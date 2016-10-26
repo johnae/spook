@@ -104,7 +104,9 @@ This is the Spookfile used to test spook itself:
 ```moonscript
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
-load_spookfile = load_spookfile
+
+-- Make it a local for use in handlers
+load_spookfile = _G.load_spookfile
 
 -- If the spookfile is reloaded we just ensure we reload
 -- the other stuff too.
@@ -113,18 +115,24 @@ moonlint = require("moonscript.cmd.lint").lint_file
 package.loaded.lint_config = nil
 package.loaded.lint_config = pcall -> loadfile('lint_config')!
 
+-- Require some things that come with spook
 colors = require "ansicolors"
 fs = require 'fs'
 
--- The terminal_notifier comes built-in, the 'notifier' however is
--- something just required from disk in the package.path.
-notify = require('notify')!.add 'terminal_notifier', 'notifier'
+-- notify takes an arbitrary number of arguments where each is
+-- a notifier - either for requiring or the table of functions
+-- to use. Let's add the built-in terminal_notifier.
+notify = require('notify')!.add 'terminal_notifier'
 
--- spookfile_helpers is not included with the spook binary,
+-- If we find 'notifier' in the path, let's
+-- add that notifier also.
+success, notifier = pcall require, 'notifier'
+notify.add notifier if success
+
+-- spookfile_helpers is not included inside the spook binary,
 -- it's rather just some helpers in a file in this repo.
 -- In general it's probably a good idea to keep helpers around
--- in some file you require. These helpers are generally very
--- useful in a test-runner context.
+-- in some other file.
 {
   :until_success
   :command
@@ -198,13 +206,11 @@ watch "playground", ->
   on_changed "^playground/(.*)%.lua", (event, name) ->
       exec "playground/#{name}.lua"
 
--- Reload spook when the Spookfile changes
 watch_file 'Spookfile', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
     load_spookfile!
 
--- Reload spook when the lint_config file changes
 watch_file 'lint_config.lua', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
