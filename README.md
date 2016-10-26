@@ -14,21 +14,19 @@ Spook used to be a light weight replacement for [guard](https://github.com/guard
 It's still early days but I'm using it every day for work. It is mostly written in [Lua](http://www.lua.org)
 and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a single binary
 with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript),
-which also comes built-in to the binary.
+which is also part of the binary.
 
-You can download releases from [spook/releases](https://github.com/johnae/spook/releases).
-Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like.
+You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like.
 
-Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before
-building it. Otherwise it should be as straightforward as:
+Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
 
 ```
 make
 ```
 
-After that you should have an executable called spook. It's known to build on Linux and Mac OS X. In version 0.7.0 support for BSD/OSX is not done wrt fs events. Sorry. I will hopefully get around to that in time.
+After that you should have an executable called spook. It's known to build on Linux and Mac OS X. In version 0.7.0 support for BSD/OSX is not complete wrt fs events and this makes it not very usable on those platforms (for now). Sorry. I will hopefully get around to that in time (or maybe you can help out?). The 0.6.0 and earlier releases should still work fine though.
 
-Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work and is just included in the resulting executable.
+Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work.
 
 
 Installation is as straightforward as:
@@ -39,7 +37,7 @@ PREFIX=/usr/local make install
 
 ### Changelog
 
-There's a [CHANGELOG](CHANGELOG.md) in in the repo which may be useful to learn about any breaking changes, new features or other improvements. Please consult it when upgrading.
+There's a [CHANGELOG](CHANGELOG.md) which may be useful when learning about any breaking changes, new features or other improvements. Please consult it when upgrading.
 
 
 ### Binaries
@@ -52,7 +50,10 @@ curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.
 
 After running the above you should have an executable called spook. See below for instructions on how to run it.
 
-You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e)
+You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e).
+
+Obviously you can also just download the release manually from the github releases page.
+
 
 ### Running it
 
@@ -87,16 +88,16 @@ For more see https://github.com/johnae/spook
 
 ### The Spookfile
 
-To watch directories you need to initialize a Spookfile in your project. It will currently create one tailored to a Rails app but should be pretty straightforward to change according to your needs. Just run:
+To do anything useful you need to create a Spookfile in a directory (probably your project):
 
 ```
 cd /to/your/project
 spook -i
 ```
 
-in your project directory to initialize a Spookfile. Then tailor it to your needs. After that you can just run spook without arguments within that directory. The default Spookfile is a basic example that would work for a Rails app.
+in your project directory to create an example Spookfile. Then tailor it to your needs. After that you just run spook without arguments in that directory. The default Spookfile is a basic example that might work for a Rails app.
 
-The Spookfile should be written in [moonscript](https://github.com/leafo/moonscript). It understands a simple DSL as well as just straight moonscript for basically anything (including requiring any additional files). Hooking in to the notifications api is easy and it's also easy to implement your own notifiers.
+The Spookfile should be written in [moonscript](https://github.com/leafo/moonscript). It comes with a simple DSL as well as just straight moonscript for just about anything you can do in Lua and/or MoonScript. Hooking in to the notifications api is easy and it's also easy to implement your own notifiers.
 
 This is the Spookfile used to test spook itself:
 
@@ -115,12 +116,15 @@ package.loaded.lint_config = pcall -> loadfile('lint_config')!
 colors = require "ansicolors"
 fs = require 'fs'
 
+-- The terminal_notifier comes built-in, the 'notifier' however is
+-- something just required from disk in the package.path.
 notify = require('notify')!.add 'terminal_notifier', 'notifier'
 
--- spookfile_helpers is not included inside the spook binary,
+-- spookfile_helpers is not included with the spook binary,
 -- it's rather just some helpers in a file in this repo.
 -- In general it's probably a good idea to keep helpers around
--- in some other file.
+-- in some file you require. These helpers are generally very
+-- useful in a test-runner context.
 {
   :until_success
   :command
@@ -194,30 +198,32 @@ watch "playground", ->
   on_changed "^playground/(.*)%.lua", (event, name) ->
       exec "playground/#{name}.lua"
 
+-- Reload spook when the Spookfile changes
 watch_file 'Spookfile', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
     load_spookfile!
 
+-- Reload spook when the lint_config file changes
 watch_file 'lint_config.lua', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
     load_spookfile!
 ```
 
-So as you can see, some things were defined in a helper file (until_success, notifies etc functions).
+So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
 
 ### Timers, Signals and Readers
 
-Now for something completely different. Perhaps you're not interested in file system events or perhaps you're interested in combining the two. Whatever you want, this is how you'd define a timer in the Spookfile:
+Now for something completely different and slightly more experimental still. Perhaps you're not interested in file system events or perhaps you're interested in combining those events with other events on the system. Whatever you want, this is how you'd define a timer in the Spookfile:
 
 ```moonscript
 timer 5.0, (t) ->
   print "yay I was called!"
-  t\again! -- this is (currently) how a recurring timer is defined - just call this
+  t\again! -- this is (currently) how a recurring timer is defined - just rearm it using the again method
 ```
 
-For reading from stdin, this is how you'd do that:
+For reading from stdin, this is what you do:
 
 ```moonscript
 on_stdin (receiver, data) ->
@@ -238,7 +244,13 @@ on_read some_fd, (data) ->
   print "Got some data: #{data}"
 ```
 
-So, obviously it's very much up to you to get that FD from somewhere.
+So, obviously it's very much up to you to get that FD from somewhere. These functions, eg. on_read, on_signal etc are actually methods on the global spook object. So, if you want to use them from a file you require you can do so like this instead:
+
+```moonscript
+-- it's really _G.spook
+spook\on_read some_fd, (data) -> 
+  print "Got some data: #{data}"
+```
 
 ### Notifications
 
@@ -272,7 +284,7 @@ fail = (msg, info) ->
 :start, :success, :fail
 ```
 
-A notifier can use ANY arbitrary names for the functions handling the notifications. Just know that generally start, success and fail will be called. Whatever else you do is completely up to you.
+A notifier can use ANY arbitrary names for the functions handling the notifications. Just know that generally start, success and fail will be called. Whatever else you do is completely up to you. And you don't have to use any notifiers at all.
 
 A slightly more complex notification example for tmux might look like this:
 
