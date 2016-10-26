@@ -26,7 +26,7 @@ loadfail = (file, result) ->
   print colors "%{red}FATAL: Failed to load '#{file}'"
   print colors "%{white}#{result}" if result
   print ""
-  print colors "%{dim}This usually indicates a syntax error"
+  print colors "%{dim}This may indicate a syntax error or that some logic failed"
   os.exit 1
 
 -- if there is an argument "-f" on the commandline
