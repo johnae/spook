@@ -23,7 +23,10 @@ fs = require 'fs'
 -- notify takes an arbitrary number of arguments where each is
 -- a notifier - either for requiring or the table of functions
 -- to use.
-notify = require('notify')!.add 'terminal_notifier'
+notify = require('notify')!
+
+-- Adds the built-in terminal_notifier
+notify.add 'terminal_notifier'
 -- if the added notifier is a string it will be loaded using
 -- 'require'. It can also be specified right here, like:
 -- notify.add {
@@ -36,10 +39,9 @@ notify = require('notify')!.add 'terminal_notifier'
 -- }
 
 -- If we find 'notifier' in the path, let's
--- add that notifier also.
-package.loaded[notifier] = nil -- unset it for to reload
-success, notifier = pcall require, 'notifier'
-notify.add notifier if success
+-- add that notifier also but fail silently
+-- if something goes wrong (eg. not there).
+pcall notify.add, 'notifier'
 
 -- Define a function for running rspec.
 -- Please see https://github.com/johnae/spook
