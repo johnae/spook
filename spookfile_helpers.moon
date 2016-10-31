@@ -24,13 +24,16 @@ log = _G.log
       args = {...}
       assert #args > 0 and #args % 2 == 0,
              "a task_filter takes an even number of args larger than zero, got #{#args} args"
-      current = -1
-      ->
+      current = 1
+      filt = ->
+        task, input = args[current], args[current+1]
         current += 2
-        while args[current+1] and not filter_func(args[current+1])
-          log.debug "Skipping #{args[current+1]} since the filter_func function returned false"
-          current += 2
-        args[current], args[current+1]
+        return nil unless task and input
+        unless filter_func input
+          log.debug "Skipping task with input #{input} since the filter_func returned false"
+          return filt args
+        task, input
+      filt
 
   notifies = (name, info, list) ->
     run = (func, ...) ->
