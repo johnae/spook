@@ -36,7 +36,7 @@ Watcher = define 'Watcher', ->
   properties
     fdnum: => @fd\getfd!
     events: =>
-      n, _ = @fd\inotify_read!
+      n = @fd\inotify_read!
       events = {}
       if n and #n > 0
         moves = [ev for ev in *n when ev.cookie != 0]
@@ -212,7 +212,7 @@ run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 10 -- default 10 ms blocking wait
   process or= -> nil
-  for k, v in epoll_fd\epoll_wait(epoll_events, block_for)
+  for _, v in epoll_fd\epoll_wait(epoll_events, block_for)
     handle = EventHandlers[v.fd]
     handle and handle!
   process!
@@ -222,7 +222,7 @@ run = (opts={}) ->
     run_once opts
 
 clear_all = ->
-  for k, v in pairs EventHandlers
+  for _, v in pairs EventHandlers
     v\stop! if v
 
 :Watcher, :Timer, :Signal, :Read, :Stdin, :epoll_fd, :run, :run_once, :clear_all

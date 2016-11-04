@@ -23,7 +23,7 @@ define 'Spook', ->
       if @_on_stdin
         emitters[#emitters + 1] = @_on_stdin
       unless empty @signals
-        for k, v in pairs @signals
+        for _, v in pairs @signals
           emitters[#emitters + 1] = v
       emitters
 
@@ -84,7 +84,7 @@ define 'Spook', ->
       old_handlers = @handlers
       @handlers = {}
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (func) -> store[#store + 1] = {file, func}
+        @handlers["on_#{wname}"] = (fun) -> store[#store + 1] = {file, fun}
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers

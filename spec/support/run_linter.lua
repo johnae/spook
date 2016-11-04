@@ -7,28 +7,26 @@ package.path = package.path .. ';vendor/?/init.lua'
 package.loaded.lfs = require('syscall.lfs')
 local lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
-local lint = require("moonscript.cmd.lint").lint_file
+local moonpick = require("moonpick")
 local colors = require("ansicolors")
 
 local files = _G.arg
-local lint_error = false
-for idx, file in ipairs(files) do
+local errors = 0
+for _, file in ipairs(files) do
   if file:match('.*%.moon') then
-    local result, err
-    result, err = lint(file)
-    if result ~= nil then
-      lint_error = true
-      io.stdout:write(colors("\n[ %{red}LINT error ]\n%{white}" .. result .. "\n\n"))
-    elseif err ~= nil then
-      lint_error = true
+    local res, err = moonpick.lint_file(file)
+    if res and #res > 0 then
+      io.stdout:write(colors("\n[ %{yellow}LINT warning ]\n%{white}" .. file .. "\n" .. moonpick.format_inspections(res) .. "\n\n"))
+      errors = errors + 1
+    elseif err then
       io.stdout:write(colors("\n[ %{red}LINT error ]\n%{white}" .. file .. "\n" .. err .. "\n\n"))
+      errors = errors + 1
     end
   end
 end
 
-if lint_error == true then
+if errors > 0 then
   os.exit(1)
 end
 
 io.stdout:write(colors("\n[ %{green}LINT: %{white}All good ]\n\n"))
-os.exit(0)

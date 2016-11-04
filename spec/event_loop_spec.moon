@@ -96,13 +96,7 @@ describe 'Event Loop', ->
       }
 
     it 'watches for events recursively in a directory', ->
-      local move_id
       w = Watcher.new dir, 'create, delete, move, modify', recursive: true, callback: (w, events) ->
-        -- bit ugly - just need the expected id for the assert
-        -- the id is unpredictable
-        for e in *events
-          if e.action == 'moved'
-            move_id = e.id
         event_catcher events
 
       w\start!
@@ -170,10 +164,9 @@ describe 'Event Loop', ->
       assert.nil received_winch
 
   describe 'Read', ->
-    local socket, msg, buf
+    local socket, msg
 
     before_each ->
-      buf = Types.buffer 512
       msg = "Hello from Spook"
 
       socket = assert S.socket('inet', 'dgram')

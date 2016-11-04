@@ -1,5 +1,3 @@
-{:round} = math
-{:log} = _G
 gettimeofday = gettimeofday
 
 notify_mt = {

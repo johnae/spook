@@ -43,7 +43,7 @@ describe 'fs', ->
     it 'dirtree by default yields only the contents of specified dir', ->
       fs.mkdir_p '/tmp/spook-fs-spec/my/dir/structure'
       contents = {}
-      for entry, attr in fs.dirtree '/tmp/spook-fs-spec'
+      for entry in fs.dirtree '/tmp/spook-fs-spec'
         insert contents, entry
       assert.same {
         '/tmp/spook-fs-spec/my'
@@ -56,7 +56,7 @@ describe 'fs', ->
       f\write("spec")
       f\close!
       contents = {}
-      for entry, attr in fs.dirtree '/tmp/spook-fs-spec', true
+      for entry in fs.dirtree '/tmp/spook-fs-spec', true
         insert contents, entry
       expected = {
         '/tmp/spook-fs-spec/my',
@@ -67,3 +67,5 @@ describe 'fs', ->
       table.sort(expected)
       table.sort(contents)
       assert.same expected, contents
+
+  describe 'dir_table'

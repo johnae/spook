@@ -33,13 +33,13 @@ dirtree = (dir, recursive) ->
   if dir\sub(-1) == "/"
     dir = dir\sub 1,-2
 
-  yieldtree = (dir, recursive) ->
-    unless can_access(dir)
+  yieldtree = (current_dir) ->
+    unless can_access(current_dir)
       log.debug "No access to #{dir}, skipping"
       return
-    for entry in lfs.dir dir
+    for entry in lfs.dir current_dir
       if entry != "." and entry != ".."
-        entry = "#{dir}/#{entry}"
+        entry = "#{current_dir}/#{entry}"
         unless can_access(entry)
           log.debug "No access to #{entry}, skipping"
           continue
@@ -48,7 +48,7 @@ dirtree = (dir, recursive) ->
         if recursive and attr.mode == "directory"
           yieldtree entry, recursive
 
-  coroutine.wrap -> yieldtree dir, recursive
+  coroutine.wrap -> yieldtree dir
 
 mkdir_p = (path) ->
   path_elements = path\split "/"
@@ -67,39 +67,39 @@ mkdir_p = (path) ->
 rm_rf = (path, attr) ->
     attr = attr or lfs.attributes path
     if attr and attr.mode == "directory"
-      for entry, attr in dirtree path, false
-        rm_rf entry, attr
+      for entry, nattr in dirtree path, false
+        rm_rf entry, nattr
       os.remove path
     else if attr
       os.remove path
 
-dir_table = (dir) ->
+dirtable = (dir) ->
   tbl = {}
   for entry, attr in dirtree dir
     path = entry\split('/')
     name = path[#path]
     if attr.mode == "directory"
-      tbl[name] = dir_table entry
+      tbl[name] = dirtable entry
     else
       tbl[name] = true
   tbl
 
-dir_diff = (a, b) ->
+dirdiff = (a, b) ->
   d = {}
   a or= {}
   b or= {}
   for k,v in pairs(a)
     if type(v) == "table"
-      d[k] = dir_diff v, b[k]
+      d[k] = dirdiff v, b[k]
     else
       unless b[k]
         d[k] = "DELETED"
   for k,v in pairs(b)
     if type(v) == "table"
-      d[k] = dir_diff a[k], v
+      d[k] = dirdiff a[k], v
     else
       unless a[k]
         d[k] = "CREATED"
   d
 
-:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present, :dir_table, :dir_diff
+:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present, :dirtable, :dirdiff

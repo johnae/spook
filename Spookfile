@@ -5,12 +5,13 @@ log_level "INFO"
 -- Make it a local for use in handlers
 load_spookfile = _G.load_spookfile
 
+package.path = "#{package.path};spec/support/?.lua;spec/support/?/init.lua"
+
 -- If the spookfile is reloaded we just ensure we reload
 -- the other stuff too.
-package.loaded['moonscript.cmd.lint'] = nil
-moonlint = require("moonscript.cmd.lint").lint_file
+package.loaded['moonpick'] = nil
 package.loaded.lint_config = nil
-package.loaded.lint_config = pcall -> loadfile('lint_config')!
+moonpick = require "moonpick"
 
 -- Require some things that come with spook
 colors = require "ansicolors"
@@ -48,18 +49,18 @@ exec = command "./tools/luajit/bin/luajit run.lua"
 
 lint = (file) ->
   notify.info "LINTING #{file}"
-  result, err = moonlint file
-  success = if result
-    io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{result}\n\n")
-    false
-  elseif err
-    io.stdout\write colors("\n[ %{red}LINT error ]\n#%{white}{file}\n#{err}\n\n")
-    false
-  else
-    true
-  if success
-    io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
-  assert success == true, "lint #{file}"
+  status, res, err = pcall moonpick.lint_file, file
+  if status and res and #res > 0
+    output = moonpick.format_inspections res
+    io.stdout\write colors("\n[ %{yellow}LINT complaints ]\n%{white}#{output}\n\n")
+    error "Lint warning"
+
+  if not status or err
+    msg = err or res
+    io.stdout\write colors("\n[ %{red}LINT error ]\n%{white}#{file}\n#{msg}\n\n")
+    error "Lint error"
+
+  io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
 
 -- Directories to watch for changes, how to map detected changes to
 -- files and what to run

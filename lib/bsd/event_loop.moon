@@ -7,7 +7,6 @@ S = require "syscall"
 Types = S.t
 Constants = S.c
 define = require'classy'.define
-{:is_dir, :dirtree} = require 'fs'
 
 kqueue_fd = S.kqueue!
 timer_id = 0
@@ -17,7 +16,7 @@ next_timer_id = ->
 EventHandlers = {}
 kevs = ->
   events = {}
-  for k, v in pairs EventHandlers
+  for _, v in pairs EventHandlers
     events[#events + 1] = v\__kevdata!
   Types.kevents events
 
@@ -113,7 +112,7 @@ Read = define 'Read', ->
 
     __kevdata: (opts={}) =>
       :flags = opts
-      :filter, :fd = @
+      :filter = @
       flags or= @flags
       :filter, :flags, fd: @fdnum
 
@@ -141,7 +140,7 @@ run_once = (opts={}) ->
   block_for = opts.block_for or 10 -- default 10 ms blocking wait
   block_for = block_for / 1000 -- kqueue takes seconds it seems
   evs = kevs!
-  for k, v in kqueue_fd\kevent nil, evs, block_for
+  for _, v in kqueue_fd\kevent nil, evs, block_for
     handle = EventHandlers["#{v.filter}_#{v.fd}"]
     handle and handle!
   process!
@@ -151,7 +150,7 @@ run = (opts={}) ->
     run_once opts
 
 clear_all = ->
-  for k, v in pairs EventHandlers
+  for _, v in pairs EventHandlers
     v\stop! if v
 
 :Timer, :Signal, :Read, :Stdin, :kqueue_fd, :run, :run_once, :clear_all

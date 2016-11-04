@@ -4,19 +4,12 @@ fs = require 'fs'
 describe 'spook', ->
   local spook
 
-  keys = (t) ->
-    k = {}
-    for key,_ in pairs t
-      k[#k + 1] = key
-    table.sort k
-    k
-
   before_each ->
     spook = Spook.new!
 
   count_dirs_in = (dir) ->
     num = 1 -- incoming dir
-    for entry, attr in fs.dirtree(dir, true)
+    for _, attr in fs.dirtree(dir, true)
       num += 1 if attr.mode == 'directory'
     num
 
