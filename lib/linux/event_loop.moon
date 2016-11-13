@@ -217,9 +217,18 @@ run_once = (opts={}) ->
     handle and handle!
   process!
 
+failures = 0
 run = (opts={}) ->
   while true
-    run_once opts
+    -- When hibernating/suspending - epoll_fd seems to "temporarily" be nil
+    -- I haven't investigated further, something I perhaps should. This allows
+    -- a few failures before crashing, so suspending now works without stopping
+    -- spook.
+    success, err = pcall run_once, opts
+    unless success
+      failures += 1
+      log.debug err
+      error err if failures > 5
 
 clear_all = ->
   for _, v in pairs EventHandlers
