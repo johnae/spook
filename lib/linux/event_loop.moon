@@ -3,7 +3,7 @@ Types = S.t
 :define = require'classy'
 log = require'log'
 {:is_dir, :dirtree, :can_access} = require 'fs'
-:concat = table
+:concat, :insert = table
 
 epoll_fd = S.epoll_create 'cloexec'
 epoll_events = Types.epoll_events 1
@@ -85,7 +85,7 @@ Watcher = define 'Watcher', ->
       @fd = S.inotify_init 'cloexec, nonblock'
       @recursive = opts.recursive or false
       @callback = opts.callback
-      assert type(@callback) == 'function', "'callback' is a required option and must be a callable object (like a function)"
+      assert type(@callback) == 'function', "'callback' is a required option for a Watcher and must be a callable object (like a function)"
       paths = type(paths) == 'table' and paths or {paths}
       @paths = [path for path in *paths when can_access(path)]
       if #@paths == 0
@@ -186,7 +186,7 @@ Read = define 'Read', ->
       @fdnum = type(fd) == 'number' and fd or fd\getfd!
       @callback = callback
       @options = 'in'
-      assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
+      assert type(@callback) == 'function', "'callback' is required for a Reader and must be a callable object (like a function)"
 
     start: =>
       EventHandlers[@fdnum] = @
@@ -208,27 +208,33 @@ Stdin = define 'Stdin', ->
       super @, 0, callback
       @options = 'oneshot'
 
+get_events = (block_for) ->
+  event_fds = {}
+  for _, v in epoll_fd\epoll_wait(epoll_events, block_for)
+    insert event_fds, v.fd
+  event_fds
+
+failures = 0
 run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 10 -- default 10 ms blocking wait
   process or= -> nil
-  for _, v in epoll_fd\epoll_wait(epoll_events, block_for)
-    handle = EventHandlers[v.fd]
+  success, event_fds = pcall get_events, block_for
+  unless success
+    failures += 1
+    log.debug event_fds
+    error event_fds if failures > 5
+    return
+
+  failures = 0
+  for fd in *event_fds
+    handle = EventHandlers[fd]
     handle and handle!
   process!
 
-failures = 0
 run = (opts={}) ->
   while true
-    -- When hibernating/suspending - epoll_fd seems to "temporarily" be nil
-    -- I haven't investigated further, something I perhaps should. This allows
-    -- a few failures before crashing, so suspending now works without stopping
-    -- spook.
-    success, err = pcall run_once, opts
-    unless success
-      failures += 1
-      log.debug err
-      error err if failures > 5
+    run_once opts
 
 clear_all = ->
   for _, v in pairs EventHandlers
