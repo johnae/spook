@@ -29,6 +29,10 @@ string.split = (str, delim) ->
   delim = escape_pattern(delim)
   [m for m in str\gmatch("(.-)"..delim)]
 
+string.trim = (str) ->
+  t = str\match "^%s*()"
+  t > #str and "" or str\match(".*%S", t)
+
 table.index_of = (t, v) ->
   for i = 1, #t
     return i if t[i] == v
