@@ -181,9 +181,13 @@ Signal = define 'Signal', ->
       @callback!
 
 Read = define 'Read', ->
+  properties
+    fdnum: => @fd\getfd!
+
   instance
     initialize: (fd, callback) =>
-      @fdnum = type(fd) == 'number' and fd or fd\getfd!
+      assert type(fd) != 'number', "Only takes wrapped fd:s, please use type helper 'fd' from syscall/methods.lua"
+      @fd = fd
       @callback = callback
       @options = 'in'
       assert type(@callback) == 'function', "'callback' is required for a Reader and must be a callable object (like a function)"
