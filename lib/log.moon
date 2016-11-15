@@ -5,10 +5,12 @@ format = (p) ->
     return serpent.block p, comment: false, sortkeys: true
   p
 
+logger = (...) -> print ...
+
 log = (req_level, level, ...) ->
   if req_level >= level
     params = [format(v) for v in *{...}]
-    print unpack(params)
+    logger unpack params
 
 ERR = 0
 WARN = 1
@@ -21,6 +23,10 @@ log_level = INFO
   :WARN
   :INFO
   :DEBUG
+
+  logger: (f) ->
+    logger = f
+
   level: (l) ->
     log_level = l
 
