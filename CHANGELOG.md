@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.2
+
+A bugfix related to garbage collection. This also removes the "Stdin" reader - only "Read" is necessary. "Read" now requires a wrapped FD as input (like what ljsyscall returns). Without at wrapped FD, it would get garbage collected and all sorts of crazy things happened as a result.
+
+The callback to "Read" will now get the FD rather than the data. This is to enable more control in the consuming function, but obviously it requires the user to actually issue a read on the FD (otherwise the event will be received again and again indefinitely).
+
+The printing of how many directories/files are watched is done through the logger now rather than using just "print". When not using spook as a sort of "guard" replacement (eg. a test runner), it's not very convenient to have it dump stuff on stdout if what you wanted was to send specially formatted data on stdout.
+
+The logger is now configurable and can be changed by setting the logger function like so:
+
+```moonscript
+log.logger (...) ->
+  print ... -- or maybe write to file instead?
+```
+
+There's a trim function defined on string now.
+
+A workaround is now present for "crashing when suspending/hibernating".
+
+## 0.7.1
+
+Minor changes in the notify api. Mostly, you can only add one notifier at a time eg. notify.add 'one_notifier' as opposed to notify.add 'one_notifier', 'two_notifier'. There is (for now) always a signal handler defined which can be replaced. This somewhat simplified the evented signal handling (and avoided problems when hot reloading).
+
 ## 0.7.0
 
 This has several breaking changes but also new features. The reason for all this is the removal of libuv and luv and the wish to implement many more features. The rationale for removing libuv/luv is to enable a finer grained fs events infrastructure. No longer is the only handler "on_changed". There's now also "on_deleted", "on_created", "on_moved", "on_modified" and "on_attrib". In addition to those, signals and timers with associated handlers can be directly defined as part of the Spookfile (or somewhere else by reaching for the global "spook" object which has the necessary functions on it).
