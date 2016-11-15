@@ -176,8 +176,8 @@ describe 'Event Loop', ->
 
     it 'notifies with data when given descriptor is readable', ->
       local received
-      read = Read.new socket, (data) =>
-        received = data
+      read = Read.new socket, (fd) =>
+        received = fd\read!
 
       read\start!
       addr = assert socket\getsockname!

@@ -202,15 +202,7 @@ Read = define 'Read', ->
 
   meta
     __call: =>
-      input = S.read @fdnum
-      @callback input
-
-Stdin = define 'Stdin', ->
-  parent Read
-  instance
-    initialize: (callback) =>
-      super @, 0, callback
-      @options = 'oneshot'
+      @callback @fd
 
 get_events = (block_for) ->
   event_fds = {}
@@ -244,4 +236,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Read, :Stdin, :epoll_fd, :run, :run_once, :clear_all
+:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all

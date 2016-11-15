@@ -101,9 +101,13 @@ Signal = define 'Signal', ->
       @callback!
 
 Read = define 'Read', ->
+  properties
+    fdnum: => @fd\getfd!
+
   instance
     initialize: (fd, callback) =>
-      @fdnum = type(fd) == 'number' and fd or fd\getfd!
+      assert type(fd) != 'number', "Only takes wrapped fd:s, please use type helper 'fd' from syscall/methods.lua"
+      @fd = fd
       @callback = callback
       @filter = 'read'
       @filter_num = Constants.EVFILT[@filter]
@@ -126,14 +130,7 @@ Read = define 'Read', ->
 
   meta
     __call: =>
-      input = S.read @fdnum
-      @callback input
-
-Stdin = define 'Stdin', ->
-  parent Read
-  instance
-   initialize: (callback) =>
-     super @, 0, callback
+      @callback @fd
 
 run_once = (opts={}) ->
   process = opts.process or -> nil
@@ -153,4 +150,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :Read, :Stdin, :kqueue_fd, :run, :run_once, :clear_all
+:Timer, :Signal, :Read, :kqueue_fd, :run, :run_once, :clear_all
