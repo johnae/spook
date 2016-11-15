@@ -229,13 +229,6 @@ timer 5.0, (t) ->
   t\again! -- this is (currently) how a recurring timer is defined - just rearm it using the again method
 ```
 
-For reading from stdin, this is what you do:
-
-```moonscript
-on_stdin (receiver, data) ->
-  print "Incoming: #{data}"
-```
-
 And signal handlers are defined like this:
 
 ```moonscript
@@ -246,15 +239,21 @@ on_signal "int", (receiver) ->
 Finally, reading from something else (like a socket) - please see the specs here [spec/event_loop_spec.moon](spec/event_loop_spec.moon). From the spookfile you'd do something like:
 
 ```moonscript
-on_read some_fd, (data) ->
+Types = require("syscall").t
+stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen)
+on_read stdin, (reader, fd) ->
+  data = fd\read!
   print "Got some data: #{data}"
 ```
 
 So, obviously it's very much up to you to get that FD from somewhere. These functions, eg. on_read, on_signal etc are actually methods on the global spook object. So, if you want to use them from a file you require you can do so like this instead:
 
 ```moonscript
+Types = require("syscall").t
+stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen)
 -- it's really _G.spook
-spook\on_read some_fd, (data) -> 
+spook\on_read stdin, (reader, fd) -> 
+  data = fd\read!
   print "Got some data: #{data}"
 ```
 
