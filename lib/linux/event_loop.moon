@@ -1,12 +1,15 @@
 S = require "syscall"
 Types = S.t
+Util = S.util
 :define = require'classy'
 log = require'log'
 {:is_dir, :dirtree, :can_access} = require 'fs'
 :concat, :insert = table
 
+MAX_EVENTS = 1024
+
 epoll_fd = S.epoll_create 'cloexec'
-epoll_events = Types.epoll_events 1
+epoll_events = Types.epoll_events MAX_EVENTS
 
 subdirs = (dir) ->
   dirs = {dir}
@@ -142,7 +145,7 @@ Timer = define 'Timer', ->
     __call: =>
       EventHandlers[@fdnum] = nil
       -- if we don't read it, epoll will continue returning it (unless in edge triggered mode, but we don't use that here)
-      S.util.timerfd_read @fdnum
+      Util.timerfd_read @fdnum
       @callback!
 
 signalset = S.sigprocmask!
@@ -177,7 +180,7 @@ Signal = define 'Signal', ->
 
   meta
     __call: =>
-      S.util.signalfd_read @fdnum
+      Util.signalfd_read @fdnum
       @callback!
 
 Read = define 'Read', ->
