@@ -1,10 +1,11 @@
-S = require "syscall"
+S = require 'syscall'
 Types = S.t
 Util = S.util
-:define = require'classy'
-log = require'log'
-{:is_dir, :dirtree, :can_access} = require 'fs'
+:define = require 'classy'
+log = require 'log'
+:is_dir, :dirtree, :can_access = require 'fs'
 :concat, :insert = table
+:is_callable = require 'utils'
 
 MAX_EVENTS = 1024
 
@@ -88,7 +89,7 @@ Watcher = define 'Watcher', ->
       @fd = S.inotify_init 'cloexec, nonblock'
       @recursive = opts.recursive or false
       @callback = opts.callback
-      assert type(@callback) == 'function', "'callback' is a required option for a Watcher and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is a required option for a Watcher and must be a callable object (like a function)"
       paths = type(paths) == 'table' and paths or {paths}
       @paths = [path for path in *paths when can_access(path)]
       if #@paths == 0
@@ -127,7 +128,7 @@ Timer = define 'Timer', ->
       @fd = S.timerfd_create 'monotonic', 'cloexec, nonblock'
       @interval = interval
       @callback = callback
-      assert type(@callback) == 'function', "'callback' is required for a timer and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
 
     start: =>
       @again!
@@ -166,7 +167,7 @@ Signal = define 'Signal', ->
       @signals = signals
       @fd = S.signalfd @signals
       @callback = callback
-      assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
 
     start: =>
       EventHandlers[@fdnum] = @
@@ -193,7 +194,7 @@ Read = define 'Read', ->
       @fd = fd
       @callback = callback
       @options = 'in'
-      assert type(@callback) == 'function', "'callback' is required for a Reader and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a Reader and must be a callable object (like a function)"
 
     start: =>
       EventHandlers[@fdnum] = @

@@ -3,10 +3,11 @@
 -- issues with how the kqueue vnode filter works. On OS X I suppose the best
 -- would be to use FSEvents (via ffi). I'll leave this as is for the time
 -- being. I'll get back to it later.
-S = require "syscall"
+S = require 'syscall'
 Types = S.t
 Constants = S.c
-define = require'classy'.define
+:define = require 'classy'
+:is_callable = require 'utils'
 
 kqueue_fd = S.kqueue!
 timer_id = 0
@@ -31,7 +32,7 @@ Timer = define 'Timer', ->
       @filter_num = Constants.EVFILT[@filter]
       @flags = 'add, oneshot'
       @data = @interval
-      assert type(@callback) == 'function', "'callback' is required for a timer and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
 
     __kevdata: (opts={}) =>
       :flags, :data = opts
@@ -78,7 +79,7 @@ Signal = define 'Signal', ->
       @filter_num = Constants.EVFILT[@filter]
       @ident = Constants.SIG[@signal]
       @flags = 'add'
-      assert type(@callback) == 'function', "'callback' is required for a timer and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
 
     __kevdata: (opts={}) =>
       :flags = opts
@@ -112,7 +113,7 @@ Read = define 'Read', ->
       @filter = 'read'
       @filter_num = Constants.EVFILT[@filter]
       @flags = 'add'
-      assert type(@callback) == 'function', "'callback' is required for a signal and must be a callable object (like a function)"
+      assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
 
     __kevdata: (opts={}) =>
       :flags = opts
