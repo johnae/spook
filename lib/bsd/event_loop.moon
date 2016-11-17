@@ -134,7 +134,7 @@ Read = define 'Read', ->
 
 run_once = (opts={}) ->
   process = opts.process or -> nil
-  block_for = opts.block_for or 10 -- default 10 ms blocking wait
+  block_for = opts.block_for or 500 -- default 500 ms blocking wait
   block_for = block_for / 1000 -- kqueue takes seconds it seems
   evs = kevs!
   for _, v in kqueue_fd\kevent nil, evs, block_for

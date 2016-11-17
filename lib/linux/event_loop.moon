@@ -216,7 +216,7 @@ get_events = (block_for) ->
 failures = 0
 run_once = (opts={}) ->
   process = opts.process or -> nil
-  block_for = opts.block_for or 10 -- default 10 ms blocking wait
+  block_for = opts.block_for or 500 -- default 500 ms blocking wait
   process or= -> nil
   success, event_fds = pcall get_events, block_for
   unless success
