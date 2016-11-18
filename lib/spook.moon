@@ -2,7 +2,7 @@ require 'globals'
 :empty, :concat = table
 define = require'classy'.define
 log = require 'log'
-{:Watcher, :Timer, :Signal, :Stdin, :Read} = require "event_loop"
+{:Watcher, :Timer, :Signal, :Read} = require "event_loop"
 Queue = require 'queue'
 Event = require 'event'
 
@@ -20,8 +20,6 @@ define 'Spook', ->
         emitters[#emitters + 1] = t
       for r in *@readers
         emitters[#emitters + 1] = r
-      if @_on_stdin
-        emitters[#emitters + 1] = @_on_stdin
       unless empty @signals
         for _, v in pairs @signals
           emitters[#emitters + 1] = v
@@ -49,7 +47,7 @@ define 'Spook', ->
         @handlers["on_#{wname}"] = (pattern, func) -> store[#store + 1] = {pattern, func}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read', 'on_stdin'}
+      for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) ->
@@ -107,12 +105,6 @@ define 'Spook', ->
     timer: (interval, callback) =>
       @timers[#@timers + 1] = Timer.new interval, callback
       @timers[#@timers]
-
-    on_stdin: (callback) =>
-      if old = @_on_stdin
-        old\stop!
-      @_on_stdin = Stdin.new callback
-      @_on_stdin
 
     on_read: (fd, callback) =>
       @readers[#@readers + 1] = Read.new fd, callback
