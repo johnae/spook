@@ -22,6 +22,8 @@ kevs = ->
   Types.kevents events
 
 Timer = define 'Timer', ->
+  properties
+    stopped: => not @started
 
   instance
     initialize: (interval, callback) =>
@@ -33,6 +35,7 @@ Timer = define 'Timer', ->
       @flags = 'add, oneshot'
       @data = @interval
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
+      @started = false
 
     __kevdata: (opts={}) =>
       :flags, :data = opts
@@ -44,6 +47,7 @@ Timer = define 'Timer', ->
     start: =>
       @stop!
       @again!
+      @started = true
 
     again: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = @
@@ -53,6 +57,7 @@ Timer = define 'Timer', ->
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
       ev = Types.kevents {@__kevdata(flags: 'delete, oneshot')}
       kqueue_fd\kevent ev
+      @started = false
 
   meta
     __call: =>
@@ -71,6 +76,9 @@ signalunblock = (signal) ->
     ignored_signals[signal] = nil
 
 Signal = define 'Signal', ->
+  properties
+    stopped: => not @started
+
   instance
     initialize: (signal, callback) =>
       @callback = callback
@@ -80,6 +88,7 @@ Signal = define 'Signal', ->
       @ident = Constants.SIG[@signal]
       @flags = 'add'
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
+      @started = false
 
     __kevdata: (opts={}) =>
       :flags = opts
@@ -91,11 +100,13 @@ Signal = define 'Signal', ->
       EventHandlers["#{@filter_num}_#{@ident}"] = @
       signalblock @signal
       kqueue_fd\kevent Types.kevents({@__kevdata!})
+      @started = true
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
       signalunblock @signal
       kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
+      @started = false
 
   meta
     __call: =>
@@ -103,6 +114,7 @@ Signal = define 'Signal', ->
 
 Read = define 'Read', ->
   properties
+    stopped: => not @started
     fdnum: => @fd\getfd!
 
   instance
@@ -114,6 +126,7 @@ Read = define 'Read', ->
       @filter_num = Constants.EVFILT[@filter]
       @flags = 'add'
       assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
+      @started = false
 
     __kevdata: (opts={}) =>
       :flags = opts
@@ -124,10 +137,12 @@ Read = define 'Read', ->
     start: =>
       EventHandlers["#{@filter_num}_#{@fdnum}"] = @
       kqueue_fd\kevent Types.kevents({@__kevdata!}), nil
+      @started = true
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@fdnum}"] = nil
       kqueue_fd\kevent Types.kevents {@__kevdata(flags: 'delete')}
+      @started = false
 
   meta
     __call: =>

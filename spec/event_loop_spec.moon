@@ -10,6 +10,30 @@ describe 'Event Loop', ->
 
   describe 'Timer', ->
 
+    describe 'state', ->
+      local timer
+      before_each ->
+        timer = Timer.new 0.111, (t) -> nil
+      after_each ->
+        run_once block_for: 150
+
+      it 'is initially stopped', ->
+        assert.true timer.stopped
+        assert.false timer.started
+
+      it 'is started after calling #start', ->
+        timer\start!
+        assert.false timer.stopped
+        assert.true timer.started
+
+      it 'is stopped when running the callback', ->
+        timer = Timer.new 0.111, (t) ->
+          assert.true t.stopped
+          assert.false t.started
+        timer\start!
+        assert.false timer.stopped
+        assert.true timer.started
+
     it 'executes after specified time interval', ->
       local ended
       t = Timer.new 0.111, (t) ->
@@ -61,6 +85,19 @@ describe 'Event Loop', ->
 
     after_each ->
       fs.rm_rf dir
+
+    describe 'state', ->
+
+      it 'is initially stopped', ->
+        w = Watcher.new dir, 'create, delete, move, modify', callback: (w, events) ->
+        assert.true w.stopped
+        assert.false w.started
+
+      it 'is started after calling #start', ->
+        w = Watcher.new dir, 'create, delete, move, modify', callback: (w, events) ->
+        w\start!
+        assert.false w.stopped
+        assert.true w.started
 
     it 'watches for events in a single directory', ->
       w = Watcher.new dir, 'create, delete, move, modify', callback: (w, events) ->
@@ -147,6 +184,20 @@ describe 'Event Loop', ->
 
   describe 'Signal', ->
 
+    describe 'state', ->
+      local s
+      before_each ->
+        s = Signal.new 'int', (me) -> nil
+
+      it 'is initially stopped', ->
+        assert.false s.started
+        assert.true s.stopped
+
+      it 'is started after calling #start', ->
+        s\start!
+        assert.true s.started
+        assert.false s.stopped
+
     it 'receives any given signals sent to process', ->
       local received_hup, received_pipe, received_winch
       shup = Signal.new "hup", (me) -> received_hup = true
@@ -173,6 +224,20 @@ describe 'Event Loop', ->
       socket\nonblock!
       saddr = assert Types.sockaddr_in(0, 'loopback')
       assert socket\bind(saddr)
+
+    describe 'state', ->
+      local r
+      before_each ->
+        r = Read.new Types.fd(0), (me) -> nil
+
+      it 'is initially stopped', ->
+        assert.false r.started
+        assert.true r.stopped
+
+      it 'is started after calling #start', ->
+        r\start!
+        assert.true r.started
+        assert.false r.stopped
 
     it 'notifies with data when given descriptor is readable', ->
       local received

@@ -38,6 +38,7 @@ recurse_paths = (paths) ->
 EventHandlers = {}
 Watcher = define 'Watcher', ->
   properties
+    stopped: => not @started
     fdnum: => @fd\getfd!
     events: =>
       n = @fd\inotify_read!
@@ -98,6 +99,7 @@ Watcher = define 'Watcher', ->
         @paths = recurse_paths @paths
       @watch_for = watch_for
       @watchers = {}
+      @started = false
 
     start: =>
       @stop!
@@ -107,6 +109,7 @@ Watcher = define 'Watcher', ->
         continue unless wd
         @watchers[wd] = p
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
+      @started = true
 
     stop: =>
       EventHandlers[@fdnum] = nil
@@ -114,6 +117,7 @@ Watcher = define 'Watcher', ->
       for k, _ in pairs @watchers
         @fd\inotify_rm_watch k
       @watchers = {}
+      @started = false
 
   meta
     __call: =>
@@ -121,6 +125,7 @@ Watcher = define 'Watcher', ->
 
 Timer = define 'Timer', ->
   properties
+    stopped: => not @started
     fdnum: => @fd\getfd!
 
   instance
@@ -129,10 +134,12 @@ Timer = define 'Timer', ->
       @interval = interval
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
+      @started = false
 
     start: =>
       @again!
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
+      @started = true
 
     again: =>
       EventHandlers[@fdnum] = @
@@ -141,12 +148,14 @@ Timer = define 'Timer', ->
     stop: =>
       EventHandlers[@fdnum] = nil
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
+      @started = false
 
   meta
     __call: =>
       EventHandlers[@fdnum] = nil
       -- if we don't read it, epoll will continue returning it (unless in edge triggered mode, but we don't use that here)
       Util.timerfd_read @fdnum
+      @started = false
       @callback!
 
 signalset = S.sigprocmask!
@@ -160,6 +169,7 @@ signalunblock = (signals) ->
 
 Signal = define 'Signal', ->
   properties
+    stopped: => not @started
     fdnum: => @fd\getfd!
 
   instance
@@ -168,16 +178,19 @@ Signal = define 'Signal', ->
       @fd = S.signalfd @signals
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
+      @started = false
 
     start: =>
       EventHandlers[@fdnum] = @
       signalblock @signals
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
+      @started = true
 
     stop: =>
       EventHandlers[@fdnum] = nil
       signalunblock @signals
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
+      @started = false
 
   meta
     __call: =>
@@ -186,6 +199,7 @@ Signal = define 'Signal', ->
 
 Read = define 'Read', ->
   properties
+    stopped: => not @started
     fdnum: => @fd\getfd!
 
   instance
@@ -195,14 +209,17 @@ Read = define 'Read', ->
       @callback = callback
       @options = 'in'
       assert is_callable(@callback), "'callback' is required for a Reader and must be a callable object (like a function)"
+      @started = false
 
     start: =>
       EventHandlers[@fdnum] = @
       epoll_fd\epoll_ctl 'add', @fdnum, @options
+      @started = true
 
     stop: =>
       EventHandlers[@fdnum] = nil
       epoll_fd\epoll_ctl 'del', @fdnum, @options
+      @started = false
 
   meta
     __call: =>
