@@ -225,27 +225,20 @@ Read = define 'Read', ->
     __call: =>
       @callback @fd
 
-get_events = (block_for) ->
-  event_fds = {}
-  for _, v in epoll_fd\epoll_wait(epoll_events, block_for)
-    insert event_fds, v.fd
-  event_fds
+-- get around the issue of epoll returning nil
+-- when the process receives a SIGSTOP
+wait_for_events = (block_for) ->
+  nilf = ->
+  f, a, r = epoll_fd\epoll_wait epoll_events, block_for
+  return f, a, r if f
+  nilf
 
-failures = 0
 run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 500 -- default 500 ms blocking wait
   process or= -> nil
-  success, event_fds = pcall get_events, block_for
-  unless success
-    failures += 1
-    log.debug event_fds
-    error event_fds if failures > 5
-    return
-
-  failures = 0
-  for fd in *event_fds
-    handle = EventHandlers[fd]
+  for _, v in wait_for_events block_for
+    handle = EventHandlers[v.fd]
     handle and handle!
   process!
 
