@@ -45,9 +45,9 @@ if fi = index_of arg, "-f"
     os.exit 1
   _G.arg = new_args
   success, chunk = if file\match("[^.]%.lua$")
-    loadfile(file)
+    pcall loadfile, file
   else
-    moonscript.loadfile(file)
+    pcall moonscript.loadfile, file
   loadfail file, chunk unless success
   return chunk!
 
