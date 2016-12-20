@@ -4,7 +4,7 @@ Util = S.util
 :define = require 'classy'
 log = require 'log'
 :is_dir, :dirtree, :can_access = require 'fs'
-:concat, :insert = table
+:concat = table
 :is_callable = require 'utils'
 
 MAX_EVENTS = 1024

@@ -41,8 +41,8 @@ test: spook
 	$(LUAJIT_BIN) spec/support/run_busted.lua spec
 
 lint: spook
-	$(LUAJIT_BIN) spec/support/run_linter.lua lib/*
-	$(LUAJIT_BIN) spec/support/run_linter.lua spec/*
+	$(LUAJIT_BIN) spec/support/run_linter.lua lib/**/*
+	$(LUAJIT_BIN) spec/support/run_linter.lua spec/**/*
 
 install: all
 	cp spook $(PREFIX)/bin

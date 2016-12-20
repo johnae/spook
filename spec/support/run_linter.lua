@@ -14,11 +14,12 @@ local files = _G.arg
 local errors = 0
 for _, file in ipairs(files) do
   if file:match('.*%.moon') then
-    local res, err = moonpick.lint_file(file)
-    if res and #res > 0 then
+    local status, res, err
+    status, res, err = pcall(moonpick.lint_file, file)
+    if status and res and #res > 0 then
       io.stdout:write(colors("\n[ %{yellow}LINT warning ]\n%{white}" .. file .. "\n" .. moonpick.format_inspections(res) .. "\n\n"))
       errors = errors + 1
-    elseif err then
+    elseif err or not status then
       io.stdout:write(colors("\n[ %{red}LINT error ]\n%{white}" .. file .. "\n" .. err .. "\n\n"))
       errors = errors + 1
     end
