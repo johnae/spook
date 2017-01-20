@@ -62,6 +62,7 @@ Timer = define 'Timer', ->
   meta
     __call: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
+      @started = false
       @callback!
 
 ignored_signals = {}

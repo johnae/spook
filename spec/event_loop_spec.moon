@@ -41,7 +41,7 @@ describe 'Event Loop', ->
       started = gettimeofday!
       t\start!
       run_once block_for: 150 -- block for a little longer than timer trigger interval
-      assert.is.near 111, (ended - started), 12 -- allow +-12ms
+      assert.is.near 111, (ended - started), 30 -- allow +-30ms
 
     it 'is called once by default', ->
       s = spy.new ->
