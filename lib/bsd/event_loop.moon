@@ -158,6 +158,7 @@ convert_to_bsd_flags = (input) ->
         bsd[#bsd + 1] = 'rename'
       when 'modify'
         bsd[#bsd + 1] = 'write'
+      when 'attrib'
         bsd[#bsd + 1] = 'attrib'
   concat bsd, ', '
 
