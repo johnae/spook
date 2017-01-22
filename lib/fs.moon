@@ -2,7 +2,7 @@ require 'globals'
 lfs = require "syscall.lfs"
 S = require 'syscall'
 log = require'log'
-:insert, :remove, :sort = table
+:remove = table
 
 is_dir = (dir) ->
   return false unless type(dir) == "string"
