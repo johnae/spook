@@ -4,9 +4,9 @@
 
 This version has had it's innards ripped out and thrown away (so no more libuv/libluv). It's using just system calls now (so inotify, epoll and kqueue more or less directly). This was mainly so that I could enable more fine grained filesystem events watching. I also think this, in the end, will enable alot more use cases than as the lightweight [guard](https://github.com/guard/guard) replacement it originally was meant to be (it still works perfectly fine for that).
 
-Unfortunately I haven't finished the BSD support (OS X included) in this version. What's lacking is a proper fs events watcher. It turned out that kqueue isn't as well suited to this as inotify on Linux is. It basically needs more code to work. Since I'm mostly a Linux user I haven't gotten around to really fixing this.
+For a time OS X and the BSD:s were not supported fully (wrt file system events). This is no longer the case as of version 0.7.3. So if you are on OS X or say FreeBSD - please use 0.7.3 or later. The reason 0.6.x and earlier versions supported BSD/OSX was that those versions used libuv.
 
-See the [CHANGELOG](CHANGELOG.md) for more information. The 0.6.x versions ofc work perfectly fine still.
+See the [CHANGELOG](CHANGELOG.md) for more information.
 
 ## Spook
 

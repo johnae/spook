@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3
+
+The main fix in this one is support for OS X (and the BSD:s). This took a while to get around to since I don't use OS X or BSD myself. Therefore, even though tested, I would much appreciate it if someone on a Mac tried it out to iron out any left over bugs.
+
+Everything that worked on Linux previously should work the same on OS X / BSD. Possibly some slight differences in behavior for fs events but those should be minor and not relevant to most use cases I can think of.
+
 ## 0.7.2
 
 A bugfix related to garbage collection. This also removes the "Stdin" reader - only "Read" is necessary. "Read" now requires a wrapped FD as input (like what ljsyscall returns). Without at wrapped FD, it would get garbage collected and all sorts of crazy things happened as a result.
