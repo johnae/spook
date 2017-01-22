@@ -1,4 +1,5 @@
 [![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
+[![Travis CI](https://travis-ci.org/johnae/spook.svg?branch=master)](https://travis-ci.org/johnae/spook)
 
 ## Spook
 
