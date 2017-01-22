@@ -17,7 +17,7 @@ Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need
 make
 ```
 
-After that you should have an executable called spook. It's known to build on Linux and Mac OS X. In version 0.7.0 support for BSD/OSX is not complete wrt fs events and this makes it not very usable on those platforms (for now). Sorry. I will hopefully get around to that in time (or maybe you can help out?). The 0.6.0 and earlier releases should still work fine though.
+After that you should have an executable called spook. It's known to build and work well on Linux and Mac OS X. It should also work fine on the BSD:s but I haven't tried it there.
 
 Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work.
 
