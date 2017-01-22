@@ -172,7 +172,6 @@ describe 'Event Loop', ->
       }
 
     it 'detects file moves', ->
-      moon = require "moon"
       w = Watcher.new dir, 'create, delete, move, modify', recursive: true, callback: (w, events) ->
         event_catcher events
 
