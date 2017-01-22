@@ -131,7 +131,7 @@ kq_watch = (id, opts={}) ->
     status = kqueue_fd\kevent Types.kevents({kev})
     assert status, "Failed to setup kqueue watch"
     {:modification, :access, :change, :size, :ino, :mode} = attr or lfs.attributes(path)
-    watches[path] = :modification, :access, :change, :size, :ino, :mode, :file
+    watches[path] = :modification, :access, :change, :size, :ino, :mode, :file, :udata
     if is_dir(path)
       for entry, eattr in dirtree(path)
         if not is_dir(entry) or recursive
