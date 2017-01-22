@@ -34,7 +34,7 @@ There's a [CHANGELOG](CHANGELOG.md) which may be useful when learning about any 
 
 ### Binaries
 
-If you prefer to just install the latest binary you can do so by running the following in a shell:
+If you prefer to just install the latest binary (sorry Linux 64-bit only) you can do so by running the following in a shell:
 
 ```
 curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local bash
