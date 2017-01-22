@@ -1,13 +1,5 @@
 [![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
 
-## Some notes on the 0.7.0 version vs previous versions
-
-This version has had it's innards ripped out and thrown away (so no more libuv/libluv). It's using just system calls now (so inotify, epoll and kqueue more or less directly). This was mainly so that I could enable more fine grained filesystem events watching. I also think this, in the end, will enable alot more use cases than as the lightweight [guard](https://github.com/guard/guard) replacement it originally was meant to be (it still works perfectly fine for that).
-
-For a time OS X and the BSD:s were not supported fully (wrt file system events). This is no longer the case as of version 0.7.3. So if you are on OS X or say FreeBSD - please use 0.7.3 or later. The reason 0.6.x and earlier versions supported BSD/OSX was that those versions used libuv.
-
-See the [CHANGELOG](CHANGELOG.md) for more information.
-
 ## Spook
 
 Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but is much more since the 0.7.0 version.
