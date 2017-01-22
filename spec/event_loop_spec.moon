@@ -108,6 +108,8 @@ describe 'Event Loop', ->
       -- this shouldn't be reported - non-recursive
       create_file "#{subdir1}/testfile.txt", "some content"
       run_once block_for: 50
+      run_once block_for: 50
+      run_once block_for: 50
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -123,6 +125,8 @@ describe 'Event Loop', ->
       os.remove "#{dir}/testfile.txt"
       -- this shouldn't be reported - non-recursive
       os.remove "#{subdir1}/testfile.txt"
+      run_once block_for: 50
+      run_once block_for: 50
       run_once block_for: 50
 
       assert.spy(event_catcher).was.called_with {
@@ -140,6 +144,8 @@ describe 'Event Loop', ->
 
       create_file "#{subdir1}/testfile.txt", "some content"
       run_once block_for: 50
+      run_once block_for: 50
+      run_once block_for: 50
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{subdir1}/testfile.txt"
@@ -151,6 +157,8 @@ describe 'Event Loop', ->
         }
       }
       create_file "#{subdir2}/testfile.txt", "some content"
+      run_once block_for: 50
+      run_once block_for: 50
       run_once block_for: 50
       assert.spy(event_catcher).was.called_with {
         {
@@ -171,6 +179,8 @@ describe 'Event Loop', ->
       w\start!
 
       S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
+      run_once block_for: 50
+      run_once block_for: 50
       run_once block_for: 50
       assert.spy(event_catcher).was.called_with {
         {

@@ -94,7 +94,7 @@ Watcher = define 'Watcher', ->
       paths = type(paths) == 'table' and paths or {paths}
       @paths = [path for path in *paths when can_access(path)]
       if #@paths == 0
-        error "None of the given paths (#{concat ["'#{path}'" for path in * paths], ', '}) were accessible"
+        error "None of the given paths (#{concat ["'#{path}'" for path in *paths], ', '}) were accessible"
       if @recursive
         @paths = recurse_paths @paths
       @watch_for = watch_for

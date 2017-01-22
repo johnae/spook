@@ -2,7 +2,7 @@ require 'globals'
 lfs = require "syscall.lfs"
 S = require 'syscall'
 log = require'log'
-remove = table.remove
+:remove = table
 
 is_dir = (dir) ->
   return false unless type(dir) == "string"
@@ -73,33 +73,4 @@ rm_rf = (path, attr) ->
     else if attr
       os.remove path
 
-dirtable = (dir) ->
-  tbl = {}
-  for entry, attr in dirtree dir
-    path = entry\split('/')
-    name = path[#path]
-    if attr.mode == "directory"
-      tbl[name] = dirtable entry
-    else
-      tbl[name] = true
-  tbl
-
-dirdiff = (a, b) ->
-  d = {}
-  a or= {}
-  b or= {}
-  for k,v in pairs(a)
-    if type(v) == "table"
-      d[k] = dirdiff v, b[k]
-    else
-      unless b[k]
-        d[k] = "DELETED"
-  for k,v in pairs(b)
-    if type(v) == "table"
-      d[k] = dirdiff a[k], v
-    else
-      unless a[k]
-        d[k] = "CREATED"
-  d
-
-:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present, :dirtable, :dirdiff
+:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present
