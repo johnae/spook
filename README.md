@@ -294,6 +294,8 @@ fail = (msg, info) ->
 
 A notifier can use ANY arbitrary names for the functions handling the notifications. Just know that generally start, success and fail will be called. Whatever else you do is completely up to you. And you don't have to use any notifiers at all.
 
+As is mentioned further down, one place to put notifiers might be in $HOME/.spook/lib since that is already on the package.path. For example, different team members might agree that a good place to put the notifier could be in "$HOME/.spook/lib/notifier.moon". Everyones notifier can be different but is still referred to by the same name. Or some code might be written where any and all notifiers under a certain directory get loaded. There's no restrictions really.
+
 A slightly more complex notification example for tmux might look like this:
 
 ```moonscript
@@ -344,6 +346,41 @@ spook\on_signal 'int', (s) ->
   os.exit(1)
 
 :start, :success, :fail
+```
+
+Or another example that I'm currently using (you'll have to tweak it slightly to use your own icons):
+
+```sh
+success_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/success.svg"
+fail_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/error.svg"
+
+notify_send = (success, msg) ->
+  cmd = if success
+    "notify-send -i #{success_icon} -a 'Spook' -u normal \"#{msg}\""
+  else
+    "notify-send -i #{fail_icon} -a 'Spook' -u critical \"#{msg}\""
+  os.execute cmd
+
+getcwd = _G.getcwd
+round = math.round
+project_name = ->
+  cwd = getcwd!\split '/'
+  cwd[#cwd]
+
+time_calc = (start, finish) ->
+  round finish - start, 3
+
+{
+  success: (msg, info) ->
+    :start_at, success_at: end_at = info
+    msg = "#{project_name!\upper!}: tests passed in #{time_calc(start_at, end_at)}s"
+    notify_send true, msg
+
+  fail: (msg, info) ->
+    :start_at, fail_at: end_at = info
+    msg = "#{project_name!\upper!}: tests failed in #{time_calc(start_at, end_at)}s"
+    notify_send false, msg
+}
 ```
 
 ### Extending Spook
