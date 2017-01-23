@@ -14,7 +14,8 @@ package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?/init.lua"
 
 -- setup additional requirements
 require "moonscript"
-_G.log = require'log'
+_G.log = require 'log'
+_G.notify = require('notify')!
 moonscript = require "moonscript.base"
 colors = require 'ansicolors'
 {:index_of} = table
