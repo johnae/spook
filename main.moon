@@ -94,6 +94,7 @@ load_spookfile = ->
   if args.log_level
     spook.log_level = args.log_level if args.log_level
   _G.spook = spook
+  _G.notify.clear!
   queue = spook.queue
   success, result = pcall -> spook spookfile
   loadfail spookfile_path, result unless success
