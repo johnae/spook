@@ -15,18 +15,21 @@ parser\flag("-i --initialize", "Initialize an example Spookfile in the current d
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
--- Make it a local for use in handlers
+-- Make it a local for use in handlers. In Lua
+-- it's generally preferable to make locals.
 load_spookfile = _G.load_spookfile
 
 -- Require some things that come with spook
 fs = require 'fs'
--- notify takes an arbitrary number of arguments where each is
--- a notifier - either for requiring or the table of functions
--- to use.
-notify = require('notify')!
+
+-- notify is a global variable. Let's make it a local
+-- as is generally recommended in Lua.
+-- Let's add the built-in terminal_notifier.
+notify = _G.notify
 
 -- Adds the built-in terminal_notifier
 notify.add 'terminal_notifier'
+
 -- if the added notifier is a string it will be loaded using
 -- 'require'. It can also be specified right here, like:
 -- notify.add {
@@ -61,6 +64,10 @@ ruby = (file) ->
   _, _, status = os.execute "ruby #{file}"
   assert status == 0, "ruby #{file} - failed"
   status == 0
+
+-- For more advanced use of notifications, reruns, task filtering
+-- etc. Please see "spookfile_helpers". There should be good examples
+-- of usage in spook's own Spookfile.
 
 -- Setup what directories to watch and what to do
 -- when a file is changed. For notifications, the
