@@ -348,7 +348,7 @@ spook\on_signal 'int', (s) ->
 :start, :success, :fail
 ```
 
-Or another example that I'm currently using (you'll have to tweak it slightly to use your own icons):
+Or another example that I'm currently using on Linux (you'll have to tweak it slightly to use your own icons):
 
 ```sh
 success_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/success.svg"
