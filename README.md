@@ -354,11 +354,11 @@ Or another example that I'm currently using on Linux (you'll have to tweak it sl
 success_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/success.svg"
 fail_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/error.svg"
 
-notify_send = (success, msg) ->
+notify_send = (success, project, msg) ->
   cmd = if success
-    "notify-send -i #{success_icon} -a 'Spook' -u normal \"#{msg}\""
+    "notify-send -i #{success_icon} -a 'Spook' -u normal '#{project}: SUCCESS' '#{msg}'"
   else
-    "notify-send -i #{fail_icon} -a 'Spook' -u critical \"#{msg}\""
+    "notify-send -i #{fail_icon} -a 'Spook' -u critical '#{project}: FAIL' '#{msg}'"
   os.execute cmd
 
 getcwd = _G.getcwd
@@ -373,13 +373,13 @@ time_calc = (start, finish) ->
 {
   success: (msg, info) ->
     :start_at, success_at: end_at = info
-    msg = "#{project_name!\upper!}: tests passed in #{time_calc(start_at, end_at)}s"
-    notify_send true, msg
+    msg = "tests passed in #{time_calc(start_at, end_at)}s"
+    notify_send true, project_name!\upper!, msg
 
   fail: (msg, info) ->
     :start_at, fail_at: end_at = info
-    msg = "#{project_name!\upper!}: tests failed in #{time_calc(start_at, end_at)}s"
-    notify_send false, msg
+    msg = "tests failed in #{time_calc(start_at, end_at)}s"
+    notify_send false, project_name!\upper!, msg
 }
 ```
 
