@@ -27,7 +27,9 @@ ffi.cdef [[
 
 watch_path = ffi.typeof('watch_path')
 
+MAX_EVENTS = 64
 kqueue_fd = S.kqueue!
+
 _next_id = 0
 next_id = ->
   _next_id += 1
@@ -352,12 +354,18 @@ Read = define 'Read', ->
     __call: =>
       @callback @fd
 
+wait_for_events = (block_for) ->
+  kqueue_events = Types.kevents MAX_EVENTS
+  nilf = ->
+  f, a, r = kqueue_fd\kevent nil, kqueue_events, block_for
+  return f, a, r if f
+  nilf
+
 run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 500 -- default 500 ms blocking wait
   block_for = block_for / 1000 -- kqueue takes seconds it seems
-  evs = Types.kevents 10
-  for _, v in kqueue_fd\kevent nil, evs, block_for
+  for _, v in wait_for_events block_for
     if v.filter == Constants.EVFILT['vnode']
       wp = ffi.cast('watch_path*', v.udata)
       id, path = tonumber(wp.id), ffi.string(wp.path)
