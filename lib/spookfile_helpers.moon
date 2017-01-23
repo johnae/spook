@@ -49,11 +49,15 @@ notifies = (name, info, list) ->
     unless success
       notify.fail result, info
       error result
+  -- we just get the first here - it may be null
+  -- and in that case we don't want to end up
+  -- running the success notifier but rather
+  -- abort this whole thing
   func, arg = list!
   return unless func
   notify.start name, info
   run func, arg
-  run func, arg for func, arg in list
+  run f, a for f, a in list -- so as not to shadow func/arg which linting will complain about
   notify.success name, info
 
 :until_success, :command, :task_filter, :notifies
