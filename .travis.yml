@@ -6,4 +6,5 @@ matrix:
 
 script:
   - make
+  - make lint
   - make test
