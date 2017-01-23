@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+Forgot to actually make this log part of the 0.7.4 tag. 0.7.4 merely makes the spookfile_helpers a built-in and makes a global out of notify. The reason for this is that it simplifies using spook as a spec runner since one doesn't need to store some file to require somewhere and possibly reimplement for every project. Making notify a global simplified it's use from spookfile_helpers in turn.
+
 ## 0.7.3
 
 The main fix in this one is support for OS X (and the BSD:s). This took a while to get around to since I don't use OS X or BSD myself. Therefore, even though tested, I would much appreciate it if someone on a Mac tried it out to iron out any left over bugs.
