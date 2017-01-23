@@ -80,8 +80,6 @@ clean-deps:
 	rm -rf tools/luajit
 	cd deps/luajit && \
 		$(MAKE) clean
-	cd deps/luv && \
-		$(MAKE) clean
 
 clean:
 	rm -f $(OBJECTS)
