@@ -112,26 +112,39 @@ package.loaded.lint_config = pcall -> loadfile('lint_config')!
 colors = require "ansicolors"
 fs = require 'fs'
 
--- notify takes an arbitrary number of arguments where each is
--- a notifier - either for requiring or the table of functions
--- to use. Let's add the built-in terminal_notifier.
-notify = require('notify')!
+-- notify is a global variable. Let's make it a local
+-- as is generally recommended in Lua.
+-- Let's add the built-in terminal_notifier.
+notify = _G.notify
+
+-- Adds the built-in terminal_notifier - this notifies of success/fail
+-- in the terminal.
 notify.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
 -- add that notifier also. We fail silently otherwise.
 pcall notify.add, 'notifier'
 
--- spookfile_helpers is not included inside the spook binary,
--- it's rather just some helpers in a file in this repo.
--- In general it's probably a good idea to keep helpers around
--- in some other file.
+-- Yet another simple way of including a notifier would
+-- be to define it right here - like this:
+notify.add {
+  start: (msg, info) ->
+    print "Start, yay"
+  success: (msg, info) ->
+    print "Success, yay!"
+  fail: (msg, info) ->
+    print "Fail, nay!"
+}
+
+-- spookfile_helpers is included inside the spook binary,
+-- it's some helpers mainly for using spook in a similar fashion
+-- to guard.
 {
   :until_success
   :command
   :task_filter
   :notifies
-} = require('spookfile_helpers')(notify)
+} = require 'spookfile_helpers'
 
 -- we use this for notifications, by filtering out
 -- the commands not runnable (because the mapped files
