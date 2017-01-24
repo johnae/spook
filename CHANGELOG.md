@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5
+
+Now all notifiers are cleared out when reloading Spookfile in place. Previously they would bunch up and you'd be in notify hell.
+Behind the scenes a struct is used for the identification of kqueue vnode watches. This was previously a string. Makes for better organization and avoids situations where the path name may interfere with the used scheme.
+On Linux epoll may return nil when system is suspended/woken up. The same workaround has been implemented in case kqueue can also return nil, it should now just advance to the next iteration.
+
 ## 0.7.4
 
 Forgot to actually make this log part of the 0.7.4 tag. 0.7.4 merely makes the spookfile_helpers a built-in and makes a global out of notify. The reason for this is that it simplifies using spook as a spec runner since one doesn't need to store some file to require somewhere and possibly reimplement for every project. Making notify a global simplified it's use from spookfile_helpers in turn.
