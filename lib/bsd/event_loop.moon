@@ -17,6 +17,16 @@ log = require 'log'
 abi_os = require('syscall').abi.os
 fd_evt_flag = abi_os == 'osx' and 'evtonly' or 'rdonly'
 
+-- define something that identifies a watcher + a path uniquely
+ffi.cdef [[
+  typedef struct {
+    uint8_t id;
+    char path[1024];
+  } watch_path;
+]]
+
+watch_path = ffi.typeof('watch_path')
+
 kqueue_fd = S.kqueue!
 _next_id = 0
 next_id = ->
@@ -125,7 +135,7 @@ kq_watch = (id, opts={}) ->
   flags = opts.flags or 'add, enable, clear'
   fflags = opts.fflags or 'delete, write, rename, attrib'
   watch = (path, attr, recursive) ->
-    udata = ffi.new("char[1024]", "#{id}|#{path}")
+    udata = watch_path :id, :path
     file = S.open path, fd_evt_flag
     kev = :filter, :flags, :udata, :fflags, fd: file\getfd!
     status = kqueue_fd\kevent Types.kevents({kev})
@@ -349,8 +359,8 @@ run_once = (opts={}) ->
   evs = Types.kevents 10
   for _, v in kqueue_fd\kevent nil, evs, block_for
     if v.filter == Constants.EVFILT['vnode']
-      ident = ffi.string(v.udata)\split '|'
-      id, path = ident[1], ident[2]
+      wp = ffi.cast('watch_path*', v.udata)
+      id, path = tonumber(wp.id), ffi.string(wp.path)
       ev = watch_events["#{v.filter}_#{id}"] or {:id, filter: v.filter}
       watch_events["#{v.filter}_#{id}"] = ev
       append ev, {:path, event: v}
