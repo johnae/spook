@@ -6,16 +6,19 @@ gettimeofday = gettimeofday
 
 describe 'Event Loop', ->
 
+  loop = run_loop(run_once) -- a spec_helper, see spec/spec_helper.moon
+
   after_each -> clear_all!
 
   describe 'Timer', ->
 
     describe 'state', ->
       local timer
+
       before_each ->
         timer = Timer.new 0.111, (t) -> nil
-      after_each ->
-        run_once block_for: 150
+
+      after_each -> loop block_for: 150
 
       it 'is initially stopped', ->
         assert.true timer.stopped
@@ -40,7 +43,7 @@ describe 'Event Loop', ->
         ended = gettimeofday!
       started = gettimeofday!
       t\start!
-      run_once block_for: 150 -- block for a little longer than timer trigger interval
+      loop block_for: 150 -- block for a little longer than timer trigger interval
       assert.is.near 111, (ended - started), 30 -- allow +-30ms
 
     it 'is called once by default', ->
@@ -48,8 +51,7 @@ describe 'Event Loop', ->
       t = Timer.new 0.01, (t) ->
         s!
       t\start!
-      run_once block_for: 25
-      run_once block_for: 25
+      loop block_for: 25, loops: 2
       assert.spy(s).was.called(1)
 
     it 'can be rearmed by call to #again', ->
@@ -58,8 +60,7 @@ describe 'Event Loop', ->
         s!
         t\again!
       t\start!
-      run_once block_for: 25
-      run_once block_for: 25
+      loop block_for: 25, loops: 2
       assert.spy(s).was.called(2)
 
     it 'is not called again if stopped even if rearmed', ->
@@ -69,8 +70,7 @@ describe 'Event Loop', ->
         t\again!
         t\stop!
       t\start!
-      run_once block_for: 25
-      run_once block_for: 25
+      loop block_for: 25, loops: 2
       assert.spy(s).was.called(1)
 
   describe 'Watcher', ->
@@ -107,9 +107,8 @@ describe 'Event Loop', ->
       create_file "#{dir}/testfile.txt", "some content"
       -- this shouldn't be reported - non-recursive
       create_file "#{subdir1}/testfile.txt", "some content"
-      run_once block_for: 50
-      run_once block_for: 50
-      run_once block_for: 50
+
+      loop block_for: 50, loops: 3
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -125,9 +124,8 @@ describe 'Event Loop', ->
       os.remove "#{dir}/testfile.txt"
       -- this shouldn't be reported - non-recursive
       os.remove "#{subdir1}/testfile.txt"
-      run_once block_for: 50
-      run_once block_for: 50
-      run_once block_for: 50
+
+      loop block_for: 50, loops: 3
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -143,9 +141,9 @@ describe 'Event Loop', ->
       w\start!
 
       create_file "#{subdir1}/testfile.txt", "some content"
-      run_once block_for: 50
-      run_once block_for: 50
-      run_once block_for: 50
+
+      loop block_for: 50, loops: 3
+
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{subdir1}/testfile.txt"
@@ -157,9 +155,9 @@ describe 'Event Loop', ->
         }
       }
       create_file "#{subdir2}/testfile.txt", "some content"
-      run_once block_for: 50
-      run_once block_for: 50
-      run_once block_for: 50
+
+      loop block_for: 50, loops: 3
+
       assert.spy(event_catcher).was.called_with {
         {
           path: "#{subdir2}/testfile.txt"
@@ -179,9 +177,9 @@ describe 'Event Loop', ->
       w\start!
 
       S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
-      run_once block_for: 50
-      run_once block_for: 50
-      run_once block_for: 50
+      
+      loop block_for: 50, loops: 3
+
       assert.spy(event_catcher).was.called_with {
         {
           from: "#{subdir1}/testfile.txt"
@@ -218,8 +216,9 @@ describe 'Event Loop', ->
       swinch\start!
       S.kill S.getpid!, "hup"
       S.kill S.getpid!, "pipe"
-      for i=1,2
-        run_once block_for: 50
+
+      loop block_for: 50, loops: 2
+
       assert.true received_hup
       assert.true received_pipe
       assert.nil received_winch
@@ -258,5 +257,7 @@ describe 'Event Loop', ->
       addr = assert socket\getsockname!
       csock = assert S.socket('inet', 'dgram')
       csock\sendto msg, #msg, 0, addr
-      run_once block_for: 50
+
+      loop block_for: 50
+
       assert.equal "Hello from Spook", received

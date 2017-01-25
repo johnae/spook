@@ -29,7 +29,7 @@ return {
     },
     ["spec"] = {
       'it', 'describe', 'before_each', 'before', 'after', 'after_each',
-      'raise', 'spy', 'context', 'create_file', 'moon'
+      'raise', 'spy', 'context', 'create_file', 'moon', 'run_loop'
     },
     ["spec/spec_helper.moon"] = {
       'uv'
