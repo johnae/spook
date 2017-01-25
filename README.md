@@ -3,29 +3,26 @@
 
 ## Spook
 
-Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but is much more since the 0.7.0 version.
-It's still early days but I'm using it every day for work. It is mostly written in [Lua](http://www.lua.org)
-and [moonscript](https://github.com/leafo/moonscript) with a sprinkle of C. It's built as a single binary
-with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript),
+Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become much more than that since the 0.7.0 version. It is mostly written in [moonscript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript),
 which is also part of the binary.
 
-You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like.
+You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like (somewhere in your PATH probably).
 
 Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
 
-```
+```sh
 make
 ```
 
-After that you should have an executable called spook. It's known to build and work well on Linux and Mac OS X. It should also work fine on the BSD:s but I haven't tried it there.
+After that you should have an executable called spook. It's known to build and work well on Linux and Mac OS X. It should also work fine on the BSD:s.
 
 Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work.
 
 
 Installation is as straightforward as:
 
-```
-PREFIX=/usr/local make install
+```sh
+make install PREFIX=/usr/local
 ```
 
 ### Changelog
@@ -37,7 +34,7 @@ There's a [CHANGELOG](CHANGELOG.md) which may be useful when learning about any 
 
 If you prefer to just install the latest binary (sorry Linux 64-bit only) you can do so by running the following in a shell:
 
-```
+```sh
 curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local bash
 ```
 
@@ -45,20 +42,20 @@ After running the above you should have an executable called spook. See below fo
 
 You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e).
 
-Obviously you can also just download the release manually from the github releases page.
+Obviously you can also just download the release manually from the github releases page, unpack it and place it where you like.
 
 
 ### Running it
 
 For some basic help on command line usage, please run:
 
-```
+```sh
 spook --help
 ```
 
 Currently that would output something like:
 
-```
+```sh
 Usage: spook [-v] [-i] [-l <log_level>] [-c <config>] [-w <dir>]
        [-f <file>] [-h]
 
@@ -83,7 +80,7 @@ For more see https://github.com/johnae/spook
 
 To do anything useful you need to create a Spookfile in a directory (probably your project):
 
-```
+```sh
 cd /to/your/project
 spook -i
 ```
@@ -246,7 +243,7 @@ Finally, reading from something else (like a socket) - please see the specs here
 
 ```moonscript
 Types = require("syscall").t
-stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen)
+stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen) - see the ljsyscall project
 on_read stdin, (reader, fd) ->
   data = fd\read!
   print "Got some data: #{data}"
@@ -256,7 +253,7 @@ So, obviously it's very much up to you to get that FD from somewhere. These func
 
 ```moonscript
 Types = require("syscall").t
-stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen)
+stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen) - see the ljsyscall project
 -- it's really _G.spook
 spook\on_read stdin, (reader, fd) -> 
   data = fd\read!
