@@ -38,19 +38,32 @@ loadfail = (file, result) ->
 -- that here it is run within the spook context and all
 -- that comes built-in is available (including moonscript, so
 -- moonscript files can be run as well as lua files).
-if fi = index_of arg, "-f"
-  file = arg[fi + 1]
-  new_args = [a for i, a in ipairs arg when i>(fi + 1)]
-  unless file
-    log.error "The -f option requires an argument"
-    os.exit 1
-  _G.arg = new_args
+
+path = arg[0]\split('/')
+bin = path[#path]
+
+loadscript = (file) ->
   success, chunk = if file\match("[^.]%.lua$")
     pcall loadfile, file
   else
     pcall moonscript.loadfile, file
   loadfail file, chunk unless success
   return chunk!
+
+if bin == 'lunatic'
+  file = arg[1]
+  if file == nil or file == ''
+    log.error "No moonscript or lua file given as argument"
+    os.exit 1
+  return loadscript file
+else if fi = index_of arg, "-f"
+  file = arg[fi + 1]
+  new_args = [a for i, a in ipairs arg when i>(fi + 1)]
+  unless file
+    log.error "The -f option requires an argument"
+    os.exit 1
+  _G.arg = new_args
+  return loadscript file
 
 cli = require "arguments"
 run = require'event_loop'.run
