@@ -2,11 +2,19 @@ define = require'classy'.define
 
 define 'Queue', ->
   instance
-    initialize: =>
+    initialize: => @reset!
+
+    reset: =>
       @first = 0
       @last = -1
       @list = {}
       @len = 0
+
+    peekleft: =>
+      @list[@first]
+
+    peekright: =>
+      @list[@last]
 
     pushleft: (value) =>
       @first = @first - 1
