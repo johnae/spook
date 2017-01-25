@@ -51,10 +51,7 @@ describe 'spook', ->
     describe 'fs events', ->
       local dir, subdir, file
 
-      run_once = require'event_loop'.run_once
-      run = ->
-        for i=1,3
-          run_once block_for: 50
+      loop = run_loop(require'event_loop'.run_once)
 
       before_each ->
         dir = "/tmp/spook-fs-events-spec"
@@ -72,7 +69,7 @@ describe 'spook', ->
           spook -> watch dir, ->
           spook\start!
           os.remove file
-          run!
+          loop block_for: 50, loops: 3
           assert.equal 1, #spook.queue
           assert.same {
             type: 'fs'
@@ -86,7 +83,7 @@ describe 'spook', ->
           spook -> watch dir, ->
           spook\start!
           create_file file, "some content"
-          run!
+          loop block_for: 50, loops: 3
           assert.equal 2, #spook.queue
           assert.same {
             type: 'fs'
@@ -107,7 +104,7 @@ describe 'spook', ->
           spook\start!
 
           S.rename "#{file}", "#{dir}/newname.txt"
-          run!
+          loop block_for: 50, loops: 3
           assert.equal 1, #spook.queue
           assert.same {
             type: 'fs'
