@@ -1,3 +1,4 @@
+S = require 'syscall'
 Spook = require 'spook'
 fs = require 'fs'
 
@@ -46,6 +47,75 @@ describe 'spook', ->
         assert.equal 1, #spook.watches.deleted
         assert.equal 2, #spook.watches.changed
         assert.equal 1, #spook.watches.moved
+
+    describe 'fs events', ->
+      local dir, subdir, file
+
+      run_once = require'event_loop'.run_once
+      run = ->
+        for i=1,3
+          run_once block_for: 50
+
+      before_each ->
+        dir = "/tmp/spook-fs-events-spec"
+        subdir = "#{dir}/subdir"
+        file = "#{subdir}/specfile.txt"
+        fs.mkdir_p subdir
+
+      after_each ->
+        fs.rm_rf dir
+
+      describe 'deleting watched files', ->
+
+        it 'puts the delete event on the internal queue', ->
+          create_file file, "some content"
+          spook -> watch dir, ->
+          spook\start!
+          os.remove file
+          run!
+          assert.equal 1, #spook.queue
+          assert.same {
+            type: 'fs'
+            action: 'deleted'
+            path: file
+          }, spook.queue\peekleft!
+
+      describe 'creating files in a watched directory', ->
+
+        it 'puts a create and a modified event on the internal queue', ->
+          spook -> watch dir, ->
+          spook\start!
+          create_file file, "some content"
+          run!
+          assert.equal 2, #spook.queue
+          assert.same {
+            type: 'fs'
+            action: 'created'
+            path: file
+          }, spook.queue\peekleft!
+          assert.same {
+            type: 'fs'
+            action: 'modified'
+            path: file
+          }, spook.queue\peekright!
+
+      describe 'moving files within a watched directory', ->
+
+        it 'puts a move event on the internal queue', ->
+          create_file file, "some content"
+          spook -> watch dir, ->
+          spook\start!
+
+          S.rename "#{file}", "#{dir}/newname.txt"
+          run!
+          assert.equal 1, #spook.queue
+          assert.same {
+            type: 'fs'
+            action: 'moved'
+            path: "#{dir}/newname.txt"
+            from: file
+            to: "#{dir}/newname.txt"
+          }, spook.queue\peekleft!
 
     it 'configures log_level via supplied function', ->
       spook ->

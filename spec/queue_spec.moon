@@ -57,3 +57,22 @@ describe 'Queue', ->
     queue\pushright 'item2'
     assert.equal 'item1', queue\popleft!
     assert.equal 'item2', queue\popleft!
+
+  it 'can take a peek at either end of the queue', ->
+    queue\pushleft 'item1'
+    queue\pushleft 'item2'
+    queue\pushleft 'item3'
+    assert.equal 'item3', queue\peekleft!
+    assert.equal 'item1', queue\peekright!
+
+  it 'can reset itself to be empty', ->
+    queue\pushleft 'item1'
+    queue\pushleft 'item2'
+    queue\pushleft 'item3'
+    assert.equal 'item3', queue\peekleft!
+    assert.equal 'item1', queue\peekright!
+    assert.equal 3, #queue
+    queue\reset!
+    assert.equal 0, #queue
+    assert.equal nil, queue\peekleft!
+    assert.equal nil, queue\peekright!
