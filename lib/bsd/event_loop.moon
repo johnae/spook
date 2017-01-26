@@ -1,8 +1,3 @@
--- The BSD version which is supposed to work on OS X and the BSD:s.
--- It doesn't work fully and the "Watcher" is missing because of several
--- issues with how the kqueue vnode filter works. On OS X I suppose the best
--- would be to use FSEvents (via ffi). I'll leave this as is for the time
--- being. I'll get back to it later.
 S = require 'syscall'
 lfs = require "syscall.lfs"
 ffi = require 'ffi'
