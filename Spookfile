@@ -97,11 +97,12 @@ watch "lib", "spec", ->
           spec, "spec/#{name}_spec.moon"
         )
 
-watch "playground", ->
-  on_changed "^playground/(.*)%.moon", (event, name) ->
+if fs.is_present 'playground'
+  watch "playground", ->
+    on_changed "^playground/(.*)%.moon", (event, name) ->
       exec "playground/#{name}.moon"
 
-  on_changed "^playground/(.*)%.lua", (event, name) ->
+    on_changed "^playground/(.*)%.lua", (event, name) ->
       exec "playground/#{name}.lua"
 
 watch_file 'Spookfile', ->
