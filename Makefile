@@ -2,12 +2,11 @@ PREFIX ?= /usr/local
 UNAME := $(shell uname | tr 'A-Z' 'a-z')
 ARCH := $(shell uname -m)
 SPOOK_BASE_DIR := $(shell pwd)
+CFLAGS = -Wall -O2 -Wl,-E
+EXTRAS = -lrt
 ifeq ($(UNAME), darwin)
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
-else
-CFLAGS = -Wall -O2 -Wl,-E
-EXTRAS = -lrt
 endif
 GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
@@ -33,7 +32,7 @@ all: spook
 
 spook: $(OBJECTS)
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm -ldl $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm $(EXTRAS)
 
 rebuild: clean all
 

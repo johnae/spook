@@ -14,7 +14,13 @@ Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need
 make
 ```
 
-After that you should have an executable called spook. It's known to build and work well on Linux and Mac OS X. It should also work fine on the BSD:s.
+After that you should have an executable called spook. It's known to build and work well on Linux and Mac OS X. It's also verified to work on FreeBSD. On FreeBSD, the easiest way to make it compile is to install gmake and link /usr/bin/cc to /usr/local/bin/gcc (clang is cc on FreeBSD), like this:
+
+```sh
+sudo pkg install gmake
+sudo ln -s /usr/bin/cc /usr/local/bin/gcc
+gmake
+```
 
 Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work.
 
