@@ -8,6 +8,9 @@ ifeq ($(UNAME), darwin)
 CFLAGS = -Wall -O2 -Wl
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 endif
+ifeq ($(UNAME), linux)
+EXTRAS = -lrt -ldl
+endif
 GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
 GITSHA := $(shell git rev-parse --short HEAD)
