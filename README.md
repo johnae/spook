@@ -3,8 +3,9 @@
 
 ## Spook
 
-Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become much more than that since the 0.7.0 version. It is mostly written in [moonscript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript),
-which is also part of the binary.
+Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become much more than that since the 0.7.0 version. It is mostly written in [moonscript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript), which is also part of the binary.
+
+While spook is, especially when reading this README it looks that way, geared towards running tests in a feedback loop. There are many other potential uses. For some inspiration, check out my i3bar implementation (for the i3 window manager) which is also using a Spookfile but in most other ways is doing something very different: [moonbar](https://github.com/johnae/moonbar).
 
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like (somewhere in your PATH probably).
 
@@ -30,6 +31,8 @@ Installation is as straightforward as:
 ```sh
 make install PREFIX=/usr/local
 ```
+
+Or gmake on FreeBSD for example.
 
 ### Changelog
 
