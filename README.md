@@ -61,7 +61,7 @@ spook --help
 
 Currently that would output something like:
 
-```sh
+```
 Usage: spook [-v] [-i] [-l <log_level>] [-c <config>] [-w <dir>]
        [-f <file>] [-h]
 
@@ -353,7 +353,7 @@ spook\on_signal 'int', (s) ->
 
 Or another example that I'm currently using on Linux (you'll have to tweak it slightly to use your own icons):
 
-```sh
+```moonscript
 success_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/success.svg"
 fail_icon = "#{os.getenv('HOME')}/Pictures/icons/essential/error.svg"
 
