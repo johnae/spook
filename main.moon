@@ -7,10 +7,10 @@ require "globals"
 getcwd = getcwd
 
 -- add some default load paths
-package.path = package.path .. ";#{getcwd!}/.spook/lib/?.lua"
-package.path = package.path .. ";#{getcwd!}/.spook/lib/?/init.lua"
-package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?.lua"
-package.path = package.path .. ";#{os.getenv('HOME')}/.spook/lib/?/init.lua"
+for base in *{getcwd!, os.getenv('HOME')}
+  package.path = package.path ..
+    ";#{base}/.spook/lib/?.lua" ..
+    ";#{base}/.spook/lib/?/init.lua"
 
 -- setup additional requirements
 require "moonscript"
