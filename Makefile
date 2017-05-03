@@ -3,12 +3,18 @@ UNAME := $(shell uname | tr 'A-Z' 'a-z')
 ARCH := $(shell uname -m)
 SPOOK_BASE_DIR := $(shell pwd)
 CFLAGS = -Wall -O2 -Wl,-E
-EXTRAS = -lrt
+ifeq ($(ARCH), x86_64)
+LJXCFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT -DLUAJIT_ENABLE_GC64
+else
+LJXCFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT
+endif
 ifeq ($(UNAME), darwin)
 CFLAGS = -Wall -O2 -Wl
+ifneq ($(ARCH), x86_64)
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 endif
-ifeq ($(UNAME), linux)
+endif
+ifeq ($(UNAME), linux)		
 EXTRAS = -lrt -ldl
 endif
 GITTAG := $(shell git tag -l --contains HEAD)
@@ -56,9 +62,9 @@ lib/version.moon:
 $(LUAJIT):
 	@echo "BUILDING LUAJIT"
 	git submodule update --init deps/luajit
-	$(MAKE) -C deps/luajit XCFLAGS=-DLUAJIT_ENABLE_LUA52COMPAT PREFIX=$(TOOLS)/luajit
+	$(MAKE) -C deps/luajit XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
-	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta2 $(TOOLS)/luajit/bin/luajit
+	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
 
 main.lua: $(LUAJIT)
 	@echo "BUILDING main.lua"
