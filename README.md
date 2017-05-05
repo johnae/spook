@@ -264,7 +264,7 @@ So, obviously it's very much up to you to get that FD from somewhere. These func
 Types = require("syscall").t
 stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen) - see the ljsyscall project
 -- it's really _G.spook
-spook\on_read stdin, (reader, fd) -> 
+spook\on_read stdin, (reader, fd) ->
   data = fd\read!
   print "Got some data: #{data}"
 ```
@@ -433,6 +433,4 @@ I can be reached directly at \<john at insane.se\> as well as through github.
 
 ### In closing
 
-Anything you can do with LuaJIT (FFI for example) you can do in the notifier (or even Spookfile)  so go crazy if you want to.
-
-MoonScript and Lua are really powerful and fun, coupled with LuaJIT they're ridiculously fast too compared to basically all other dynamic languages and runtimes. They're not used often enough in my opinion. You should really give them a try - they deserve it, regardless of whether you like Spook or not.
+Anything you can do with LuaJIT (FFI for example) you can do with Spook. Either in the Spookfile or files that you require (like the notifier). MoonScript and Lua are really powerful and fun and, coupled with LuaJIT, they're ridiculously fast too compared to basically all other dynamic languages and runtimes. They're not used often enough in my opinion. You should really give them a try - they deserve it, regardless of whether you like Spook or not.
