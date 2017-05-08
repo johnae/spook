@@ -1,5 +1,5 @@
 require 'globals'
-:empty, :concat = table
+:empty, :concat, insert: append = table
 define = require'classy'.define
 log = require 'log'
 {:Watcher, :Timer, :Signal, :Read} = require "event_loop"
@@ -16,13 +16,13 @@ define 'Spook', ->
 
     all_event_emitters: =>
       emitters = [w for w in *@watchers]
-      for t in *@timers
-        emitters[#emitters + 1] = t
-      for r in *@readers
-        emitters[#emitters + 1] = r
+      for timer in *@timers
+        append emitters, timer
+      for reader in *@readers
+        append emitters, reader
       unless empty @signals
-        for _, v in pairs @signals
-          emitters[#emitters + 1] = v
+        for _, signal in pairs @signals
+          append emitters, signal
       emitters
 
     first_match_only:
@@ -44,7 +44,7 @@ define 'Spook', ->
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (pattern, func) -> store[#store + 1] = {pattern, func}
+        @handlers["on_#{wname}"] = (pattern, func) -> append store, {pattern, func}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
       for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read'}
@@ -65,13 +65,14 @@ define 'Spook', ->
       func = args[#args]
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
-      @watchers[#@watchers + 1] = Watcher.new dirs, 'create, delete, modify, move, attrib', recursive: true, callback: (w, events) ->
+      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', recursive: true, callback: (w, events) ->
         for e in *events
           @queue\pushright Event.new('fs', e)
-      @num_dirs += #@watchers[#@watchers].paths
+      append @watchers, new_watcher
+      @num_dirs += #new_watcher.paths
       setfenv func, @handlers
       func!
-      @watchers[#@watchers]
+      new_watcher
 
     watch_file: (file, func) =>
       dir = '.'
@@ -82,7 +83,7 @@ define 'Spook', ->
       old_handlers = @handlers
       @handlers = {}
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (fun) -> store[#store + 1] = {file, fun}
+        @handlers["on_#{wname}"] = (fun) -> append store, {file, fun}
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers
@@ -95,20 +96,23 @@ define 'Spook', ->
       func = args[#args]
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
-      @watchers[#@watchers + 1] = Watcher.new dirs, 'create, delete, modify, move, attrib', callback: (w, events) ->
+      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', callback: (w, events) ->
         for e in *events
           @queue\pushright Event.new('fs', e)
+      append @watchers, new_watcher
       setfenv func, @handlers
       func!
-      @watchers[#@watchers]
+      new_watcher
 
     timer: (interval, callback) =>
-      @timers[#@timers + 1] = Timer.new interval, callback
-      @timers[#@timers]
+      new_timer = Timer.new interval, callback
+      append @timers, new_timer
+      new_timer
 
     on_read: (fd, callback) =>
-      @readers[#@readers + 1] = Read.new fd, callback
-      @readers[#@readers]
+      new_reader = Read.new fd, callback
+      append @readers, new_reader
+      new_reader
 
     -- this is currently a bit dangerous since what one would do on say SIGINT
     -- is probably some cleanup action after which os.exit is called. But what
@@ -119,8 +123,9 @@ define 'Spook', ->
       assert signal\match("[%s,]") == nil, "Signals can't contain whitespace or commas, for several - please specify them individually"
       if old = @signals[signal]
         old\stop!
-      @signals[signal] = Signal.new signal, callback
-      @signals[signal]
+      new_signal = Signal.new signal, callback
+      @signals[signal] = new_signal
+      new_signal
 
     start: =>
       for e in *@all_event_emitters
@@ -137,12 +142,12 @@ define 'Spook', ->
       matchers = [m for m in *@watches[event.action]]
       unless event.action == 'deleted'
         for m in *@watches.changed
-          matchers[#matchers + 1] = m
+          append matchers, m
       for matcher in *matchers
         p, f = matcher[1], matcher[2]
         matches = {event.path\match p}
         if #matches > 0
-          matching[#matching + 1] = -> f event, unpack(matches)
+          append matching, -> f(event, unpack(matches))
       matching
 
   meta

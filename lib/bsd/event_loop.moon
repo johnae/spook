@@ -160,13 +160,13 @@ convert_to_bsd_flags = (input) ->
     switch flag
 --      when 'create'
       when 'delete'
-        bsd[#bsd + 1] = flag
+        append bsd, flag
       when 'move'
-        bsd[#bsd + 1] = 'rename'
+        append bsd, 'rename'
       when 'modify'
-        bsd[#bsd + 1] = 'write'
+        append bsd, 'write'
       when 'attrib'
-        bsd[#bsd + 1] = 'attrib'
+        append bsd, 'attrib'
   concat bsd, ', '
 
 watch_events = {}
@@ -184,7 +184,7 @@ subdirs = (dir) ->
       log.debug "No access to #{entry}, skipping"
       continue
     if attr.mode == 'directory'
-      dirs[#dirs + 1] = entry
+      append dirs, entry
   dirs
 
 recurse_paths = (paths) ->
@@ -195,9 +195,9 @@ recurse_paths = (paths) ->
       continue
     if is_dir p
       for d in *subdirs(p)
-        all_paths[#all_paths + 1] = d
+        append all_paths, d
       continue
-    all_paths[#all_paths + 1] = p
+    append all_paths, p
   all_paths
 
 Watcher = define 'Watcher', ->
@@ -249,11 +249,11 @@ Watcher = define 'Watcher', ->
             unless @watches[entry]
               if is_dir(entry)
                 if @recursive
-                  append events, action: 'created', path: entry
+                  append events, {action: 'created', path: entry}
                   @.watch entry, nil, @recursive
               else
-                append events, action: 'created', path: entry
-                append events, action: 'modified', path: entry
+                append events, {action: 'created', path: entry}
+                append events, {action: 'modified', path: entry}
                 @.watch entry, nil, @recursive
         else
           watch = @watches[path]
@@ -261,21 +261,21 @@ Watcher = define 'Watcher', ->
 
           if event.DELETE
             @.unwatch path
-            append events, action: 'deleted', :path
+            append events, {action: 'deleted', :path}
             continue
           
           if event.RENAME
             has_rename = true
-            append events, action: 'renamed', :path, attr: @watches[path]
+            append events, {action: 'renamed', :path, attr: @watches[path]}
 
           if event.WRITE
-            append events, action: 'modified', :path
+            append events, {action: 'modified', :path}
 
           if event.ATTRIB
             attr = lfs.attributes path
             old = @watches[path]
             if not old or old.size != attr.size or old.modification != attr.modification or old.change != attr.change
-              append events, action: 'attrib', :path
+              append events, {action: 'attrib', :path}
             for key in *{'modification', 'access', 'change', 'size', 'ino', 'mode'}
               @watches[path][key] = attr[key] if attr[key]
 
