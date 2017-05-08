@@ -1,4 +1,5 @@
 gettimeofday = gettimeofday
+insert: append = table
 
 notify_mt = {
   __index: (k, v) =>
@@ -14,9 +15,9 @@ notify_mt = {
     if type(notifier) == 'string'
       package.loaded[notifier] = nil
       n = require notifier
-      self.notifiers[#self.notifiers + 1] = n
+      append self.notifiers, n
     else
-      self.notifiers[#self.notifiers + 1] = notifier
+      append self.notifiers, notifier
     self
   self.clear = -> self.notifiers = {}
   setmetatable self, notify_mt

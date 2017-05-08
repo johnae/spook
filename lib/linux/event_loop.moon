@@ -4,7 +4,7 @@ Util = S.util
 :define = require 'classy'
 log = require 'log'
 :is_dir, :dirtree, :can_access = require 'fs'
-:concat = table
+:concat, insert: append = table
 :is_callable = require 'utils'
 
 MAX_EVENTS = 1024
@@ -19,7 +19,7 @@ subdirs = (dir) ->
       log.debug "No access to #{entry}, skipping"
       continue
     if attr.mode == 'directory'
-      dirs[#dirs + 1] = entry
+      append dirs, entry
   dirs
 
 recurse_paths = (paths) ->
@@ -30,9 +30,9 @@ recurse_paths = (paths) ->
       continue
     if is_dir p
       for d in *subdirs(p)
-        all_paths[#all_paths + 1] = d
+        append all_paths, d
       continue
-    all_paths[#all_paths + 1] = p
+    append all_paths, p
   all_paths
 
 EventHandlers = {}
@@ -66,7 +66,7 @@ Watcher = define 'Watcher', ->
           unless evname == 'unknown'
             ev_name = rawget ev, 'name'
             path = dir == '.' and ev_name or "#{dir}/#{ev_name}"
-          events[#events + 1] = action: evname, :path
+          append events, {action: evname, :path}
 
         if #moves > 0
           cookies = {k.cookie, true for k in *moves}
@@ -82,7 +82,7 @@ Watcher = define 'Watcher', ->
               else
                 data.to = path
                 data.path = path
-            events[#events + 1] = data
+            append events, data
       events
 
   instance
