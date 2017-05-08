@@ -147,7 +147,7 @@ define 'Spook', ->
         p, f = matcher[1], matcher[2]
         matches = {event.path\match p}
         if #matches > 0
-          append matching, -> f event, unpack(matches)
+          append matching, -> f(event, unpack(matches))
       matching
 
   meta
