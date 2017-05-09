@@ -15,7 +15,7 @@ EXTRAS = -pagezero_size 10000 -image_base 100000000
 endif
 endif
 ifeq ($(UNAME), linux)		
-EXTRAS = -lrt -ldl
+EXTRAS = -ldl
 endif
 GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
