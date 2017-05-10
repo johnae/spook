@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.7
+
+No new api functionality. Updated luajit to Luajit 2.1.0 beta3 which is now also built in GC64 mode. Moved from using the list[#list + 1] = something construct to just using table.insert consistently.
+
 ## 0.7.6
 
 No new api functionality. There was a small addition to the queue implementation - it can now be reset (eg. emptied). Some more tests were added and spook was tested and confirmed working properly on FreeBSD. Still have to install gmake and link clang to gcc for it to work but other than that it seems fine.
