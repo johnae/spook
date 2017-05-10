@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.6
+
+No new api functionality. There was a small addition to the queue implementation - it can now be reset (eg. emptied). Some more tests were added and spook was tested and confirmed working properly on FreeBSD. Still have to install gmake and link clang to gcc for it to work but other than that it seems fine.
+
 ## 0.7.5
 
 Now all notifiers are cleared out when reloading Spookfile in place. Previously they would bunch up and you'd be in notify hell.
