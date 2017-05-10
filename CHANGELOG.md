@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.8
+
+Updated ljsyscall to ee90324b07e5f64cbe1b91cae7b8396992fcc48d. Stopped linking librt. Instead of using the log to show info on how many directories/files are watched on spook start/restart, notify is used instead. That way it's possible to completely disable that output without messing with log levels (eg. simply not adding a notifier that notifies on info).
+
+
 ## 0.7.7
 
 No new api functionality. Updated luajit to Luajit 2.1.0 beta3 which is now also built in GC64 mode. Moved from using the list[#list + 1] = something construct to just using table.insert consistently.
