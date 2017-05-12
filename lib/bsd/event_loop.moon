@@ -320,7 +320,7 @@ Read = define 'Read', ->
 
   instance
     initialize: (fd, callback) =>
-      assert type(fd) != 'number', "Only takes wrapped fd:s, please use type helper 'fd' from syscall/methods.lua"
+      assert type(fd) != 'number', "Read only takes wrapped fd:s, please use type helper 'fd' from syscall/methods.lua, see: https://github.com/justincormack/ljsyscall"
       @fd = fd
       @callback = callback
       @filter = 'read'
