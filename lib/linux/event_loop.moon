@@ -175,7 +175,7 @@ Signal = define 'Signal', ->
   instance
     initialize: (signals, callback) =>
       @signals = signals
-      @fd = S.signalfd @signals
+      @fd = S.signalfd @signals, 'cloexec, nonblock'
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
       @started = false
