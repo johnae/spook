@@ -77,11 +77,13 @@ Timer = define 'Timer', ->
 
 ignored_signals = {}
 signalblock = (signal) ->
+  return if signal\lower! == "chld"
   unless ignored_signals[signal]
     ignored_signals[signal] = true
     S.signal signal, 'ign'
 
 signalunblock = (signal) ->
+  return if signal\lower! == "chld"
   if ignored_signals[signal]
     S.signal signal, 'dfl'
     ignored_signals[signal] = nil
