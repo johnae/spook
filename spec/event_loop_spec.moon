@@ -177,7 +177,7 @@ describe 'Event Loop', ->
       w\start!
 
       S.rename "#{subdir1}/testfile.txt", "#{subdir2}/newname.txt"
-      
+
       loop block_for: 50, loops: 3
 
       assert.spy(event_catcher).was.called_with {
@@ -197,6 +197,9 @@ describe 'Event Loop', ->
       before_each ->
         s = Signal.new 'int', (me) -> nil
 
+      after_each ->
+        s\stop! unless s.stopped
+
       it 'is initially stopped', ->
         assert.false s.started
         assert.true s.stopped
@@ -206,22 +209,45 @@ describe 'Event Loop', ->
         assert.true s.started
         assert.false s.stopped
 
-    it 'receives any given signals sent to process', ->
-      local received_hup, received_pipe, received_winch
-      shup = Signal.new "hup", (me) -> received_hup = true
-      spipe = Signal.new "pipe", (me) -> received_pipe = true
-      swinch = Signal.new "winch", (me) -> received_winch = true
-      shup\start!
-      spipe\start!
-      swinch\start!
-      S.kill S.getpid!, "hup"
-      S.kill S.getpid!, "pipe"
+    describe 'receiving signals', ->
+      local shup, spipe, swinch, hup, pipe, winch
 
-      loop block_for: 50, loops: 2
+      before_each ->
+        hup = spy.new ->
+        pipe = spy.new ->
+        winch = spy.new ->
+        shup = Signal.new "hup", hup
+        spipe = Signal.new "pipe", pipe
+        swinch = Signal.new "winch", winch
+        h\start! for h in *{shup, spipe, swinch}
 
-      assert.true received_hup
-      assert.true received_pipe
-      assert.nil received_winch
+
+      after_each -> h\stop! for h in *{shup, spipe, swinch}
+
+      it 'receives any given signals sent to process', ->
+        S.kill S.getpid!, "hup"
+        S.kill S.getpid!, "pipe"
+
+        loop block_for: 50, loops: 2
+        assert.spy(hup).was.called(1)
+        assert.spy(pipe).was.called(1)
+        assert.spy(winch).was.called(0)
+
+      -- this is somewhat "special", at least on bsd (eg. should NOT be ignored on bsd to be received on the queue)
+      describe 'sigchld signal', ->
+        local schld, chld
+
+        before_each ->
+          chld = spy.new ->
+          schld = Signal.new 'chld', chld
+          schld\start!
+
+        after_each -> schld\stop!
+
+        it 'receives sigchld on child exit', ->
+          os.execute "/bin/sleep 0.01"
+          loop block_for: 50, loops: 2
+          assert.spy(chld).was.called(1)
 
   describe 'Read', ->
     local socket, msg
@@ -249,9 +275,9 @@ describe 'Event Loop', ->
         assert.false r.stopped
 
     it 'notifies with data when given descriptor is readable', ->
-      local received
-      read = Read.new socket, (fd) =>
-        received = fd\read!
+      called = 0
+      receive = spy.new -> called += 1
+      read = Read.new socket, (fd) => receive fd\read!
 
       read\start!
       addr = assert socket\getsockname!
@@ -260,4 +286,5 @@ describe 'Event Loop', ->
 
       loop block_for: 50
 
-      assert.equal "Hello from Spook", received
+      assert.spy(receive).was.called_with "Hello from Spook"
+      assert.equal 1, called

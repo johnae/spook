@@ -1,0 +1,15 @@
+# Example: export_alias zz "ls -la"
+export_alias() {
+  if command -v gmake >/dev/null 2>&1; then
+    local name=$1
+    shift
+    local alias_dir=$PWD/.direnv/aliases
+    local target="$alias_dir/$name"
+    mkdir -p "$alias_dir"
+    PATH_add "$alias_dir"
+    echo "#!/usr/bin/env bash" > "$target"
+    echo "set -e" >> "$target"
+    echo "$@" >> "$target"
+    chmod +x "$target"
+  fi
+}
