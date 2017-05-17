@@ -67,5 +67,3 @@ describe 'fs', ->
       table.sort(expected)
       table.sort(contents)
       assert.same expected, contents
-
-  describe 'dir_table'
