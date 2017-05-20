@@ -49,7 +49,7 @@ define 'Spook', ->
           append store, {pattern, to_coro(func)}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read'}
+      for f in *{'watch', 'watch_file', 'timer', 'every', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) ->
@@ -108,6 +108,12 @@ define 'Spook', ->
 
     timer: (interval, callback) =>
       new_timer = Timer.new interval, to_coro(callback)
+      append @timers, new_timer
+      new_timer
+
+    every: (interval, callback) =>
+      new_timer = Timer.new interval, to_coro(callback)
+      new_timer.recurring = true
       append @timers, new_timer
       new_timer
 
