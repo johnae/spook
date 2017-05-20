@@ -34,6 +34,17 @@ EventHandlers = {}
 Timer = define 'Timer', ->
   properties
     stopped: => not @started
+    addflags: => "add, #{@type}"
+    delflags: => "delete, #{@type}"
+    recurring:
+      get: => @_recurring
+      set: (bool) =>
+        @stop!
+        @_recurring = bool
+        @type = if @_recurring
+          "enable"
+        else
+          "oneshot"
 
   instance
     initialize: (interval, callback) =>
@@ -42,15 +53,16 @@ Timer = define 'Timer', ->
       @ident = next_id! -- NOTE: ident becomes the fd field when receiving event
       @filter = 'timer'
       @filter_num = Constants.EVFILT[@filter]
-      @flags = 'add, oneshot'
+      @type = "oneshot"
       @data = @interval
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
       @started = false
+      @_recurring = false
 
     __kevdata: (opts={}) =>
       :flags, :data = opts
       :ident, :filter = @
-      flags or= @flags
+      flags or= @addflags
       data or= @data
       :ident, :filter, :flags, :data
 
@@ -65,14 +77,15 @@ Timer = define 'Timer', ->
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@ident}"] = nil
-      ev = Types.kevents {@__kevdata(flags: 'delete, oneshot')}
+      ev = Types.kevents {@__kevdata(flags: @delflags)}
       kqueue_fd\kevent ev
       @started = false
 
   meta
     __call: =>
-      EventHandlers["#{@filter_num}_#{@ident}"] = nil
-      @started = false
+      unless @_recurring
+        EventHandlers["#{@filter_num}_#{@ident}"] = nil
+        @started = false
       @callback!
 
 ignored_signals = {}
