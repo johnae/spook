@@ -235,10 +235,19 @@ So as you can see, some things were defined in a helper file (until_success, not
 Now for something completely different and slightly more experimental still. Perhaps you're not interested in file system events or perhaps you're interested in combining those events with other events on the system. Whatever you want, this is how you'd define a timer in the Spookfile:
 
 ```moonscript
-timer 5.0, (t) ->
+after 5.0, (t) ->
   print "yay I was called!"
-  t\again! -- this is (currently) how a recurring timer is defined - just rearm it using the again method
+  t\again! -- this would be a somewhat inefficient way of creating a recurring timer (needs a syscall)
 ```
+
+As mentioned above, recurring timers using "again" are somewhat inefficient. It's probably better to use the "every" function instead in that case:
+
+```moonscript
+every 5.0, (t) ->
+  print "this will print every 5 seconds"
+```
+
+There is also the old function "timer" which behaves exactly like "after" above.
 
 And signal handlers are defined like this:
 
