@@ -133,7 +133,7 @@ Timer = define 'Timer', ->
         @stop!
         @_recurring = true
         @timespec = if @_recurring
-          {0, @interval, 0, @interval}
+          {@interval, @interval}
         else
           {0, @interval}
 
@@ -155,7 +155,7 @@ Timer = define 'Timer', ->
 
     again: =>
       EventHandlers[@fdnum] = @
-      @fd\timerfd_settime nil, @_timespec
+      @fd\timerfd_settime nil, @timespec
 
     stop: =>
       EventHandlers[@fdnum] = nil
