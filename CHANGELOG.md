@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0
+
+There are now real recurring timers. "after" is the timeout while "every" is the new recurring timer ("timer" has been kept for now and does the same as "after").
+
+On Linux signalfd is now closed on exec and nonblocking as it should have been all along. On BSD the SIGCHLD signal is now NEVER blocked since that actually blocks it from being received on kqueue.
+
+All event handlers are now wrapped in coroutines which enables using spook easily in that fashion. It can sometimes make for simpler code (eg. avoiding callbacks).
+
+There are now process helpers (see lib/process.moon) that will help with fork/exec coupled with coroutines.
+
+signalblock and signalunblock are now exported from the event sub systems since they are useful in the new process helpers.
+
+Also there's a few fixes mainly for the BSD:s and in particular for FreeBSD. A few fixes and updates to the tooling. Building on FreeBSD now only requires gmake.
+
 ## 0.7.8
 
 Updated ljsyscall to ee90324b07e5f64cbe1b91cae7b8396992fcc48d. Stopped linking librt. Instead of using the log to show info on how many directories/files are watched on spook start/restart, notify is used instead. That way it's possible to completely disable that output without messing with log levels (eg. simply not adding a notifier that notifies on info).
