@@ -18,6 +18,8 @@ endif
 endif
 ifeq ($(UNAME), linux)		
 EXTRAS = -ldl
+else ifeq ($(UNAME), freebsd)
+CC = cc
 endif
 GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
@@ -64,7 +66,7 @@ lib/version.moon:
 $(LUAJIT):
 	@echo "BUILDING LUAJIT"
 	git submodule update --init deps/luajit
-	$(MAKE) -C deps/luajit XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
+	$(MAKE) -C deps/luajit CC="$(CC)" XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
 	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
 
@@ -89,7 +91,7 @@ vendor.lua: $(LUAJIT)
 clean-deps:
 	rm -rf tools/luajit
 	cd deps/luajit && \
-		$(MAKE) clean
+		$(MAKE) CC="$(CC)" clean
 
 clean:
 	rm -f $(OBJECTS)

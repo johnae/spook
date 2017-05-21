@@ -73,6 +73,21 @@ describe 'Event Loop', ->
       loop block_for: 25, loops: 2
       assert.spy(s).was.called(1)
 
+    describe 'a recurring timer', ->
+      local timer
+
+      after_each ->
+        timer\stop! unless timer.stopped
+
+      it 'is called every given tick', ->
+        s = spy.new ->
+        timer = Timer.new 0.01, s
+        timer.recurring = true
+        timer\start!
+        loop block_for: 11, 1
+        loop block_for: 11, 1
+        assert.spy(s).was.called(2)
+
   describe 'Watcher', ->
     local dir, subdir1, subdir2, event_catcher
 

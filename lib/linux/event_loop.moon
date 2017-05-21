@@ -127,6 +127,15 @@ Timer = define 'Timer', ->
   properties
     stopped: => not @started
     fdnum: => @fd\getfd!
+    recurring:
+      get: => @_recurring
+      set: (bool) =>
+        @stop!
+        @_recurring = true
+        @timespec = if @_recurring
+          {@interval, @interval}
+        else
+          {0, @interval}
 
   instance
     initialize: (interval, callback) =>
@@ -135,15 +144,18 @@ Timer = define 'Timer', ->
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
       @started = false
+      @_recurring = false
+      @timespec = {0, @interval}
 
     start: =>
+      @stop!
       @again!
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
       @started = true
 
     again: =>
       EventHandlers[@fdnum] = @
-      @fd\timerfd_settime nil, {0,@interval}
+      @fd\timerfd_settime nil, @timespec
 
     stop: =>
       EventHandlers[@fdnum] = nil
@@ -152,10 +164,11 @@ Timer = define 'Timer', ->
 
   meta
     __call: =>
-      EventHandlers[@fdnum] = nil
       -- if we don't read it, epoll will continue returning it (unless in edge triggered mode, but we don't use that here)
       Util.timerfd_read @fdnum
-      @started = false
+      unless @_recurring
+        EventHandlers[@fdnum] = nil
+        @started = false
       @callback!
 
 signalset = S.sigprocmask!
@@ -250,4 +263,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all
+:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock

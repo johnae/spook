@@ -5,6 +5,7 @@ log = require 'log'
 {:Watcher, :Timer, :Signal, :Read} = require "event_loop"
 Queue = require 'queue'
 Event = require 'event'
+:to_coro = require 'utils'
 
 define 'Spook', ->
   properties
@@ -44,10 +45,11 @@ define 'Spook', ->
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (pattern, func) -> append store, {pattern, func}
+        @handlers["on_#{wname}"] = (pattern, func) ->
+          append store, {pattern, to_coro(func)}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
-      for f in *{'watch', 'watch_file', 'timer', 'on_signal', 'on_read'}
+      for f in *{'watch', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.queue = @queue
       @caller_env.log_level = (v) ->
@@ -83,7 +85,7 @@ define 'Spook', ->
       old_handlers = @handlers
       @handlers = {}
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (fun) -> append store, {file, fun}
+        @handlers["on_#{wname}"] = (fun) -> append store, {file, to_coro(fun)}
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers
@@ -105,12 +107,23 @@ define 'Spook', ->
       new_watcher
 
     timer: (interval, callback) =>
-      new_timer = Timer.new interval, callback
+      new_timer = Timer.new interval, to_coro(callback)
+      append @timers, new_timer
+      new_timer
+
+    after: (interval, callback) =>
+      new_timer = Timer.new interval, to_coro(callback)
+      append @timers, new_timer
+      new_timer
+
+    every: (interval, callback) =>
+      new_timer = Timer.new interval, to_coro(callback)
+      new_timer.recurring = true
       append @timers, new_timer
       new_timer
 
     on_read: (fd, callback) =>
-      new_reader = Read.new fd, callback
+      new_reader = Read.new fd, to_coro(callback)
       append @readers, new_reader
       new_reader
 
@@ -123,7 +136,7 @@ define 'Spook', ->
       assert signal\match("[%s,]") == nil, "Signals can't contain whitespace or commas, for several - please specify them individually"
       if old = @signals[signal]
         old\stop!
-      new_signal = Signal.new signal, callback
+      new_signal = Signal.new signal, to_coro(callback)
       @signals[signal] = new_signal
       new_signal
 
