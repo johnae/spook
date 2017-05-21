@@ -396,4 +396,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :Read, :Watcher, :EventHandlers, :kqueue_fd, :run, :run_once, :clear_all
+:Timer, :Signal, :Read, :Watcher, :EventHandlers, :kqueue_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock

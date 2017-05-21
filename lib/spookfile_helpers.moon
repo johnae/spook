@@ -13,11 +13,12 @@ until_success = (func) ->
 
 -- Wraps a command that takes a file
 -- as input.
-command = (cmd) ->
+command = (cmd, opts={}) ->
+  execute = opts.execute or os.execute
   (file) ->
     cmdline = "#{cmd} #{file}"
     notify.info cmdline
-    _, _, status = os.execute cmdline
+    _, _, status = execute cmdline
     assert status == 0, cmdline
 
 -- For filtering commands not runnable

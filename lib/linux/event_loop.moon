@@ -263,4 +263,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all
+:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock

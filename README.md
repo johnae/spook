@@ -277,6 +277,39 @@ spook\on_read stdin, (reader, fd) ->
   print "Got some data: #{data}"
 ```
 
+### Coroutines
+
+Spook, since release 0.8.0, wraps all event handlers in coroutines. This means that it is quite easy to use the asynchrony in a serial fashion rather than in a callback fashion. I don't believe this is especially relevant to the original use case of spook (eg. as a test feedback loop). However, since I've been using spook in other ways too I've found that a coroutine based flow can be quite helpful.
+
+So, here's a brief example of Spook without and Spook with coroutines, first without:
+
+```moonscript
+every 1.0, (t) ->
+  print "1 sec passed again"
+
+every 5.0, (t) ->
+  _, _, status = os.execute "sleep 2"
+  print "sleep status: #{status}"
+```
+
+Above, the function given to every will have been wrapped in a coroutine. However, since nothing in that function actually yields (coroutine.yield) or resumes (coroutine.resume), it will just work the way spook always did - in the above case it will even "freeze" spook completely for 2 seconds waiting for sleep to exit (second every function). So the first every function that should execute once per second will skip a second.
+
+There is a process helper that has, among other things, an os.execute implementation that is coroutine based. Using that to implement the same code as above would look like this:
+
+```moonscript
+:execute = require 'process'
+
+every 1.0, (t) ->
+  print "1 sec passed again"
+
+every 5.0, (t) ->
+  _, _, status = execute "sleep 2"
+  print "sleep status: #{status}"
+```
+
+There's not much difference but you will see that there is no pausing of the 1 sec timer. This is a trivial example of course. For more interesting examples, see [moonbar](https://github.com/johnae/moonbar).
+
+
 ### Notifications
 
 This is how a simple notifier might look (load it using notify.add):
