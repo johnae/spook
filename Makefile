@@ -37,7 +37,7 @@ TOOLS := $(realpath tools)
 ## needs to be built first
 LUAJIT_BIN = $(realpath $(LUAJIT))
 ARCHIVES := $(LUAJIT_ARCHIVE)
-OBJECTS := main.o lib.o vendor.o
+OBJECTS := init.o lib.o vendor.o
 
 .PHONY: all clean clean-deps rebuild release test
 
@@ -45,7 +45,7 @@ all: spook
 
 spook: $(OBJECTS)
 	@echo "BUILDING SPOOK"
-	$(CC) $(CFLAGS) -fPIC -o spook app.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm $(EXTRAS)
+	$(CC) $(CFLAGS) -fPIC -o spook spook.c $(OBJECTS) $(ARCHIVES) -I $(LUAJIT_INCLUDE) -lm $(EXTRAS)
 
 rebuild: clean all
 
@@ -70,9 +70,9 @@ $(LUAJIT):
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
 	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
 
-main.lua: $(LUAJIT)
-	@echo "BUILDING main.lua"
-	SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ./tools/compile_moon.lua main.moon > main.lua
+init.lua: $(LUAJIT)
+	@echo "BUILDING init.lua"
+	SPOOK_BASE_DIR=$(SPOOK_BASE_DIR) $(LUAJIT_BIN) ./tools/compile_moon.lua init.moon > init.lua
 
 lib.lua: lib/version.moon $(LUAJIT)
 	@echo "BUILDING lib.lua"
@@ -95,7 +95,7 @@ clean-deps:
 
 clean:
 	rm -f $(OBJECTS)
-	rm -f main.lua vendor.lua lib.lua
+	rm -f init.lua vendor.lua lib.lua
 	rm -f spook spook-*.gz lib/version.moon
 
 tools/github-release:

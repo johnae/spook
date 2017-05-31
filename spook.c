@@ -25,7 +25,7 @@ int main(int argc, char **argv)
   lua_remove(L, -2); // Remove package
 
   lua_getglobal(L, "require");
-  lua_pushliteral(L, "main");
+  lua_pushliteral(L, "init");
 
   status = lua_pcall(L, 1, 0, 0);
   if (status) {
