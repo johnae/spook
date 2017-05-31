@@ -81,7 +81,7 @@ define 'Spook', ->
       path = file\split '/'
       if #path > 1
         file = path[#path]
-        dir = concat [comp for comp in *path when comp!=path[#path]], '/'
+        dir = concat [comp for i, comp in ipairs path when i < #path], '/'
       old_handlers = @handlers
       @handlers = {}
       for wname, store in pairs @watches
