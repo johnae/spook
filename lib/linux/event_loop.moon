@@ -87,7 +87,9 @@ Watcher = define 'Watcher', ->
 
   instance
     initialize: (paths, watch_for, opts={}) =>
-      @fd = S.inotify_init 'cloexec, nonblock'
+      @fd, err = S.inotify_init 'cloexec, nonblock'
+      if err != nil
+        error tostring(err)
       @recursive = opts.recursive or false
       @callback = opts.callback
       assert is_callable(@callback), "'callback' is a required option for a Watcher and must be a callable object (like a function)"
@@ -139,7 +141,9 @@ Timer = define 'Timer', ->
 
   instance
     initialize: (interval, callback) =>
-      @fd = S.timerfd_create 'monotonic', 'cloexec, nonblock'
+      @fd, err = S.timerfd_create 'monotonic', 'cloexec, nonblock'
+      if err != nil
+        error tostring(err)
       @interval = interval
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a timer and must be a callable object (like a function)"
@@ -188,7 +192,9 @@ Signal = define 'Signal', ->
   instance
     initialize: (signals, callback) =>
       @signals = signals
-      @fd = S.signalfd @signals, 'cloexec, nonblock'
+      @fd, err = S.signalfd @signals, 'cloexec, nonblock'
+      if err != nil
+        error tostring(err)
       @callback = callback
       assert is_callable(@callback), "'callback' is required for a signal and must be a callable object (like a function)"
       @started = false
