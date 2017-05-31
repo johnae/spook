@@ -146,4 +146,4 @@ spawn = (cmdline, opts={}) ->
   else
     error "fork error"
 
-:exec, :spawn, :execute
+:exec, :spawn, :execute, :read
