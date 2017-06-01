@@ -10,3 +10,4 @@ spook-*.gz
 lib/version.moon
 tools/github-release
 playground
+tmp
