@@ -43,8 +43,9 @@ describe 'Event Loop', ->
         ended = gettimeofday!
       started = gettimeofday!
       t\start!
-      loop block_for: 150 -- block for a little longer than timer trigger interval
-      assert.is.near 111, (ended - started), 30 -- allow +-30ms
+      loop block_for: 150, loops: 2 -- block for a little longer than timer trigger interval
+      assert.not.nil ended
+      assert.is.near 111, (ended - started), 50 -- allow +-50ms (REALLY shouldn't be that long)
 
     it 'is called once by default', ->
       s = spy.new ->
@@ -60,7 +61,7 @@ describe 'Event Loop', ->
         s!
         t\again!
       t\start!
-      loop block_for: 25, loops: 2
+      loop block_for: 30, loops: 2
       assert.spy(s).was.called(2)
 
     it 'is not called again if stopped even if rearmed', ->
@@ -70,7 +71,7 @@ describe 'Event Loop', ->
         t\again!
         t\stop!
       t\start!
-      loop block_for: 25, loops: 2
+      loop block_for: 30, loops: 2
       assert.spy(s).was.called(1)
 
     describe 'a recurring timer', ->
@@ -84,8 +85,8 @@ describe 'Event Loop', ->
         timer = Timer.new 0.01, s
         timer.recurring = true
         timer\start!
-        loop block_for: 13, 1
-        loop block_for: 13, 1
+        loop block_for: 14, 1
+        loop block_for: 14, 1
         assert.spy(s).was.called(2)
 
   describe 'Watcher', ->
