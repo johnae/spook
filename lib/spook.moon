@@ -7,6 +7,10 @@ Queue = require 'queue'
 Event = require 'event'
 :to_coro = require 'utils'
 
+to_coro_fs = (spook) ->
+  return to_coro unless spook.one_fs_handler_at_a_time
+  (fun) -> fun
+
 define 'Spook', ->
   properties
     log_level:
@@ -30,6 +34,10 @@ define 'Spook', ->
       get: => @_first_match_only
       set: (bool) => @_first_match_only = bool
 
+    one_fs_handler_at_a_time:
+      get: => @_one_fs_handler_at_a_time
+      set: (bool) => @_one_fs_handler_at_a_time = bool
+
   instance
     initialize: =>
       @caller_env = {}
@@ -41,12 +49,15 @@ define 'Spook', ->
       @num_dirs = 0
       @file_watches = 0
       @first_match_only = true
+      @one_fs_handler_at_a_time = true
       @queue = Queue.new!
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
+      me = @
       for wname, store in pairs @watches
         @handlers["on_#{wname}"] = (pattern, func) ->
-          append store, {pattern, to_coro(func)}
+          wrap = to_coro_fs me
+          append store, {pattern, wrap(func)}
       setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
       for f in *{'watch', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
@@ -55,7 +66,8 @@ define 'Spook', ->
       @caller_env.log_level = (v) ->
         if @_log_level == log.INFO
           @log_level = v
-      @caller_env.first_match_only = (b) -> @first_match_only = b
+      for s in *{'first_match_only', 'one_fs_handler_at_a_time'}
+        @caller_env[s] = (b) -> @[s] = b
       setmetatable @caller_env, __index: _G
       -- always have something defined here that does the proper thing
       @on_signal 'int', (s) -> os.exit(1)
@@ -84,8 +96,11 @@ define 'Spook', ->
         dir = concat [comp for i, comp in ipairs path when i < #path], '/'
       old_handlers = @handlers
       @handlers = {}
+      me = @
       for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (fun) -> append store, {file, to_coro(fun)}
+        @handlers["on_#{wname}"] = (fun) ->
+          wrap = to_coro_fs me
+          append store, {file, wrap(fun)}
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers
@@ -152,6 +167,7 @@ define 'Spook', ->
       return unless type(event) == 'table' and event.type == 'fs'
       return if event.action == 'unknown'
       matching = {}
+      return unless @watches[event.action]
       matchers = [m for m in *@watches[event.action]]
       unless event.action == 'deleted'
         for m in *@watches.changed

@@ -10,7 +10,8 @@ return {
       'watch_file',
       'notifier',
       'log_level',
-      'first_match_only'
+      'first_match_only',
+      'one_fs_handler_at_a_time'
     },
     ["lib/config.moon"] = {
       'log_level',
