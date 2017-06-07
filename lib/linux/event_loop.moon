@@ -176,13 +176,17 @@ Timer = define 'Timer', ->
       @callback!
 
 signalset = S.sigprocmask!
-signalblock = (signals) ->
-  signalset\add signals
+signalblock = (signal) ->
+  sig = signal\lower!
+  signalset\add sig
   S.sigprocmask("block", signalset)
 
-signalunblock = (signals) ->
-  signalset\del signals
+signalunblock = (signal) ->
+  sig = signal\lower!
+  signalset\del sig
   S.sigprocmask("block", signalset)
+
+signalreset = -> S.sigprocmask("unblock", signalset)
 
 Signal = define 'Signal', ->
   properties
@@ -269,4 +273,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock
+:Watcher, :Timer, :Signal, :Read, :epoll_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock, :signalreset

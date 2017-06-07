@@ -90,16 +90,20 @@ Timer = define 'Timer', ->
 
 ignored_signals = {}
 signalblock = (signal) ->
-  return if signal\lower! == "chld"
-  unless ignored_signals[signal]
-    ignored_signals[signal] = true
-    S.signal signal, 'ign'
+  sig = signal\lower!
+  return if sig == "chld"
+  unless ignored_signals[sig]
+    ignored_signals[sig] = true
+    S.signal sig, 'ign'
 
 signalunblock = (signal) ->
-  return if signal\lower! == "chld"
-  if ignored_signals[signal]
-    S.signal signal, 'dfl'
-    ignored_signals[signal] = nil
+  sig = signal\lower!
+  if ignored_signals[sig]
+    S.signal sig, 'dfl'
+    ignored_signals[sig] = nil
+
+signalreset = ->
+  signalunblock sig for sig in pairs ignored_signals
 
 Signal = define 'Signal', ->
   properties
@@ -396,4 +400,4 @@ clear_all = ->
   for _, v in pairs EventHandlers
     v\stop! if v
 
-:Timer, :Signal, :Read, :Watcher, :EventHandlers, :kqueue_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock
+:Timer, :Signal, :Read, :Watcher, :EventHandlers, :kqueue_fd, :run, :run_once, :clear_all, :signalblock, :signalunblock, :signalreset
