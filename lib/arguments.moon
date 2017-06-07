@@ -22,6 +22,11 @@ load_spookfile = _G.load_spookfile
 -- Require some things that come with spook
 fs = require 'fs'
 
+-- We want to use the coroutine based execute which can also be
+-- interrupted using ctrl-c etc. I would recommend this most of the
+-- time even though os.execute works just fine (except for job control etc).
+execute = require('process').execute
+
 -- notify is a global variable. Let's make it a local
 -- as is generally recommended in Lua.
 -- Let's add the built-in terminal_notifier.
@@ -54,14 +59,14 @@ pcall notify.add, 'notifier'
 rspec = (file) ->
   return true unless fs.is_file file
   note.info "RUNNING rspec #{file}"
-  _, _, status = os.execute "./bin/rspec -f d #{file}"
+  _, _, status = execute "./bin/rspec -f d #{file}"
   assert status == 0, "rspec #{file} - failed"
 
 -- And another for running ruby
 ruby = (file) ->
   return true unless fs.is_file file
   note.info "RUNNING ruby #{file}"
-  _, _, status = os.execute "ruby #{file}"
+  _, _, status = execute "ruby #{file}"
   assert status == 0, "ruby #{file} - failed"
   status == 0
 
@@ -122,5 +127,9 @@ parser\option("-w --dir", "Expects the path to working directory - overrides the
     os.exit 1
 
 parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
+
+parser\flag("-s", "In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o")
+
+parser\flag("-o", "In entr mode, exit immediately after running utility - can't be used with -s")
 
 parser
