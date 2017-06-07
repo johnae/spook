@@ -4,7 +4,12 @@ require "lib"
 lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "globals"
+S = require 'syscall'
+:execute = require 'process'
+:readlines = require 'utils'
+fs = require 'fs'
 getcwd = getcwd
+insert: append, :concat = table
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
@@ -55,9 +60,8 @@ if fi = index_of arg, "-f"
 cli = require "arguments"
 run = require'event_loop'.run
 Spook = require 'spook'
-args = cli\parse!
-spookfile_path = args.config or os.getenv('SPOOKFILE') or "Spookfile"
 local spook, queue
+last_match = false
 
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
@@ -65,13 +69,22 @@ local spook, queue
 -- just the latest event, disregarding any previous ones).
 event_handler = =>
   seen_paths = {}
+  local pevent
   while #queue > 0
     event = queue\popright! -- latest event
+    right = queue\peekright!
+    if last_match and right and right.type == 'fs'
+      pevent = event unless event.action == 'deleted'
+      continue
+    if last_match
+      event = pevent if event.action == 'deleted'
     if event.type == 'fs'
       continue unless event.path -- ignore events without a path
       continue if seen_paths[event.path] -- ignore events we've already seen
       seen_paths[event.path] = true
       matching = spook\match event
+      if last_match and #matching > 0
+        matching = {matching[#matching]}
       if matching and #matching > 0
         for handler in *matching
           success, result = pcall handler
@@ -80,12 +93,51 @@ event_handler = =>
           break if spook.first_match_only -- the default
   @again!
 
+-- when true, ignores a signal in the signal handler
+_ign_sig = false
+ign_sig = (bool) ->
+  _ign_sig = bool if bool != nil
+  return _ign_sig
+
+start = ->
+  print = print
+  tostring = tostring
+  os = os
+  io = io
+  for sig in *{'int', 'term', 'quit'}
+    spook\on_signal sig, (s) ->
+      if ign_sig!
+        ign_sig false
+        return
+      S.kill(-S.getpgid!, "term")
+      killed = 0
+      while true
+        _, err, status = S.waitpid -1
+        break if err
+        killed += 1
+      dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
+      if killed > 0
+        if S.stdin\isatty!
+          ign_sig true
+        io.stderr\write colors "[ %{red}#{dead_children(killed)} terminated%{reset} ]\n"
+        return
+      s\stop!
+      spook\stop!
+      os.exit(1)
+
+  -- 0.35 interval is something I've found works
+  -- reasonably well.
+  spook\after 0.35, event_handler
+  spook\start!
+
 -- this is finally setting up spook from the Spookfile
 -- this function is also made available globally which
 -- makes it possible to reload the Spookfile from the Spookfile
 -- itself (probably based on some event like a change to the
 -- Spookfile).
 load_spookfile = ->
+  args = cli\parse!
+  spookfile_path = args.config or os.getenv('SPOOKFILE') or "Spookfile"
   spook\stop! if spook
   success, result = pcall moonscript.loadfile, spookfile_path
   loadfail spookfile_path, result unless success
@@ -98,10 +150,6 @@ load_spookfile = ->
   queue = spook.queue
   success, result = pcall -> spook spookfile
   loadfail spookfile_path, result unless success
-  -- this is the actual event_handler above, the
-  -- 0.35 interval is something I've found works
-  -- reasonably well (on Linux at least).
-  spook\timer 0.35, event_handler
   dir_or_dirs = (num) ->
     num == 1 and 'directory' or 'directories'
   file_or_files = (num) ->
@@ -111,8 +159,136 @@ load_spookfile = ->
     notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively%{reset}"
     notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
 
-  spook\start!
+  start!
 
 _G.load_spookfile = load_spookfile
-load_spookfile!
+
+stdin_input = ->
+  sel = S.select(readfds: {S.stdin}, 0.01)
+  return if sel.count == 0
+  -- using a table because excessive string concatenation
+  -- in Lua is the wrong approach and will be very slow here
+  input = {}
+  append input, line for line in readlines(S.stdin)
+  return unless #input > 0
+  input
+
+expand_file = (data, file) ->
+  return nil unless data
+  data\gsub '([[{%<](file)[]}>])', file
+
+-- this basically finds the top directories to watch
+-- in a list of files (eg. perhaps from ls or find . -type f)
+-- for example, this file list:
+-- ./a/b/c/d/e/file-e.txt
+-- ./a/b/c/file-c.txt
+-- ./b/c/file-bc.txt
+-- ./b/c/e/file-bc.txt
+-- should give us this list of dirs:
+-- ./a/b/c
+-- ./b/c
+watch_dirs = (files) ->
+  list = {}
+  dirs = {}
+  for f in *files
+    path = if f\sub(1,1) == '/'
+      f\split('/')
+    else
+      p = {'.'}
+      s = f\split('/')
+      for c in *s
+        append p, c
+      p
+    local pcd, pd, cd
+    for i, d in ipairs path
+      if i == #path
+        pcd[pd] = 0
+        break
+      cd = dirs unless cd
+      cd[d] = {} unless cd[d]
+      if cd[d] == 0
+        break
+      pd = d
+      pcd = cd
+      cd = cd[d]
+  list = (tbl, path) ->
+    for k, v in pairs tbl
+      p = if path
+        "#{path}/#{k}"
+      else
+        k
+      if v == 0
+        coroutine.yield p
+      else
+        list v, p
+  coroutine.wrap -> list dirs
+
+-- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
+watch_files_from_stdin = (files) ->
+  spook\stop! if spook
+  spook = Spook.new!
+  _G.spook = spook
+  _G.notify.clear!
+  queue = spook.queue
+  last_match = true
+  args = [a for i, a in ipairs arg when i > 0]
+  start_now = false
+  exit_after_exec = false
+  if index_of(args, "-s") and index_of(args, "-o")
+    print "-o can't be used with -s"
+    os.exit 1
+
+  if fi = index_of args, "-s"
+    start_now = true
+    args = [a for i, a in ipairs args when i > fi]
+
+  if fi = index_of args, "-o"
+    exit_after_exec = true
+    args = [a for i, a in ipairs args when i > fi]
+
+  command = if #args > 0
+    concat ([a for i, a in ipairs args]), ' '
+  filemap = {file\gsub('^%./',''), true for file in *files}
+
+  pid = 0
+  if start_now and command
+    pid = coroutine.wrap(-> execute command)!
+
+  is_match = (name) -> filemap[name]
+
+  handler = if command
+    (event, f) ->
+      return unless is_match f
+      cmdline = expand_file command, f
+      if pid > 0
+        ign_sig true
+        S.kill(-S.getpgid!, "term")
+        while true
+          _, err, status = S.waitpid -1
+          break if err
+      opts = {}
+      if exit_after_exec
+        opts.on_death = (success, exittype, exitstatus, pid) ->
+          if success
+            return os.exit(0)
+          if exitstatus > 0
+            return os.exit(exitstatus)
+          os.exit(1)
+      pid = coroutine.wrap(-> execute cmdline, opts)!
+  else
+    (event, f) ->
+      return unless is_match f
+      io.stderr\write colors "%{green}'#{f}'%{reset} changed, no command was given so I'm just echoing\n"
+
+  for dir in watch_dirs(files)
+    spook\watch dir, ->
+      on_changed '(.*)', handler
+
+  start!
+
+if input = stdin_input!
+  watch_files_from_stdin input
+else
+  load_spookfile!
+
 run!
