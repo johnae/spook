@@ -128,3 +128,12 @@ describe 'spook', ->
         first_match_only false
 
       assert.false spook.first_match_only
+
+    it '#one_fs_handler_at_a_time is true by default', ->
+      assert.true spook.one_fs_handler_at_a_time
+
+    it 'configures one_fs_handler_at_a_time via supplied function', ->
+      spook ->
+        one_fs_handler_at_a_time false
+
+      assert.false spook.one_fs_handler_at_a_time

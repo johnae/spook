@@ -1,5 +1,6 @@
 log = _G.log
 notify = _G.notify
+:execute = require 'process'
 
 -- Run the same task regardless of fs change
 -- until that task succeeds.
@@ -18,8 +19,8 @@ command = (cmd, opts={}) ->
   (file) ->
     cmdline = "#{cmd} #{file}"
     notify.info cmdline
-    _, _, status = execute cmdline
-    assert status == 0, cmdline
+    success = execute cmdline
+    assert success, cmdline
 
 -- For filtering commands not runnable
 -- for example when the mapped file does
