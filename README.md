@@ -504,7 +504,7 @@ Perhaps a more relevant example of that would be something like:
 ag -l | spook "make test && make"
 ```
 
-Basically if tests pass, run the build. These are exactly the kind of things entr was made to do in a very simple and unsurprising fashion.
+Basically if tests pass, run the build.
 
 Or keeping a log of changes like so:
 
@@ -512,7 +512,11 @@ Or keeping a log of changes like so:
 find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
 ```
 
-That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. Please note that the entr functionality hasn't been extensively tested and some features of entr are missing. So far I've implemented the basics only. If the somewhat more advanced features of entr are desired I'd suggest using spook with a Spookfile as originally intended since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
+These are exactly the kinds of things entr was made to do in a very simple and unsurprising fashion.
+
+That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. There's also {filenoext} which will be the filename without extension (with the path), there's {basename} which is the filename without the path and finally {basenamenoext} which is the filename without path and extension.
+
+Please note that the entr functionality hasn't been extensively tested and some features of entr are missing. So far I've implemented the basics only. If the somewhat more advanced features of entr are desired I'd suggest using spook with a Spookfile as originally intended since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
 
 Also, the "restart server on changes" should work, something like:
 
@@ -521,6 +525,12 @@ find . -type f -name "*.go" | spook -s go run server.go
 ```
 
 The above would run the server until a file in the given list of files changed at which time spook would restart the server. Using the "-s" switch means that the given utility to run is started immediately, not after a change is detected.
+
+There's also a oneshot option (can't be used with the -s option for obvious reasons), -o, which executes the given utility just once then exits when a watched file changes:
+
+```sh
+find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jpg
+```
 
 ### License
 
