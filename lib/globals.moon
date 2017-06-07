@@ -23,6 +23,8 @@ escape_pattern = (str) -> str\gsub(".", pattern_escapes)
 
 export *
 
+string.escape_pattern = escape_pattern
+
 string.split = (str, delim) ->
   return {} if str == ""
   str ..= delim
