@@ -67,3 +67,25 @@ describe 'fs', ->
       table.sort(expected)
       table.sort(contents)
       assert.same expected, contents
+
+  describe 'name_ext', ->
+
+    it 'returns the filename and extension as two parameters', ->
+      name, ext = fs.name_ext('my/file.dot.ext')
+      assert.equal 'my/file.dot', name
+      assert.equal '.ext', ext
+
+    it 'returns the filename and nil when file has no extension', ->
+      name, ext = fs.name_ext('my/file')
+      assert.equal 'my/file', name
+      assert.nil ext
+
+  describe 'basename', ->
+
+    it 'returns the filename without the path', ->
+      basename = fs.basename('/path/to/my/file.dot.ext')
+      assert.equal 'file.dot.ext', basename
+      basename = fs.basename('path/to/my/file.dot.ext')
+      assert.equal 'file.dot.ext', basename
+      basename = fs.basename('file.dot.ext')
+      assert.equal 'file.dot.ext', basename

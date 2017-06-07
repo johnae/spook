@@ -27,6 +27,13 @@ can_access = (path, mode='r') ->
   return false unless path
   S.access path, mode
 
+name_ext = (filename) ->
+  name, ext = filename\match '^(.+)(%..*)$'
+  return filename unless name
+  name, ext
+
+basename = (filename) -> filename\match "[^/]+$"
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
 
@@ -73,4 +80,14 @@ rm_rf = (path, attr) ->
     else if attr
       os.remove path
 
-:dirtree, :rm_rf, :mkdir_p, :can_access, :is_dir, :is_file, :is_present
+{
+  :dirtree,
+  :rm_rf,
+  :mkdir_p,
+  :can_access,
+  :is_dir,
+  :is_file,
+  :is_present,
+  :name_ext,
+  :basename
+}

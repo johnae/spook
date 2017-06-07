@@ -175,7 +175,13 @@ stdin_input = ->
 
 expand_file = (data, file) ->
   return nil unless data
-  data\gsub '([[{%<](file)[]}>])', file
+  filename, ext = fs.name_ext file
+  basename = fs.basename file
+  basenamenoext = fs.basename filename
+  data = data\gsub '([[{%<](file)[]}>])', file
+  data = data\gsub '([[{%<](filenoext)[]}>])', filename
+  data = data\gsub '([[{%<](basename)[]}>])', basename
+  data\gsub '([[{%<](basenamenoext)[]}>])', basenamenoext
 
 -- this basically finds the top directories to watch
 -- in a list of files (eg. perhaps from ls or find . -type f)
