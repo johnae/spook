@@ -8,6 +8,8 @@ Spook gained the basic functionality of the [entrproject](http://entrproject.org
 find . -type f | spook echo {file}
 ```
 
+Other replacement strings are {filenoext}, {basename} and {basenamenoext}.
+
 The -s option is for server type things (eg. restart server when code changes). This will start the utility (server) immediately and restart it (terminate first using SIGTERM) when files change.
 
 The -o option can't be used with the -s option. It means oneshot and will just execute whatever utility given once when files change then exit.
@@ -23,6 +25,8 @@ Spook should now properly handle children and signals by default. Previously, wh
 As part of the entr functionality being added a general cleanup of job control was done and it should now behave much better overall. *To actually have this work, you must NOT use os.execute but rather something like ```execute = require('process').execute```*. The spookfile_helpers use the new execute behind the scenes.
 
 A readlines function was added as a helper for reading lines (rather than just bytes) from stdin.
+
+The fs module gained the name_ext function which returns the filename without extension and the extension as the second return value. Fs also gained the basename function which will return the basename of a filepath (eg. just the filename).
 
 ## 0.8.0
 
