@@ -2,6 +2,16 @@
 
 ## 0.8.1
 
+_NOTE_: you should really think about replacing calls to os.execute with:
+
+```moonscript
+execute = require('process').execute
+
+success, etype, status = execute "somecommand"
+```
+
+This will give you job control (eg. you can ctrl-c and stop a running spec for example, then ctrl-c again to exit spook) among many other niceties.
+
 Spook gained the basic functionality of the [entrproject](http://entrproject.org). Usage:
 
 ```sh
