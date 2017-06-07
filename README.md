@@ -7,6 +7,8 @@ Spook started out as a light weight replacement for [guard](https://github.com/g
 
 While spook may seem to be geared towards running tests in a feedback loop - especially when reading this readme - there are many other potential uses. For some inspiration, check out my i3bar implementation (for the i3 window manager) which is also using a Spookfile but in most other ways is doing something very different: [moonbar](https://github.com/johnae/moonbar). Otherwise the Spookfile in this repo and the examples in the readme should point you in the right direction if you're just looking for a lightweight test runner.
 
+Spook was also somewhat inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). However the goal of spook was always broader and more general. Still, entr is a very nice utility which is why spook has (since version 0.8.1) gained the basic functionality entr provides - namely: read a list of files on stdin and run a command when any of them change. I consider this to be more of a bonus feature for one off tasks more than anything else. See further down for some examples.
+
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like (somewhere in your PATH probably).
 
 Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
@@ -65,9 +67,9 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <log_level>] [-c <config>] [-w <dir>]
-       [-f <file>] [-h]
+       [-f <file>] [-s] [-o] [-h]
 
-Watches for events and runs functions (and commands) in response, based on a config file (eg. Spookfile)
+Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)
 
 Options:
    -v, --version         Show the Spook version you're running and exit
@@ -79,6 +81,8 @@ Options:
    -w <dir>, --dir <dir> Expects the path to working directory - overrides the default of using wherever spook was launched
    -f <file>, --file <file>
                          Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
+   -s                    In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o
+   -o                    In entr mode, exit immediately after running utility - can't be used with -s
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
@@ -254,13 +258,14 @@ And signal handlers are defined like this:
 ```moonscript
 on_signal "int", (receiver) ->
   print "Why? Please don't interrupt me!"
+  os.exit(1) -- you should probably deal with this in a sane way
 ```
 
 Finally, reading from something else (like a socket) - please see the specs here [spec/event_loop_spec.moon](spec/event_loop_spec.moon). From the spookfile you'd do something like:
 
 ```moonscript
-Types = require("syscall").t
-stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen) - see the ljsyscall project
+S = require 'syscall'
+stdin = S.stdin
 on_read stdin, (reader, fd) ->
   data = fd\read!
   print "Got some data: #{data}"
@@ -269,9 +274,10 @@ on_read stdin, (reader, fd) ->
 So, obviously it's very much up to you to get that FD from somewhere. These functions, eg. on_read, on_signal etc are actually methods on the global spook object. So, if you want to use them from a file you require you can do so like this instead:
 
 ```moonscript
-Types = require("syscall").t
-stdin = Types.fd(0) -- MUST wrap this (or it gets GC:ed and strange things happen) - see the ljsyscall project
--- it's really _G.spook
+S = require 'syscall'
+stdin = S.stdin
+-- stdin = Types.fd(0) - if it's some other fd you MUST wrap it (S.stdin etc are already wrapped) or it gets GC:ed and weird things happen, see the ljsyscall project
+-- it's really _G.spook by the way, eg. it's a global object
 spook\on_read stdin, (reader, fd) ->
   data = fd\read!
   print "Got some data: #{data}"
@@ -294,7 +300,7 @@ every 5.0, (t) ->
 
 Above, the function given to every will have been wrapped in a coroutine. However, since nothing in that function actually yields (coroutine.yield) or resumes (coroutine.resume), it will just work the way spook always did - in the above case it will even "freeze" spook completely for 2 seconds waiting for sleep to exit (second every function). So the first every function that should execute once per second will skip a second.
 
-There is a process helper that has, among other things, an os.execute implementation that is coroutine based. Using that to implement the same code as above would look like this:
+There is a process helper that has, among other things, an os.execute api compatibile implementation that is coroutine based. Using that to implement the same code as above would look like this:
 
 ```moonscript
 :execute = require 'process'
@@ -309,6 +315,16 @@ every 5.0, (t) ->
 
 There's not much difference but you will see that there is no pausing of the 1 sec timer. This is a trivial example of course. For more interesting examples, see [moonbar](https://github.com/johnae/moonbar).
 
+While you certainly CAN use os.execute as mentioned, I would recommend that you use the execute that comes with spook instead for job control (regardless of whether you care about coroutines). Like this:
+
+```moonscript
+execute = require('process').execute
+every 5.0, (t) ->
+  _, _, status = execute "sleep 2"
+  print "sleep status: #{status}"
+```
+
+The above can actually be interrupted using CTRL-C and spook will still be running (another CTRL-C will kill spook itself).
 
 ### Notifications
 
@@ -460,6 +476,51 @@ chdir("/some/dir")
 ```
 
 This returns the current working directory (where you run spook, probably your git checkout of your app).
+
+
+### Entr functionality
+
+As mentioned up top, spook (since version 0.8.1) has gained the basic functionality of [entr](http://entrproject.org/). Using it in this mode is as simple as:
+
+```sh
+find . -type f | spook echo file changed: {file}
+```
+
+Or
+
+```sh
+ls *.moon | spook echo file changed: {file}
+```
+
+Since all commands in this scenario are passed to /bin/sh, this is also possible:
+
+```sh
+ls *.moon | spook "echo file changed: {file} && echo something else"
+```
+
+Perhaps a more relevant example of that would be something like:
+
+```sh
+ag -l | spook "make test && make"
+```
+
+Basically if tests pass, run the build. These are exactly the kind of things entr was made to do in a very simple and unsurprising fashion.
+
+Or keeping a log of changes like so:
+
+```sh
+find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
+```
+
+That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. Please note that the entr functionality hasn't been extensively tested and some features of entr are missing. So far I've implemented the basics only. If the somewhat more advanced features of entr are desired I'd suggest using spook with a Spookfile as originally intended since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
+
+Also, the "restart server on changes" should work, something like:
+
+```sh
+find . -type f -name "*.go" | spook -s go run server.go
+```
+
+The above would run the server until a file in the given list of files changed at which time spook would restart the server. Using the "-s" switch means that the given utility to run is started immediately, not after a change is detected.
 
 ### License
 

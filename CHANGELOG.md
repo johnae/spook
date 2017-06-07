@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.1
+
+Spook gained the basic functionality of the [entrproject](http://entrproject.org). Usage:
+
+```sh
+find . -type f | spook echo {file}
+```
+
+The -s option is for server type things (eg. restart server when code changes). This will start the utility (server) immediately and restart it (terminate first using SIGTERM) when files change.
+
+The -o option can't be used with the -s option. It means oneshot and will just execute whatever utility given once when files change then exit.
+
+No options (but data on stdin) means wait for changes, then execute utility - repeat.
+
+Some minor fixes on \*BSD/OSX.
+
+Fixed a subtle bug in single file watches (eg. watch_file). Basically if a dir in the path to a file was named the same as the file itself bad stuff would happen.
+
+Spook should now properly handle children and signals by default. Previously, when trying to CTRL-C out of something, it wouldn't always do anything. Now spook should terminate all children on CTRL-C. If there are no children it will terminate itself (so CTRL-C twice exits completely when spook is running something).
+
+As part of the entr functionality being added a general cleanup of job control was done and it should now behave much better overall. *To actually have this work, you must NOT use os.execute but rather something like ```execute = require('process').execute```*. The spookfile_helpers use the new execute behind the scenes.
+
+A readlines function was added as a helper for reading lines (rather than just bytes) from stdin.
+
 ## 0.8.0
 
 There are now real recurring timers. "after" is the timeout while "every" is the new recurring timer ("timer" has been kept for now and does the same as "after").
