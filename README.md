@@ -271,7 +271,7 @@ on_read stdin, (reader, fd) ->
   print "Got some data: #{data}"
 ```
 
-So, obviously it's very much up to you to get that FD from somewhere. These functions, eg. on_read, on_signal etc are actually methods on the global spook object. So, if you want to use them from a file you require you can do so like this instead:
+These functions, eg. on_read, on_signal etc are actually methods on the global spook object. So, if you want to use them from a file you require you can do so like this instead:
 
 ```moonscript
 S = require 'syscall'
@@ -324,7 +324,7 @@ every 5.0, (t) ->
   print "sleep status: #{status}"
 ```
 
-The above can actually be interrupted using CTRL-C and spook will still be running (another CTRL-C will kill spook itself).
+The above can actually be interrupted using CTRL-C and spook will still be running (another CTRL-C will kill spook itself). So _NOTE_: use the execute that comes with spook rather than os.execute.
 
 ### Notifications
 
