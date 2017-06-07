@@ -1,15 +1,11 @@
--- These are meant to be used with a coroutine based evented application. Eg.
--- for writing serial looking code that isn't, or in other words: avoiding
--- callback soup. Using spook for running tests, for example - this may not be
--- very useful.
-
 S = require "syscall"
 C = S.c
-:Read, :Signal, :epoll_fd, :signalunblock = require 'event_loop'
+:Read, :Signal, :epoll_fd, :signalreset = require 'event_loop'
+:read = require 'utils'
 
 -- kqueue isn't inherited by children
 prepare_child = ->
-  signalunblock 'CHLD'
+  signalreset!
   if epoll_fd
     epoll_fd\close!
 
@@ -26,25 +22,38 @@ stdio_pipes = ->
 
 close_all = (...) -> stream\close! for stream in *{...}
 
-read = (fd, count = 4096) -> ->
-  bytes, err = fd\read nil, count
-  return "", err if err
-  return nil if #bytes == 0
-  bytes
-
 process_env = (opts={}) ->
   env = {k, v for k, v in pairs S.environ!}
   if opts.env
     env[k] = v for k, v in pairs opts.env
   ["#{k}=#{v}" for k, v in pairs env]
 
-commands = {}
+children = {}
 sigchld = Signal.new 'CHLD', (s) ->
-  for pid, thread in pairs commands
-    _, err, status = S.waitpid pid, C.W.NOHANG
-    continue if err
-    commands[pid] = nil
-    coroutine.resume thread, status.EXITSTATUS
+  for pid, process in pairs children
+    wpid, err, status = S.waitpid pid, C.W.NOHANG
+    continue if wpid == 0
+    continue if err and not err.CHILD
+    children[pid] = nil
+    success = false
+    :thread, :on_death, :finish = process
+    -- call finish if present, it will, atm only do final reads on the pipes then close them
+    finish! if finish
+    -- to be compatible with Luas os.execute we need these values
+    exitstatus, exittype = if status
+      if status.WTERMSIG
+        status.WTERMSIG, "signal"
+      else if status.WSTOPSIG
+        status.WSTOPSIG, "signal"
+      else if status.EXITSTATUS
+        success = status.EXITSTATUS == 0
+        status.EXITSTATUS, "exit"
+    else
+      -1, "exit"
+
+    coroutine.resume thread, success, exittype, exitstatus, pid
+    on_death(success, exittype, exitstatus, pid) if type(on_death) == 'function'
+
 sigchld\start!
 
 -- used like:
@@ -55,6 +64,7 @@ exec = (cmdline, opts={}) ->
   cmd = args[1]
   thread, main = coroutine.running!
   assert not main, "Error can't suspend main thread"
+  process = {on_death: opts.on_death, :thread}
 
   child = ->
     prepare_child!
@@ -65,19 +75,19 @@ exec = (cmdline, opts={}) ->
   if pid == 0
     child!
   else if pid > 0
-    commands[pid] = thread
-    coroutine.yield!
+    S.setpgid pid, S.getpgid!
+    children[pid] = process
+    coroutine.yield pid
   else
     error "fork error"
 
 -- used like:
 -- _, _, status = execute "ls -lah"
--- this is mainly for (sort of) compat
--- with Lua:s built-in os.execute which
--- returns success, type_of_exit, status
+-- this is mainly for compat with Lua:s
+-- built-in os.execute
 execute = (cmdline, opts={}) ->
-  status = exec cmdline, opts
-  true, "exit", status
+  success, exittype, exitstatus = exec cmdline, opts
+  success, exittype, exitstatus
 
 -- used like:
 -- out = ""
@@ -88,6 +98,7 @@ spawn = (cmdline, opts={}) ->
   cmd = args[1]
   thread, main = coroutine.running!
   assert not main, "Error can't suspend main thread"
+  process = {on_death: opts.on_death, :thread}
   in_read, in_write, out_read, out_write, err_read, err_write = stdio_pipes!
 
   child = ->
@@ -101,38 +112,37 @@ spawn = (cmdline, opts={}) ->
 
   parent = (child_pid) ->
     local out_reader, err_reader
-
     close_all in_read, in_write, out_write, err_write
     out_read\nonblock!
     err_read\nonblock!
     on_read = opts.on_read or ->
     on_err = opts.on_err or ->
-    resuming = false
-
-    resume = ->
-      return if resuming
-      return unless (out_reader.stopped and err_reader.stopped)
-      resuming = true
-      _, _, status = S.waitpid child_pid
-      coroutine.resume thread, status.EXITSTATUS
 
     out_reader = Read.new out_read, (r, fd) ->
       for bytes, err in read(fd)
         return if err and err.again
         error err if err
         on_read bytes
-      r\stop!
-      out_read\close!
-      resume!
 
     err_reader = Read.new err_read, (r, fd) ->
       for bytes, err in read(fd)
         return if err and err.again
         error err if err
         on_err bytes
-      r\stop!
+
+    -- as the we might get SIGCHLD we've read the full output
+    -- we need a way to read any data left in the pipes. This
+    -- is propagated to the SIGCHLD handler which will call finish
+    -- if defined.
+    process.finish = ->
+      out_reader!
+      out_reader\stop!
+      err_reader!
+      err_reader\stop!
+      out_read\close!
       err_read\close!
-      resume!
+
+    children[child_pid] = process
 
     out_reader\start!
     err_reader\start!
@@ -141,9 +151,10 @@ spawn = (cmdline, opts={}) ->
   if pid == 0
     child!
   else if pid > 0
+    S.setpgid pid, S.getpgid!
     parent pid
-    coroutine.yield!
+    coroutine.yield pid
   else
     error "fork error"
 
-:exec, :spawn, :execute, :read
+:exec, :spawn, :execute

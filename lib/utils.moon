@@ -1,3 +1,5 @@
+insert: append, :concat = table
+
 to_func = (callable) ->
   (...) -> callable ...
 
@@ -6,6 +8,30 @@ coro = (func, ...) ->
 
 to_coro = (func) ->
   (...) -> coro(func, ...)
+
+read = (fd, count = 4096) -> ->
+  bytes, err = fd\read nil, count
+  return "", err if err
+  return nil if #bytes == 0
+  bytes
+
+NEWLINE = string.byte '\n'
+readlines = (fd) ->
+  getline = ->
+    line = {}
+    for bytes, err in read(fd)
+      continue if err and err.again
+      break if err
+      for i=1, #bytes
+        if bytes\byte(i) == NEWLINE
+          if #line == 0
+            coroutine.yield nil
+            break
+          coroutine.yield concat(line, '')
+          line = {}
+          continue
+        append line, bytes\sub(i,i)
+  coroutine.wrap -> getline fd
 
 {
   is_callable: (thing) ->
@@ -17,4 +43,6 @@ to_coro = (func) ->
 
   :to_func
   :to_coro
+  :read
+  :readlines
 }
