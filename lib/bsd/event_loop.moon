@@ -7,7 +7,7 @@ Constants = S.c
 :is_callable = require 'utils'
 :concat, insert: append = table
 log = require 'log'
-{:is_dir, :dirtree, :can_access} = require 'fs'
+{:is_present, :is_dir, :dirtree, :can_access} = require 'fs'
 
 abi_os = require('syscall').abi.os
 fd_evt_flag = abi_os == 'osx' and 'evtonly' or 'rdonly'
@@ -152,7 +152,9 @@ kq_watch = (id, opts={}) ->
   fflags = opts.fflags or 'delete, write, rename, attrib'
   watch = (path, attr, recursive) ->
     udata = watch_path :id, :path
-    file = S.open path, fd_evt_flag
+    file, err = S.open path, fd_evt_flag
+    if err
+      error "#{path}: #{tostring(err)}"
     kev = :filter, :flags, :udata, :fflags, fd: file\getfd!
     status = kqueue_fd\kevent Types.kevents({kev})
     assert status, "Failed to setup kqueue watch"
@@ -263,6 +265,7 @@ Watcher = define 'Watcher', ->
       has_rename = false
       for ev in *e
         {:path, :event} = ev
+
         if is_dir(path)
           for entry, _ in dirtree(path)
             unless @watches[entry]
@@ -306,7 +309,10 @@ Watcher = define 'Watcher', ->
           if ev.action == 'renamed'
             ev.attr.ino
           else
-            lfs.attributes(ev.path).ino
+            if is_present ev.path
+              lfs.attributes(ev.path).ino
+            else
+              -1
         renames = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'renamed']
         creates = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'created']
         modifies = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'modified']
@@ -329,6 +335,10 @@ Watcher = define 'Watcher', ->
         events = new_events
         for move in *moves
           append events, move
+
+      for ev in *events
+        while ev.path\sub(1,2) == './'
+          ev.path = ev.path\gsub '^%./', ''
 
       @callback events unless #events == 0
 

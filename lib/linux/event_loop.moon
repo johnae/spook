@@ -65,7 +65,10 @@ Watcher = define 'Watcher', ->
           path = nil
           unless evname == 'unknown'
             ev_name = rawget ev, 'name'
-            path = dir == '.' and ev_name or "#{dir}/#{ev_name}"
+            path = "#{dir}/#{ev_name}"
+            while path\sub(1,2) == './'
+              path = path\gsub '^%./', ''
+
           append events, {action: evname, :path}
 
         if #moves > 0
