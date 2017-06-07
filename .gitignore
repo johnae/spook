@@ -4,6 +4,7 @@ tools/luajit
 lib.lua
 vendor.lua
 main.lua
+init.lua
 spook
 .envrc_user
 spook-*.gz
