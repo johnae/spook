@@ -3,15 +3,15 @@
 
 ## Spook
 
-Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become much more than that since the 0.7.0 version. It is mostly written in [moonscript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary with all dependencies built-in. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [moonscript](https://github.com/leafo/moonscript), which is also part of the binary.
+Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become more than that over time. It is mostly written in [MoonScript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [MoonScript](https://github.com/leafo/moonscript), which is also part of the binary.
 
-While spook may seem to be geared towards running tests in a feedback loop - especially when reading this readme - there are many other potential uses. For some inspiration, check out my i3bar implementation (for the i3 window manager) which is also using a Spookfile but in most other ways is doing something very different: [moonbar](https://github.com/johnae/moonbar). Otherwise the Spookfile in this repo and the examples in the readme should point you in the right direction if you're just looking for a lightweight test runner.
+While spook may seem to be geared towards running tests in a feedback loop, there are many other potential uses. For some inspiration, check out my i3bar implementation [moonbar](https://github.com/johnae/moonbar) for the [i3 window manager](https://i3wm.org/) which is also using a Spookfile but in most other ways is doing something very different. Otherwise the Spookfile in this repo and the examples in the readme should point you in the right direction if you're just looking for a lightweight test runner.
 
-Spook was also somewhat inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). However the goal of spook was always broader and more general. Still, entr is a very nice utility which is why spook has (since version 0.8.1) gained the basic functionality entr provides - namely: read a list of files on stdin and run a command when any of them change. I consider this to be more of a bonus feature for one off tasks more than anything else. See further down for some examples.
+Spook was also somewhat inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). However the goal of spook was always broader and more general. Still, entr is a very nice tool which is why spook has (since version 0.8.1) gained the basic functionality entr provides - namely: read a list of files on stdin and run a command when any of them changes. I consider this to be more of a bonus feature for one off tasks more than anything else. See further down for some examples.
 
 You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like (somewhere in your PATH probably).
 
-Buiding spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
+Building spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
 
 ```sh
 make
@@ -24,7 +24,7 @@ sudo pkg install gmake
 gmake
 ```
 
-Everything in the lib directory and toplevel is part of spook itself, anything in vendor and deps is other peoples work.
+Everything in the lib directory and top level is part of spook itself, anything in vendor and deps is other peoples work.
 
 
 Installation is as straightforward as:
@@ -99,7 +99,7 @@ spook -i
 
 in your project directory to create an example Spookfile. Then tailor it to your needs. After that you just run spook without arguments in that directory. The default Spookfile is a basic example that might work for a Rails app.
 
-The Spookfile should be written in [moonscript](https://github.com/leafo/moonscript). It comes with a simple DSL as well as just straight moonscript for just about anything you can do in Lua and/or MoonScript. Hooking in to the notifications api is easy and it's also easy to implement your own notifiers.
+The Spookfile should be written in [MoonScript](https://github.com/leafo/moonscript). It comes with a simple DSL as well as just straight MoonScript for just about anything you can do in Lua and/or MoonScript. Hooking in to the notifications api is easy and it's also easy to implement your own notifiers.
 
 This is the Spookfile used to test spook itself:
 
@@ -300,7 +300,7 @@ every 5.0, (t) ->
 
 Above, the function given to every will have been wrapped in a coroutine. However, since nothing in that function actually yields (coroutine.yield) or resumes (coroutine.resume), it will just work the way spook always did - in the above case it will even "freeze" spook completely for 2 seconds waiting for sleep to exit (second every function). So the first every function that should execute once per second will skip a second.
 
-There is a process helper that has, among other things, an os.execute api compatibile implementation that is coroutine based. Using that to implement the same code as above would look like this:
+There is a process helper that has, among other things, an os.execute api compatible implementation that is coroutine based. Using that to implement the same code as above would look like this:
 
 ```moonscript
 :execute = require 'process'
@@ -324,7 +324,7 @@ every 5.0, (t) ->
   print "sleep status: #{status}"
 ```
 
-The above can actually be interrupted using CTRL-C and spook will still be running (another CTRL-C will kill spook itself). So _NOTE_: use the execute that comes with spook rather than os.execute.
+*NOTE:* use the execute that comes with spook rather than os.execute. If only for the ability to actually interrupt whatever spook is running using CTRL-C (another CTRL-C would kill spook itself).
 
 ### Notifications
 
@@ -357,7 +357,7 @@ fail = (msg, info) ->
 
 A notifier can use ANY arbitrary names for the functions handling the notifications. Just know that generally start, success and fail will be called. Whatever else you do is completely up to you. And you don't have to use any notifiers at all.
 
-As is mentioned further down, one place to put notifiers might be in $HOME/.spook/lib since that is already on the package.path. For example, different team members might agree that a good place to put the notifier could be in "$HOME/.spook/lib/notifier.moon". Everyones notifier can be different but is still referred to by the same name. Or some code might be written where any and all notifiers under a certain directory get loaded. There's no restrictions really.
+As is mentioned further down, one place to put notifiers might be in $HOME/.spook/lib since that is already on the package.path. For example, different team members might agree that a good place to put the notifier could be in "$HOME/.spook/lib/notifier.moon". Everyone's notifier can be different but is still referred to by the same name. Or some code might be written where any and all notifiers under a certain directory get loaded. There's no restrictions really.
 
 A slightly more complex notification example for tmux might look like this:
 
@@ -448,7 +448,7 @@ time_calc = (start, finish) ->
 
 ### Extending Spook
 
-There's a package.path pointing to $HOME/.spook/lib as well as PROJECT_DIR/.spook/lib which means you can put any exensions in there (written in moonscript or lua) and load them easily from your Spookfile. This means you could extend functionality in infinite ways. This is really just convenience since you could just as easily add your own package paths directly to the Spookfile. However, to me it seems $HOME/.spook is a reasonable place to put such things as well PROJECT_DIR/.spook.
+There's a package.path pointing to $HOME/.spook/lib as well as PROJECT_DIR/.spook/lib which means you can put any extensions in there (written in MoonScript or Lua) and load them easily from your Spookfile. This means you could extend functionality in infinite ways. This is really just convenience since you could just as easily add your own package paths directly to the Spookfile. However, to me it seems $HOME/.spook is a reasonable place to put such things as well PROJECT_DIR/.spook.
 
 Basically, let's say you've got some code in $HOME/.spook/lib/utils/boom.moon that you'd like to use in the Spookfile. This is how you'd do that:
 
