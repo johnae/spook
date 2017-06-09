@@ -33,9 +33,11 @@ LUAJIT_INCLUDE := tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE := tools/luajit/lib/libluajit-5.1.a
 LUAJIT := tools/luajit/bin/luajit
 TOOLS := $(realpath tools)
+BIN := $(realpath bin)
 ## this has to be expanded dynamically since luajit
 ## needs to be built first
 LUAJIT_BIN = $(realpath $(LUAJIT))
+SHPEC_BIN = $(BIN)/shpec
 ARCHIVES := $(LUAJIT_ARCHIVE)
 OBJECTS := init.o lib.o vendor.o
 
@@ -51,6 +53,7 @@ rebuild: clean all
 
 test: spook
 	$(LUAJIT_BIN) spec/support/run_busted.lua spec
+	$(SHPEC_BIN)
 
 lint: spook
 	$(LUAJIT_BIN) spec/support/run_linter.lua lib/*.moon lib/bsd/*.moon lib/linux/*.moon
