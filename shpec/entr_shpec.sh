@@ -1,3 +1,5 @@
+SPOOK=${SPOOK:-"./spook"}
+
 nap() {
   sleep 0.55
 }
@@ -45,7 +47,7 @@ describe "spook"
       setup
 
       touch $TESTDIR/file
-      find $TESTDIR/file -type f | ./spook echo {file} changed >>$LOG 2>/dev/null &
+      find $TESTDIR/file -type f | $SPOOK echo {file} changed >>$LOG 2>/dev/null &
       spid=$! ; nap ; nap
 
       touch $TESTDIR/file ; nap ; nap
@@ -65,7 +67,7 @@ describe "spook"
         setup
 
         touch $TESTDIR/file
-        find $TESTDIR/file -type f | ./spook -o echo {file} changed >>$LOG 2>/dev/null &
+        find $TESTDIR/file -type f | $SPOOK -o echo {file} changed >>$LOG 2>/dev/null &
         spid=$!; nap ; nap
 
         echo "content" >> $TESTDIR/file ; nap
@@ -97,7 +99,7 @@ EOF
 
         ## test 0 exit code
         touch $TESTDIR/file
-        find $TESTDIR/file -type f | ./spook -o $TESTDIR/exit_0.sh 2>/dev/null &
+        find $TESTDIR/file -type f | $SPOOK -o $TESTDIR/exit_0.sh 2>/dev/null &
         spid=$!; nap ; nap
 
         touch $TESTDIR/file ; nap
@@ -107,7 +109,7 @@ EOF
 
         ## test 123 exit code
         touch $TESTDIR/file
-        find $TESTDIR/file -type f | ./spook -o $TESTDIR/exit_123.sh 2>/dev/null &
+        find $TESTDIR/file -type f | $SPOOK -o $TESTDIR/exit_123.sh 2>/dev/null &
         spid=$!; nap ; nap
 
         touch $TESTDIR/file ; nap
@@ -138,7 +140,7 @@ EOF
         chmod +x $TESTDIR/server.sh
 
         touch $TESTDIR/file
-        find $TESTDIR/file -type f | ./spook -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
+        find $TESTDIR/file -type f | $SPOOK -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
         spid=$!; nap ; nap
 
         assert equal "$(log)" "Starting server 1"
