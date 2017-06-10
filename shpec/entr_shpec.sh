@@ -20,6 +20,24 @@ log() {
   cat $LOG | awk 'NF'
 }
 
+cleanup() {
+    err=$?
+    if [ "$spid" != "" ]; then
+      kill -INT $spid 2>/dev/null
+    fi
+    teardown
+    trap '' EXIT INT TERM
+    exit $err
+}
+
+sig_cleanup() {
+    trap '' EXIT
+    false
+    cleanup
+}
+trap cleanup EXIT
+trap sig_cleanup INT QUIT TERM
+
 describe "spook"
   describe "entr functionality"
 
