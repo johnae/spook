@@ -2,6 +2,11 @@
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
+-- by overriding os.execute we get the benefits of the coroutine based execute which
+-- can be interrupted
+:execute = require 'process'
+os.execute = execute
+
 -- Make it a local for use in handlers. In Lua
 -- it's generally preferable to make locals.
 load_spookfile = _G.load_spookfile
