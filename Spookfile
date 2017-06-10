@@ -51,6 +51,7 @@ pcall notify.add, 'notifier'
 task_list = task_filter fs.is_present
 spec = command "./tools/luajit/bin/luajit spec/support/run_busted.lua"
 exec = command "./tools/luajit/bin/luajit run.lua"
+shpec = command "shpec", env: {SPOOK: "./tools/luajit/bin/luajit run.lua init.moon"}
 
 lint = (file) ->
   notify.info "LINTING #{file}"
@@ -100,6 +101,15 @@ watch "lib", "spec", ->
         task_list(
           lint, "lib/#{name}.moon"
           spec, "spec/#{name}_spec.moon"
+        )
+
+-- shpec integration testing
+watch "shpec", ->
+  on_changed "^shpec/(.*)%.sh", (event, name) ->
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          shpec, "shpec/#{name}.sh"
         )
 
 if fs.is_present 'playground'

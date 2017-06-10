@@ -1,18 +1,23 @@
+command -v tmux >/dev/null 2>&1 || { echo >&2 "'tmux' is required for these tests. Please install it. Aborting."; exit 1; }
+
 SPOOK=${SPOOK:-"./spook"}
+echo "spook command: '$SPOOK'"
 
 nap() {
   sleep 0.55
 }
 
 setup() {
+  CURRENT_DIR=$(pwd)
   TMPDIR=$(mktemp -d spook-shpec.XXXXXXXXXX)
-  TESTDIR=$TMPDIR/entr
+  TESTDIR=$TMPDIR
   mkdir -p $TESTDIR
   LOG=$TESTDIR/log
   echo "" > $LOG
 }
 
 teardown() {
+  cd $CURRENT_DIR
   if [ "$TMPDIR" != "" ]; then
     rm -rf $TMPDIR
   fi
@@ -40,7 +45,78 @@ sig_cleanup() {
 trap cleanup EXIT
 trap sig_cleanup INT QUIT TERM
 
+#### some custom matchers
+process_running() {
+  ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  assert equal "$?" 0
+}
+process_not_running() {
+  ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  assert unequal "$?" 0
+}
+pid_running() {
+  ps aux | awk '{print $2}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  assert equal "$?" 0
+}
+pid_not_running() {
+  ps aux | awk '{print $2}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  assert unequal "$?" 0
+}
+####
+
 describe "spook"
+
+  describe "spook (tty mode)"
+
+    it "initial ctrl-c kills only child processes if any are running"
+      setup
+      mkdir -p $TESTDIR/watchme
+      cat<<EOF>$TESTDIR/watchme/slow.sh
+#!/bin/sh
+echo "I'm slow"
+while true; do
+  echo "very slow"
+  sleep 1
+done
+EOF
+      chmod +x $TESTDIR/watchme/slow.sh
+      cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+S = require "syscall"
+notify = _G.notify
+notify.add 'terminal_notifier'
+watch "watchme", ->
+  on_changed "^watchme/(.*)", (event, name) ->
+    execute "watchme/#{name} spook-spec-$$"
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+    tmux new-session -s spook-shpec-$$ -d
+    sleep 5 ## above can be really slow :-/
+    tmux send-keys "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
+    spid=$(cat $TESTDIR/pid)
+    assert pid_running "$spid"
+
+    assert process_not_running "slow.sh spook-spec-$$"
+    touch $TESTDIR/watchme/slow.sh ; nap ; nap
+    assert process_running "slow.sh spook-spec-$$"
+
+    kill -INT $spid ; nap ; nap
+    assert pid_running "$spid"
+    assert process_not_running "slow.sh spook-spec-$$"
+
+    kill -INT $spid ; nap
+    assert pid_not_running "$spid"
+
+    tmux kill-session -t spook-shpec-$$
+    teardown
+    end
+  end
+
   describe "entr functionality"
 
     it "executes the given command when any of the given files change"
