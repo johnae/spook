@@ -59,31 +59,75 @@ describe "spook"
 
     end
 
-    it "executes a command just once then exits when given the -o option"
-      setup
+    describe "-o option"
 
-      touch $TESTDIR/file
-      find $TESTDIR/file -type f | ./spook -o echo {file} changed >>$LOG 2>/dev/null &
-      spid=$!; nap ; nap
+      it "executes a command just once then exits"
+        setup
 
-      echo "content" >> $TESTDIR/file ; nap
-      assert equal "$(log)" "$TESTDIR/file changed"
+        touch $TESTDIR/file
+        find $TESTDIR/file -type f | ./spook -o echo {file} changed >>$LOG 2>/dev/null &
+        spid=$!; nap ; nap
 
-      nap ; echo "content" >> $TESTDIR/file ; nap
-      assert equal "$(log)" "$TESTDIR/file changed" ## no change
+        echo "content" >> $TESTDIR/file ; nap
+        assert equal "$(log)" "$TESTDIR/file changed"
 
-      assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
+        nap ; echo "content" >> $TESTDIR/file ; nap
+        assert equal "$(log)" "$TESTDIR/file changed" ## no change
 
-      kill -INT $spid 2>/dev/null
-      teardown
+        assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
+
+        kill -INT $spid 2>/dev/null
+        teardown
+
+      end
+
+      it "spook exits with the given commands exit code"
+        setup
+
+        cat<<EOF>$TESTDIR/exit_0.sh
+#!/bin/sh
+exit 0
+EOF
+
+        cat<<EOF>$TESTDIR/exit_123.sh
+#!/bin/sh
+exit 123
+EOF
+        chmod +x $TESTDIR/exit_*.sh
+
+        ## test 0 exit code
+        touch $TESTDIR/file
+        find $TESTDIR/file -type f | ./spook -o $TESTDIR/exit_0.sh 2>/dev/null &
+        spid=$!; nap ; nap
+
+        touch $TESTDIR/file ; nap
+        kill -INT $spid 2>/dev/null ## it should be dead already (oneshot) but just in case so we don't hang on wait
+        wait $spid
+        assert equal "$?" "0"
+
+        ## test 123 exit code
+        touch $TESTDIR/file
+        find $TESTDIR/file -type f | ./spook -o $TESTDIR/exit_123.sh 2>/dev/null &
+        spid=$!; nap ; nap
+
+        touch $TESTDIR/file ; nap
+        kill -INT $spid 2>/dev/null ## it should be dead already (oneshot) but just in case so we don't hang on wait
+        wait $spid
+        assert equal "$?" "123"
+
+        teardown
+
+      end
 
     end
 
-    it "executes persistent command and restarts it when files change given the -s option"
-      setup
+    describe "-s option"
 
-      echo "1" > $TESTDIR/instance
-      cat<<EOF>$TESTDIR/server.sh
+      it "executes persistent command and restarts it when files change"
+        setup
+
+        echo "1" > $TESTDIR/instance
+        cat<<EOF>$TESTDIR/server.sh
 #!/bin/sh
 instance=\$(cat $TESTDIR/instance)
 echo "Starting server \$instance"
@@ -91,20 +135,22 @@ instance=\$((instance+1))
 echo "\$instance" > $TESTDIR/instance
 while true; do sleep 1; done
 EOF
-      chmod +x $TESTDIR/server.sh
+        chmod +x $TESTDIR/server.sh
 
-      touch $TESTDIR/file
-      find $TESTDIR/file -type f | ./spook -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
-      spid=$!; nap ; nap
+        touch $TESTDIR/file
+        find $TESTDIR/file -type f | ./spook -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
+        spid=$!; nap ; nap
 
-      assert equal "$(log)" "Starting server 1"
-      nap
-      echo "stuff" >> $TESTDIR/file ; nap
+        assert equal "$(log)" "Starting server 1"
+        nap
+        echo "stuff" >> $TESTDIR/file ; nap
 
-      assert equal "$(log)" "Starting server 1\nStarting server 2"
+        assert equal "$(log)" "Starting server 1\nStarting server 2"
 
-      kill -INT $spid 2>/dev/null
-      teardown
+        kill -INT $spid 2>/dev/null
+        teardown
+
+      end
 
     end
 
