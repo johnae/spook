@@ -17,5 +17,16 @@ require'moonscript'
 local moonscript = require'moonscript.base'
 package.moonpath = moonscript.create_moonpath(package.path)
 
+newarg = {}
+newarg[0] = file
+newarg[-1] = "run.lua"
+if #arg > 1 then
+  for i=2,#arg do
+    table.insert(newarg, arg[i])
+  end
+end
+
+_G.arg = newarg
+
 chunk = assert(moonscript.loadfile(file), "Failed to load file: " .. file)
 chunk()
