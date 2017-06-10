@@ -10,7 +10,7 @@ nap() {
 setup() {
   CURRENT_DIR=$(pwd)
   TMPDIR=$(mktemp -d spook-shpec.XXXXXXXXXX)
-  TESTDIR=$TMPDIR
+  TESTDIR=$CURRENT_DIR/$TMPDIR
   mkdir -p $TESTDIR
   LOG=$TESTDIR/log
   echo "" > $LOG
@@ -73,6 +73,7 @@ describe "spook"
       mkdir -p $TESTDIR/watchme
       cat<<EOF>$TESTDIR/watchme/slow.sh
 #!/bin/sh
+echo "\$\$" > $TESTDIR/slowpid
 echo "I'm slow"
 while true; do
   echo "very slow"
@@ -95,19 +96,22 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
+    ## because spook requires a tty for this behavior
+    ## otherwise it will just exit
     tmux new-session -s spook-shpec-$$ -d
     sleep 5 ## above can be really slow :-/
     tmux send-keys "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
     spid=$(cat $TESTDIR/pid)
     assert pid_running "$spid"
 
-    assert process_not_running "slow.sh spook-spec-$$"
     touch $TESTDIR/watchme/slow.sh ; nap ; nap
-    assert process_running "slow.sh spook-spec-$$"
+    assert file_present $TESTDIR/slowpid
+    slowpid=$(cat $TESTDIR/slowpid)
+    assert pid_running "$slowpid"
 
     kill -INT $spid ; nap ; nap
     assert pid_running "$spid"
-    assert process_not_running "slow.sh spook-spec-$$"
+    assert pid_not_running "$slowpid"
 
     kill -INT $spid ; nap
     assert pid_not_running "$spid"
