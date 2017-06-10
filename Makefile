@@ -25,7 +25,7 @@ GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
 GITSHA := $(shell git rev-parse --short HEAD)
 ifeq ($(GITTAG), )
-SPOOK_VERSION := $(GITSHA)-dirty
+SPOOK_VERSION := $(GITSHA)-$(GITBRANCH)-untagged
 else
 SPOOK_VERSION := $(GITTAG)
 endif
