@@ -5,7 +5,7 @@ lpeg = require "lpeglj"
 package.loaded.lpeg = lpeg
 require "globals"
 S = require 'syscall'
-:execute = require 'process'
+:execute, :children = require 'process'
 :readlines = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
@@ -93,12 +93,6 @@ event_handler = =>
           break if spook.first_match_only -- the default
   @again!
 
--- when true, ignores a signal in the signal handler
-_ign_sig = false
-ign_sig = (bool) ->
-  _ign_sig = bool if bool != nil
-  return _ign_sig
-
 start = ->
   print = print
   tostring = tostring
@@ -106,21 +100,14 @@ start = ->
   io = io
   for sig in *{'int', 'term', 'quit'}
     spook\on_signal sig, (s) ->
-      if ign_sig!
-        ign_sig false
-        return
-      S.kill(-S.getpgid!, "term")
       killed = 0
-      while true
-        _, err, status = S.waitpid -1
-        break if err
+      for pid, process in pairs children
+        S.kill -pid, "term"
         killed += 1
       dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
       if killed > 0
-        if S.stdin\isatty!
-          ign_sig true
         io.stderr\write colors "[ %{red}#{dead_children(killed)} terminated%{reset} ]\n"
-        return
+        return if S.stdin\isatty!
       s\stop!
       spook\stop!
       os.exit(1)
@@ -267,11 +254,7 @@ watch_files_from_stdin = (files) ->
       return unless is_match f
       cmdline = expand_file command, f
       if pid > 0
-        ign_sig true
-        S.kill(-S.getpgid!, "term")
-        while true
-          _, err, status = S.waitpid -1
-          break if err
+        S.kill -pid, "term"
       opts = {}
       if exit_after_exec
         opts.on_death = (success, exittype, exitstatus, pid) ->

@@ -1,5 +1,3 @@
-command -v tmux >/dev/null 2>&1 || { echo >&2 "tmux is required for these shpecs. Please install it. Aborting."; exit 1; }
-
 nap() {
   sleep 0.55
 }
@@ -12,40 +10,15 @@ setup() {
   echo "" > $LOG
 }
 
-start_tmux() {
-  TSESS=spook-entr-shpec-$$
-  tmux new-session -s $TSESS -d
-  sleep 5 ## yes, it does take a long time to start - especially in CI
-}
-
 teardown() {
   if [ "$TMPDIR" != "" ]; then
     rm -rf $TMPDIR
   fi
-  tmux send-keys -t $TSESS:0 C-c || true
 }
 
-kill_tmux() {
-  tmux send-keys -t $TSESS:0 C-c
-  tmux kill-session -t $TSESS
+log() {
+  cat $LOG | awk 'NF'
 }
-
-cleanup() {
-    err=$?
-    kill_tmux
-    trap '' EXIT INT TERM
-    exit $err
-}
-
-sig_cleanup() {
-    trap '' EXIT
-    false
-    cleanup
-}
-trap cleanup EXIT
-trap sig_cleanup INT QUIT TERM
-
-start_tmux
 
 describe "spook"
   describe "entr functionality"
@@ -54,14 +27,16 @@ describe "spook"
       setup
 
       touch $TESTDIR/file
-      tmux send-keys -t $TSESS:0 "find $TESTDIR/file -type f | ./spook \"echo {file} changed >> $LOG\"" Enter ; nap
+      find $TESTDIR/file -type f | ./spook echo {file} changed >> $LOG 2>/dev/null &
+      spid=$! ; nap
 
       touch $TESTDIR/file ; nap
-      assert equal "$(cat $LOG | awk 'NF')" "$TESTDIR/file changed"
+      assert equal "$(log)" "$TESTDIR/file changed"
 
       nap; echo "content" >> $TESTDIR/file ; nap
-      assert equal "$(cat $LOG | awk 'NF')" "$TESTDIR/file changed\n$TESTDIR/file changed"
+      assert equal "$(log)" "$TESTDIR/file changed\n$TESTDIR/file changed"
 
+      kill -INT $spid 2>/dev/null
       teardown
 
     end
@@ -70,14 +45,18 @@ describe "spook"
       setup
 
       touch $TESTDIR/file
-      tmux send-keys -t $TSESS:0 "./spook -o \"echo {file} changed >> $LOG\" <<< \$(find $TESTDIR/file -type f)" Enter ; nap
+      ./spook -o echo {file} changed >> $LOG 2>/dev/null <<< $(find $TESTDIR/file -type f) &
+      spid=$!; nap
 
       echo "content" >> $TESTDIR/file ; nap
-      assert equal "$(cat $LOG | awk 'NF')" "$TESTDIR/file changed"
+      assert equal "$(log)" "$TESTDIR/file changed"
 
       echo "content" >> $TESTDIR/file ; nap
-      assert equal "$(cat $LOG | awk 'NF')" "$TESTDIR/file changed" ## no change
+      assert equal "$(log)" "$TESTDIR/file changed" ## no change
 
+      assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
+
+      kill -INT $spid 2>/dev/null
       teardown
 
     end
@@ -97,14 +76,16 @@ EOF
       chmod +x $TESTDIR/server.sh
 
       touch $TESTDIR/file
-      tmux send-keys -t $TSESS:0 "./spook -s \"$TESTDIR/server.sh >> $LOG\" <<< \$(find $TESTDIR/file -type f)" Enter ; nap
+      ./spook -s $TESTDIR/server.sh >> $LOG 2>/dev/null <<< $(find $TESTDIR/file -type f) &
+      spid=$!; nap
 
-      assert equal "$(cat $LOG | awk 'NF')" "Starting server 1"
+      assert equal "$(log)" "Starting server 1"
       nap
       echo "stuff" >> $TESTDIR/file ; nap
 
-      assert equal "$(cat $LOG | awk 'NF')" "Starting server 1\nStarting server 2"
+      assert equal "$(log)" "Starting server 1\nStarting server 2"
 
+      kill -INT $spid 2>/dev/null
       teardown
 
     end

@@ -73,9 +73,9 @@ exec = (cmdline, opts={}) ->
 
   pid = S.fork!
   if pid == 0
+    S.setpgid 0, S.getpid!
     child!
   else if pid > 0
-    S.setpgid pid, S.getpgid!
     children[pid] = process
     coroutine.yield pid
   else
@@ -149,12 +149,12 @@ spawn = (cmdline, opts={}) ->
 
   pid = S.fork!
   if pid == 0
+    S.setpgid 0, S.getpid!
     child!
   else if pid > 0
-    S.setpgid pid, S.getpgid!
     parent pid
     coroutine.yield pid
   else
     error "fork error"
 
-:exec, :spawn, :execute
+:exec, :spawn, :execute, :children
