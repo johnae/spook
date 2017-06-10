@@ -2,7 +2,9 @@
 
 ## 0.8.2
 
-Some minor cleanup. Job control was improved quite a bit. Actually, NOW children are put into their own groups and can be controlled individually. Previously they were put into the same group as Spook and that was plain wrong and could lead to strange behavior in some instances.
+Using the latest LuaJIT 2.1 commit https://github.com/LuaJIT/LuaJIT/commit/b0ecc6dd65a0b40e1868f20719c4f7c4880dc32d as it solves some issues on FreeBSD regarding resource limits (FreeBSD >= 10).
+
+Some minor cleanup. Job control was improved quite a bit. Actually, now children are put into their own groups and can be controlled individually. Previously they were put into the same group as Spook and that was plain wrong and sometimes lead to strange behavior.
 
 Integration tests were added for the entr functionality but I'm hoping to use them for more than that at some point.
 
