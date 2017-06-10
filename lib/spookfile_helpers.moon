@@ -15,11 +15,14 @@ until_success = (func) ->
 -- Wraps a command that takes a file
 -- as input.
 command = (cmd, opts={}) ->
-  execute = opts.execute or os.execute
-  (file) ->
+  command_env = opts.env or {}
+  (file, run_opts={}) ->
+    run_env = run_opts.env or {}
+    env = {k, v for k, v in pairs command_env}
+    env[k] = v for k, v in pairs run_env
     cmdline = "#{cmd} #{file}"
     notify.info cmdline
-    success = execute cmdline
+    success = execute cmdline, :env
     assert success, cmdline
 
 -- For filtering commands not runnable
