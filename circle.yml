@@ -4,8 +4,6 @@ machine:
     GITHUB_USER: $CIRCLE_PROJECT_USERNAME
 
 dependencies:
-  pre:
-    - sudo apt-get update; sudo apt-get install tmux
   override:
     - make -j $(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1)
 
