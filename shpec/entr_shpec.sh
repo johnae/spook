@@ -27,7 +27,7 @@ describe "spook"
       setup
 
       touch $TESTDIR/file
-      find $TESTDIR/file -type f | ./spook echo {file} changed >> $LOG 2>/dev/null &
+      find $TESTDIR/file -type f | ./spook echo {file} changed >>$LOG 2>/dev/null &
       spid=$! ; nap
 
       touch $TESTDIR/file ; nap
@@ -45,7 +45,7 @@ describe "spook"
       setup
 
       touch $TESTDIR/file
-      ./spook -o echo {file} changed >> $LOG 2>/dev/null <<< $(find $TESTDIR/file -type f) &
+      find $TESTDIR/file -type f | ./spook -o echo {file} changed >>$LOG 2>/dev/null &
       spid=$!; nap
 
       echo "content" >> $TESTDIR/file ; nap
@@ -76,7 +76,7 @@ EOF
       chmod +x $TESTDIR/server.sh
 
       touch $TESTDIR/file
-      ./spook -s $TESTDIR/server.sh >> $LOG 2>/dev/null <<< $(find $TESTDIR/file -type f) &
+      find $TESTDIR/file -type f | ./spook -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
       spid=$!; nap
 
       assert equal "$(log)" "Starting server 1"
