@@ -46,12 +46,12 @@ describe "spook"
 
       touch $TESTDIR/file
       find $TESTDIR/file -type f | ./spook echo {file} changed >>$LOG 2>/dev/null &
-      spid=$! ; nap
+      spid=$! ; nap ; nap
 
-      touch $TESTDIR/file ; nap
+      touch $TESTDIR/file ; nap ; nap
       assert equal "$(log)" "$TESTDIR/file changed"
 
-      nap; echo "content" >> $TESTDIR/file ; nap
+      nap ; echo "content" >> $TESTDIR/file ; nap ; nap
       assert equal "$(log)" "$TESTDIR/file changed\n$TESTDIR/file changed"
 
       kill -INT $spid 2>/dev/null
@@ -64,12 +64,12 @@ describe "spook"
 
       touch $TESTDIR/file
       find $TESTDIR/file -type f | ./spook -o echo {file} changed >>$LOG 2>/dev/null &
-      spid=$!; nap
+      spid=$!; nap ; nap
 
       echo "content" >> $TESTDIR/file ; nap
       assert equal "$(log)" "$TESTDIR/file changed"
 
-      echo "content" >> $TESTDIR/file ; nap
+      nap ; echo "content" >> $TESTDIR/file ; nap
       assert equal "$(log)" "$TESTDIR/file changed" ## no change
 
       assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
@@ -95,7 +95,7 @@ EOF
 
       touch $TESTDIR/file
       find $TESTDIR/file -type f | ./spook -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
-      spid=$!; nap
+      spid=$!; nap ; nap
 
       assert equal "$(log)" "Starting server 1"
       nap
