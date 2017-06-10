@@ -55,11 +55,11 @@ process_not_running() {
   assert unequal "$?" 0
 }
 pid_running() {
-  ps aux | awk '{print $2}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  ps -p $1 > /dev/null 2>&1
   assert equal "$?" 0
 }
 pid_not_running() {
-  ps aux | awk '{print $2}' | grep "$1" | grep -v grep > /dev/null 2>&1
+  ps -p $1 > /dev/null 2>&1
   assert unequal "$?" 0
 }
 ####
