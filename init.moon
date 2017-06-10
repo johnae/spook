@@ -258,10 +258,8 @@ watch_files_from_stdin = (files) ->
       opts = {}
       if exit_after_exec
         opts.on_death = (success, exittype, exitstatus, pid) ->
-          if success
-            return os.exit(0)
-          if exitstatus > 0
-            return os.exit(exitstatus)
+          os.exit(0) if success
+          os.exit(exitstatus) if exitstatus > 0
           os.exit(1)
       pid = coroutine.wrap(-> execute cmdline, opts)!
   else
