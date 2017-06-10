@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2
+
+Some minor cleanup. Job control was improved quite a bit. Actually, NOW children are put into their own groups and can be controlled individually. Previously they were put into the same group as Spook and that was plain wrong and could lead to strange behavior in some instances.
+
+Integration tests were added for the entr functionality but I'm hoping to use them for more than that at some point.
+
 ## 0.8.1
 
 _NOTE_: you should really think about replacing calls to os.execute with:

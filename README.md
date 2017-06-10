@@ -324,7 +324,19 @@ every 5.0, (t) ->
   print "sleep status: #{status}"
 ```
 
-*NOTE:* use the execute that comes with spook rather than os.execute. If only for the ability to actually interrupt whatever spook is running using CTRL-C (another CTRL-C would kill spook itself).
+or, if you're using third party stuff, you might consider doing this (spooks own Spookfile does actually):
+
+```moonscript
+execute = require('process').execute
+os.execute = execute
+every 5.0, (t) ->
+  _, _, status = os.execute "sleep 2"
+  print "sleep status: #{status}"
+```
+
+Obviously above it won't make much difference to override the default os.execute but with third party code or code you don't want to change it may be extremely handy.
+
+*NOTE:* basically use the execute that comes with spook rather than os.execute. If only for the ability to actually interrupt whatever spook is running using CTRL-C (another CTRL-C would kill spook itself).
 
 ### Notifications
 
