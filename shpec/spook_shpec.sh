@@ -23,6 +23,20 @@ teardown() {
   fi
 }
 
+## because spook requires a tty for some behavior
+## otherwise it will just exit. Here we start a tmux
+## session but we don't actually use it. Without
+## a session, tmux will just exit. This is here to
+## speed up the specs a bit since tmux can be a little
+## slow to start. Later we just run new sessions in an
+## already running server.
+TMUX_SESSION=spook-shpec-session-$$
+tmux new-session -s $TMUX_SESSION -d
+sleep 5 ## above can be really slow :-/
+teardown_tmux() {
+  tmux kill-session -t $TMUX_SESSION
+}
+
 log() {
   cat $LOG | awk 'NF'
 }
@@ -33,6 +47,7 @@ cleanup() {
       kill -INT $spid 2>/dev/null
     fi
     teardown
+    teardown_tmux
     trap '' EXIT INT TERM
     exit $err
 }
@@ -96,28 +111,90 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
-    ## because spook requires a tty for this behavior
-    ## otherwise it will just exit
-    tmux new-session -s spook-shpec-$$ -d
-    sleep 5 ## above can be really slow :-/
-    tmux send-keys "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
-    spid=$(cat $TESTDIR/pid)
-    assert pid_running "$spid"
+      window=$(tmux new-window -P -d)
+      tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
+      spid=$(cat $TESTDIR/pid)
+      assert pid_running "$spid"
 
-    touch $TESTDIR/watchme/slow.sh ; nap ; nap
-    assert file_present $TESTDIR/slowpid
-    slowpid=$(cat $TESTDIR/slowpid)
-    assert pid_running "$slowpid"
+      touch $TESTDIR/watchme/slow.sh ; nap ; nap
+      assert file_present $TESTDIR/slowpid
+      slowpid=$(cat $TESTDIR/slowpid)
+      assert pid_running "$slowpid"
 
-    kill -INT $spid ; nap ; nap
-    assert pid_running "$spid"
-    assert pid_not_running "$slowpid"
+      tmux send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      assert pid_running "$spid"
+      assert pid_not_running "$slowpid"
 
-    kill -INT $spid ; nap
-    assert pid_not_running "$spid"
+      tmux send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+      assert pid_not_running "$spid"
 
-    tmux kill-session -t spook-shpec-$$
-    teardown
+      teardown
+    end
+
+    it "puts children in a process group so that grandchildren etc can be controlled"
+
+      setup
+      mkdir -p $TESTDIR/watchme
+      cat<<EOF>$TESTDIR/watchme/child.sh
+#!/bin/sh
+echo "\$\$" > $TESTDIR/childpid
+echo "I'm a child but I'm also a parent"
+$TESTDIR/watchme/grandchild.sh &
+while true; do
+  sleep 1
+done
+EOF
+      chmod +x $TESTDIR/watchme/child.sh
+
+      cat<<EOF>$TESTDIR/watchme/grandchild.sh
+#!/bin/sh
+echo "\$\$" > $TESTDIR/grandchildpid
+echo "I'm a grandchild"
+while true; do
+  sleep 1
+done
+EOF
+      chmod +x $TESTDIR/watchme/grandchild.sh
+
+      cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+S = require "syscall"
+notify = _G.notify
+notify.add 'terminal_notifier'
+watch "watchme", ->
+  on_changed "^watchme/child%.sh", (event) ->
+    execute "watchme/child.sh spook-spec-$$"
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+      window=$(tmux new-window -P -d)
+      tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
+      spid=$(cat $TESTDIR/pid)
+      assert pid_running "$spid"
+
+      touch $TESTDIR/watchme/child.sh ; nap ; nap
+      assert file_present $TESTDIR/childpid
+      childpid=$(cat $TESTDIR/childpid)
+      assert pid_running "$childpid"
+
+      assert file_present $TESTDIR/grandchildpid
+      grandchildpid=$(cat $TESTDIR/grandchildpid)
+      assert pid_running "$grandchildpid"
+
+      tmux send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      assert pid_running "$spid"
+      assert pid_not_running "$childpid"
+      assert pid_not_running "$grandchildpid"
+
+      tmux send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+      assert pid_not_running "$spid"
+
+      teardown
+
     end
   end
 
