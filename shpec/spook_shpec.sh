@@ -37,6 +37,12 @@ teardown_tmux() {
   tmux kill-session -t $TMUX_SESSION
 }
 
+new_tmux_window() {
+  window=$(tmux new-window -P -d)
+  sleep 3 ## above can be slow :-/
+  echo $window
+}
+
 log() {
   cat $LOG | awk 'NF'
 }
@@ -111,7 +117,7 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
-      window=$(tmux new-window -P -d)
+      window=$(new_tmux_window)
       tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
       spid=$(cat $TESTDIR/pid)
       assert pid_running "$spid"
@@ -171,7 +177,7 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
-      window=$(tmux new-window -P -d)
+      window=$(new_tmux_window)
       tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
       spid=$(cat $TESTDIR/pid)
       assert pid_running "$spid"
