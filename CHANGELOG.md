@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+An environment (a Lua k/v table) can now be passed to the command factory function and to the instances it creates (keys in the env passed to the instances takes precedence over the same keys passed to the factory function).
+
+A bug in the spookfile_helpers was fixed (apparently the spook version of execute was in fact NOT used when it should have been).
+
 ## 0.8.2
 
 Using the latest LuaJIT 2.1 commit https://github.com/LuaJIT/LuaJIT/commit/b0ecc6dd65a0b40e1868f20719c4f7c4880dc32d as it solves some issues on FreeBSD regarding resource limits (FreeBSD >= 10).
