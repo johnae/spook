@@ -31,7 +31,7 @@ teardown() {
 ## slow to start. Later we just run new sessions in an
 ## already running server.
 TMUX_SESSION=spook-shpec-session-$$
-tmux new-session -s $TMUX_SESSION -d
+tmux -f /dev/null new-session -s $TMUX_SESSION -d
 sleep 5 ## above can be really slow :-/
 teardown_tmux() {
   tmux kill-session -t $TMUX_SESSION
