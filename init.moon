@@ -6,7 +6,7 @@ package.loaded.lpeg = lpeg
 require "globals"
 S = require 'syscall'
 :execute, :children = require 'process'
-:readlines = require 'utils'
+:readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
 insert: append, :concat = table
@@ -77,7 +77,7 @@ event_handler = =>
       pevent = event unless event.action == 'deleted'
       continue
     if last_match
-      event = pevent if event.action == 'deleted'
+      event = pevent if event.action == 'deleted' and pevent
     if event.type == 'fs'
       continue unless event.path -- ignore events without a path
       continue if seen_paths[event.path] -- ignore events we've already seen
@@ -156,7 +156,7 @@ stdin_input = ->
   -- using a table because excessive string concatenation
   -- in Lua is the wrong approach and will be very slow here
   input = {}
-  append input, line for line in readlines(S.stdin)
+  append input, line for line in readline(S.stdin)
   return unless #input > 0
   input
 

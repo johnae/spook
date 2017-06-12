@@ -16,22 +16,18 @@ read = (fd, count = 4096) -> ->
   bytes
 
 NEWLINE = string.byte '\n'
-readlines = (fd) ->
+readline = (fd) ->
+  line = {}
   getline = ->
-    line = {}
     for bytes, err in read(fd)
-      continue if err and err.again
-      break if err
+      coroutine.yield nil, err if err
       for i=1, #bytes
         if bytes\byte(i) == NEWLINE
-          if #line == 0
-            coroutine.yield nil
-            break
           coroutine.yield concat(line, '')
           line = {}
           continue
         append line, bytes\sub(i,i)
-  coroutine.wrap -> getline fd
+  coroutine.wrap -> getline!
 
 {
   is_callable: (thing) ->
@@ -44,5 +40,5 @@ readlines = (fd) ->
   :to_func
   :to_coro
   :read
-  :readlines
+  :readline
 }
