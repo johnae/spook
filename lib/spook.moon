@@ -53,12 +53,6 @@ define 'Spook', ->
       @queue = Queue.new!
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
-      me = @
-      for wname, store in pairs @watches
-        @handlers["on_#{wname}"] = (pattern, func) ->
-          wrap = to_coro_fs me
-          append store, {pattern, wrap(func)}
-      setmetatable @handlers, __index: _G
       @_log_level =  log.INFO
       for f in *{'watch', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
@@ -69,6 +63,13 @@ define 'Spook', ->
       for s in *{'first_match_only', 'one_fs_handler_at_a_time'}
         @caller_env[s] = (b) -> @[s] = b
       setmetatable @caller_env, __index: _G
+      me = @
+      for wname, store in pairs @watches
+        @handlers["on_#{wname}"] = (pattern, func) ->
+          setfenv func, me.caller_env
+          wrap = to_coro_fs me
+          append store, {pattern, wrap(func)}
+      setmetatable @handlers, __index: _G
       -- always have something defined here that does the proper thing
       @on_signal 'int', (s) -> os.exit(1)
 
@@ -99,6 +100,7 @@ define 'Spook', ->
       me = @
       for wname, store in pairs @watches
         @handlers["on_#{wname}"] = (fun) ->
+          setfenv fun, me.caller_env
           wrap = to_coro_fs me
           append store, {file, wrap(fun)}
       @watchnr dir, func
