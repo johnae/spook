@@ -32,14 +32,14 @@ teardown() {
 ## already running server.
 TMUX_SESSION=spook-shpec-session-$$
 tmux -f /dev/null new-session -s $TMUX_SESSION -d
-sleep 5 ## above can be really slow :-/
+sleep 6 ## above can be really slow :-/
 teardown_tmux() {
   tmux kill-session -t $TMUX_SESSION
 }
 
 new_tmux_window() {
   window=$(tmux new-window -P -d)
-  sleep 3 ## above can be slow :-/
+  sleep 4 ## above can be slow :-/
   echo $window
 }
 
