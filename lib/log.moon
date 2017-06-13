@@ -5,6 +5,8 @@ format = (p) ->
     return serpent.block p, comment: false, sortkeys: true
   p
 
+local logger
+
 logger = (...) -> print ...
 
 log = (req_level, level, ...) ->
