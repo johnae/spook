@@ -70,8 +70,6 @@ define 'Spook', ->
           wrap = to_coro_fs me
           append store, {pattern, wrap(func)}
       setmetatable @handlers, __index: _G
-      -- always have something defined here that does the proper thing
-      @on_signal 'int', (s) -> os.exit(1)
 
     -- defines recursive watchers (eg. all directories underneath given directories)
     watch: (...) =>
