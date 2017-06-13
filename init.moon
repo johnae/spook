@@ -93,6 +93,18 @@ event_handler = =>
           break if spook.first_match_only -- the default
   @again!
 
+kill_children = ->
+  killed = 0
+  for pid, process in pairs children
+    S.kill -pid, "KILL"
+    S.waitpid pid
+    children[pid] == nil
+    killed += 1
+  dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
+  if killed > 0
+    io.stderr\write colors "[ %{red}#{dead_children(killed)} killed%{reset} ]\n"
+
+signaled_at = 0
 start = ->
   print = print
   tostring = tostring
@@ -100,16 +112,21 @@ start = ->
   io = io
   for sig in *{'int', 'term', 'quit'}
     spook\on_signal sig, (s) ->
-      killed = 0
-      for pid, process in pairs children
-        S.kill -pid, "term"
-        killed += 1
-      dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
-      if killed > 0
-        io.stderr\write colors "[ %{red}#{dead_children(killed)} terminated%{reset} ]\n"
-        return if S.stdin\isatty!
+      killall = gettimeofday! - signaled_at < 500
+      signaled_at = gettimeofday!
+      unless killall
+        killed = 0
+        for pid, process in pairs children
+          S.kill -pid, "term"
+          killed += 1
+        dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
+        if killed > 0
+          io.stderr\write colors "[ %{red}#{dead_children(killed)} terminated%{reset} ]\n"
+          return if S.stdin\isatty!
+      kill_children!
       s\stop!
       spook\stop!
+      io.stderr\write colors "Killed by SIG#{sig\upper!}.\n"
       os.exit(1)
 
   -- 0.35 interval is something I've found works
