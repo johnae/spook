@@ -7,10 +7,6 @@ log_level "INFO"
 :execute = require 'process'
 os.execute = execute
 
--- Make it a local for use in handlers. In Lua
--- it's generally preferable to make locals.
-load_spookfile = _G.load_spookfile
-
 package.path = "#{package.path};spec/support/?.lua;spec/support/?/init.lua"
 
 -- If the spookfile is reloaded we just ensure we reload
@@ -26,7 +22,6 @@ fs = require 'fs'
 -- notify is a global variable. Let's make it a local
 -- as is generally recommended in Lua.
 -- Let's add the built-in terminal_notifier.
-notify = _G.notify
 notify.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
