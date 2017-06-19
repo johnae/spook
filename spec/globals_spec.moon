@@ -13,6 +13,11 @@ describe "globals", ->
     str = "a.b..c"
     assert.same {"a","b","","c"}, str\split(".")
 
+  it "string.split splits by character", ->
+    str = "abcd"
+    assert.same {"a","b","c","d"}, str\split!
+    assert.same {"a","b","c","d"}, str\split ''
+
   it "string.trim removes leading and trailing whitespace", ->
     str1 = " leading"
     str2 = "trailing "

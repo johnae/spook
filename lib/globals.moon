@@ -27,6 +27,8 @@ string.escape_pattern = escape_pattern
 
 string.split = (str, delim) ->
   return {} if str == ""
+  if delim == nil or delim == ''
+    return [m for m in str\gmatch(".")]
   str ..= delim
   delim = escape_pattern(delim)
   [m for m in str\gmatch("(.-)"..delim)]
