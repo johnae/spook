@@ -65,6 +65,26 @@ describe 'Queue', ->
     assert.equal 'item3', queue\peekleft!
     assert.equal 'item1', queue\peekright!
 
+  it 'can take a peek at any element of the queue', ->
+    queue\pushright 'item1'
+    queue\pushright 'item2'
+    queue\pushright 'item3'
+    queue\pushright 'item4'
+    assert.equal 'item2', queue\peek(1)
+    assert.equal 'item4', queue\peek(3)
+    queue\popleft!
+    assert.equal 'item2', queue\peek(0)
+    assert.equal 'item4', queue\peek(2)
+    queue\pushleft 'something'
+    assert.equal 'something', queue\peek(0)
+    assert.equal 'item2', queue\peek(1)
+    assert.equal 'item4', queue\peek(3)
+    queue\pushright 'something2'
+    assert.equal 'something', queue\peek(0)
+    assert.equal 'item2', queue\peek(1)
+    assert.equal 'item4', queue\peek(3)
+    assert.equal 'something2', queue\peek(4)
+
   it 'can reset itself to be empty', ->
     queue\pushleft 'item1'
     queue\pushleft 'item2'

@@ -16,6 +16,10 @@ define 'Queue', ->
     peekright: =>
       @list[@last]
 
+    peek: (idx) =>
+      idx += @first
+      @list[idx]
+
     pushleft: (value) =>
       @first = @first - 1
       @list[@first] = value
