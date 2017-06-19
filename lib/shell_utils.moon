@@ -1,5 +1,4 @@
-blue = (str) -> "\027[34m#{str}\027[0m"
-red = (str) -> "\027[31m#{str}\027[0m"
+:red = require 'colors'
 
 tobyte = (letter) ->
   byte = letter
@@ -47,4 +46,4 @@ new_cmdline = ->
   setmetatable cmdline, cmdline_mt
   cmdline
 
-:new_cmdline, :new_keymap, :tobyte, :red, :blue
+:new_cmdline, :new_keymap, :tobyte

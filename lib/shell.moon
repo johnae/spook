@@ -1,9 +1,11 @@
 S = require 'syscall'
 :read, :is_callable = require 'utils'
-:new_cmdline, :new_keymap, :tobyte, :red, :blue = require 'shell_utils'
+:new_cmdline, :new_keymap, :tobyte = require 'shell_utils'
+:red, :blue = require 'colors'
 parse = require 'moonscript.parse'
 compile = require 'moonscript.compile'
 :insert, :concat, :remove = table
+:max = math
 
 (prompt) ->
   history = {}
@@ -46,18 +48,18 @@ compile = require 'moonscript.compile'
   cmdline = new_cmdline!
   :notify, :reload_spook = _G
 
-  cmdline\cmd "reload", " - reloads spook", (screen) ->
+  cmdline\cmd "reload", "Reload spook", (screen) ->
     notify.info "Reloading spook..."
     reload_spook!
 
-  cmdline\cmd "history", " - show history", (screen) ->
+  cmdline\cmd "history", "Show history", (screen) ->
     for id, line in ipairs history
       print "#{id}: " .. concat(line, '')
 
-  cmdline\cmd "exit", " - exits spook", (screen) ->
+  cmdline\cmd "exit", "Exit spook", (screen) ->
     S.kill S.getpid!, "int"
 
-  cmdline\cmd "setenv", "KEY VALUE - sets an environment variable (no value unsets it)", (screen, key, value) ->
+  cmdline\cmd "setenv", "<key> [value] sets an environment variable (no value unsets it)", (screen, key, value) ->
     return unless key
     notify.info "current: #{key}=#{os.getenv(key)}"
     if value
@@ -66,7 +68,7 @@ compile = require 'moonscript.compile'
       S.unsetenv(key)
     notify.info "new: #{key}=#{os.getenv(key)}"
 
-  cmdline\cmd "getenv", "KEY - gets an environment variable", (screen, key) ->
+  cmdline\cmd "getenv", "[key] prints an environment variable (no key prints all variables)", (screen, key) ->
     if key
       print "#{key}=#{os.getenv(key)}"
     else
@@ -75,12 +77,18 @@ compile = require 'moonscript.compile'
         insert keys, "#{k}=#{v}"
       print concat(keys,"\n")
 
-  cmdline\cmd "help", " - shows this help message", (screen) ->
+  cmdline\cmd "help", "Shows this help message", (screen) ->
+    max_len = 0
+    for cmd in pairs cmdline
+      continue if cmd == '__dynamic'
+      max_len = max max_len, #cmd
+
     for cmd, def in pairs cmdline
       continue if cmd == '__dynamic'
-      print "#{cmd} #{def[2]}"
+      spaces = max_len - #cmd + 2
+      print cmd, " "\rep(spaces), def[2]
 
-  cmdline\cmd "->", "CODE - will parse and execute as moonscript", (...) ->
+  cmdline\cmd "->", "<code here> will parse and execute as moonscript", (...) ->
     args = {...}
     screen = args[1]
     rest = [item for idx, item in ipairs args when idx > 1]
@@ -201,14 +209,12 @@ compile = require 'moonscript.compile'
       line = [c for i, c in ipairs line when i < cols-plen]
     -- cursor to left edge
     assert fd\write '\x1b[0G'
-    --if line[#line] == '\n'
-    --  assert fd\write '\x1b[0B'
     -- write prompt + buffer
     assert fd\write blue(prompt)
     assert fd\write concat line, ''
-    -- erase to right
+    -- erase anything after
     assert fd\write '\x1b[0K'
-    -- move cursor to pos
+    -- move cursor to current pos
     assert fd\write '\x1b[0G\x1b[' .. tostring(pos + plen - 1) .. 'C'
 
 
