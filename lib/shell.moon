@@ -1,7 +1,7 @@
 S = require 'syscall'
 :read, :is_callable = require 'utils'
 :new_cmdline, :new_keymap, :tobyte = require 'shell_utils'
-:red, :blue = require 'colors'
+:red, :blue, :white = require 'colors'
 parse = require 'moonscript.parse'
 compile = require 'moonscript.compile'
 :insert, :concat, :remove = table
@@ -78,15 +78,22 @@ compile = require 'moonscript.compile'
       print concat(keys,"\n")
 
   cmdline\cmd "help", "Shows this help message", (screen) ->
+    :wfd = screen
     max_len = 0
     for cmd in pairs cmdline
       continue if cmd == '__dynamic'
       max_len = max max_len, #cmd
 
+    out = {}
     for cmd, def in pairs cmdline
       continue if cmd == '__dynamic'
-      spaces = max_len - #cmd + 2
-      print cmd, " "\rep(spaces), def[2]
+      spaces = (' ')\rep((max_len - #cmd) + 2)
+      insert out, white(cmd)
+      insert out, spaces
+      insert out, def[2]
+      insert out, '\n'
+
+    wfd\write concat(out,'')
 
   cmdline\cmd "->", "<code here> will parse and execute as moonscript", (...) ->
     args = {...}
