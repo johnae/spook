@@ -1,4 +1,6 @@
 command -v tmux >/dev/null 2>&1 || { echo >&2 "'tmux' is required for these tests. Please install it. Aborting."; exit 1; }
+echo "tmux version:"
+tmux -V
 
 SPOOK=${SPOOK:-"./spook"}
 echo "spook command: '$SPOOK'"
