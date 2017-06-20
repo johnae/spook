@@ -1,0 +1,24 @@
+jobs:
+  build:
+    machine: true
+
+    environment:
+      GITHUB_REPO: $CIRCLE_PROJECT_REPONAME
+      GITHUB_USER: $CIRCLE_PROJECT_USERNAME
+
+    working_directory: ~/spook
+
+    steps:
+      - run:
+          name: Installing dependencies
+          command: sudo apt-get update; sudo apt-get install tmux
+      - checkout
+      - run:
+          name: Compiling project
+          command: make -j $(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1)
+      - run:
+          name: Linting code
+          command: make lint
+      - run:
+          name: Running tests
+          command: make test
