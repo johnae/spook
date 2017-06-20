@@ -206,6 +206,60 @@ EOF
     end
   end
 
+  describe "repl functionality"
+    it "supports adding an extensible repl"
+      setup
+      cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+:repl, :cmdline = require('shell') -> "specrepl>"
+S = require "syscall"
+notify = _G.notify
+notify.add 'terminal_notifier'
+
+cmdline\cmd "mycmd", "Lists things", (screen, value)->
+  logfile = assert(io.open("log", "a"))
+  for name in *{value, "a","b","c"}
+    logfile\write name
+  logfile\close!
+
+on_read S.stdin, repl
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+      window=$(new_tmux_window)
+      tmux send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
+      spid=$(cat $TESTDIR/pid)
+      assert pid_running "$spid"
+
+      tmux send-keys -t $window Enter ; nap
+      prompt=$(tmux capture-pane -t $window -p)
+      assert grep "$prompt" "specrepl>"
+      tmux send-keys -t $window -l "mycmd astring"
+      tmux send-keys -t $window Enter
+
+      assert equal "$(log)" "astringabc"
+
+      tmux send-keys -t $window Enter ; nap
+      tmux send-keys -t $window -l help
+      tmux send-keys -t $window Enter
+
+      helptext=$(tmux capture-pane -t $window -p)
+      assert grep "$helptext" "mycmd"
+      assert grep "$helptext" "history"
+      assert grep "$helptext" "exit"
+      assert grep "$helptext" "\->"
+
+      tmux send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      assert pid_not_running "$spid"
+
+      teardown
+    end
+  end
+
   describe "entr functionality"
 
     it "executes the given command when any of the given files change"
