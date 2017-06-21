@@ -165,6 +165,29 @@ new_history = ->
     chunk = loadstring lua_code
     print chunk!
 
+  local complete
+  suggestions = {}
+  suggested = 0
+
+  reset_completion = ->
+    suggestions = {}
+    suggested = 0
+
+  complete = (screen) ->
+    suggested += 1
+    suggested = 1 if suggested > #suggestions
+    if s = suggestions[suggested]
+      screen.line = s
+      screen.pos = #s + 1
+      return
+    line = screen.line
+    sline = concat line, ''
+    for name in pairs cmdline
+      matches = {name\match "^#{sline\escape_pattern!}"}
+      if #matches > 0
+        insert suggestions, name\split!
+    complete screen if #suggestions > 0
+
   km = new_keymap!
   esckm = new_keymap!
   okm = new_keymap!
@@ -172,44 +195,42 @@ new_history = ->
   ctrl = (char) -> char\upper!\byte!-64
 
   km\mapkey ctrl('c'), (screen) ->
+    reset_completion!
     history\reset_pos!
     disable_raw screen
     S.kill S.getpid!, 'int'
     true
 
   km\mapkey '\r', (screen) ->
+    reset_completion!
     disable_raw screen
     screen.wfd\write '\n'
     history\add screen.line
     true
 
   km\mapkey 127, (screen) ->
+    reset_completion!
     :line, :pos = screen
     if pos > 1 and #line > 0
       screen.pos -= 1
       remove screen.line, screen.pos
 
   km\mapkey ctrl('d'), (screen) ->
+    reset_completion!
     disable_raw screen
     screen.wfd\write '\n'
     history\add screen.line
     true
 
   km\mapkey ctrl('u'), (screen) ->
+    reset_completion!
     screen.line = {}
     screen.pos = 1
 
   km\mapkey ctrl('l'), (screen) ->
     clear screen
 
-  km\mapkey 9, (screen) ->
-    line = screen.line
-    sline = concat line, ''
-    for name in pairs cmdline
-      matches = {name\match "^#{sline\escape_pattern!}"}
-      if #matches > 0
-        screen.line = name\split!
-        screen.pos = #screen.line+1
+  km\mapkey 9, complete
 
   -- escape
   km\mapkey 27, (screen) ->
@@ -308,5 +329,6 @@ new_history = ->
       args = [a for i, a in ipairs tokens when i > 1]
       c = def[1]
       c screen, unpack(args)
+    reset_completion!
 
   :repl, :cmdline
