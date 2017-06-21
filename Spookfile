@@ -133,13 +133,9 @@ watch_file 'lint_config.lua', ->
 -- this would execute any command in path
 -- :concat, :insert = table
 -- cmdline\dynamic (c, key, value) ->
---   (...) ->
---     arg = {...}
---     screen = arg[1]
+--   (screen, ...) ->
 --     args = {key}
---     for idx, item in ipairs arg
---       continue if idx == 1
---       insert args, item
+--     insert args, arg for arg in *{...}
 --     os.execute concat(args, ' ')
 
 S = require 'syscall'
