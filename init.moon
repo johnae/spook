@@ -160,7 +160,7 @@ load_spookfile = ->
     num == 1 and 'file' or 'files'
 
   if log[spook.log_level] > log.WARN
-    notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)} recursively%{reset}"
+    notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)}%{reset}"
     notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
 
   start!
