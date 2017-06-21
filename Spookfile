@@ -118,14 +118,13 @@ if fs.is_present 'playground'
 
 watch_file 'Spookfile', ->
   on_changed (event) ->
-    notify.info "Reloading Spookfile..."
-    load_spookfile!
+    notify.info "Re-executing spook..."
+    reload_spook!
 
 watch_file 'lint_config.lua', ->
   on_changed (event) ->
-    notify.info "Reloading Spookfile..."
-    load_spookfile!
-
+    notify.info "Re-executing spook..."
+    reload_spook!
 
 -- cmdline\cmd "spec_files", " - list all spec files", ->
 --   os.execute "find spec -type f -name '*_spec.moon'"

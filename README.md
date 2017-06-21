@@ -95,9 +95,6 @@ This is the Spookfile used to test spook itself:
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
--- Make it a local for use in handlers
-load_spookfile = _G.load_spookfile
-
 -- If the spookfile is reloaded we just ensure we reload
 -- the other stuff too.
 package.loaded['moonscript.cmd.lint'] = nil
@@ -108,11 +105,6 @@ package.loaded.lint_config = pcall -> loadfile('lint_config')!
 -- Require some things that come with spook
 colors = require "ansicolors"
 fs = require 'fs'
-
--- notify is a global variable. Let's make it a local
--- as is generally recommended in Lua.
--- Let's add the built-in terminal_notifier.
-notify = _G.notify
 
 -- Adds the built-in terminal_notifier - this notifies of success/fail
 -- in the terminal.
@@ -212,12 +204,14 @@ watch "playground", ->
 watch_file 'Spookfile', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
-    load_spookfile!
+    -- load_spookfile! -- this would "just" reload the spookfile, dependencies would stay in memory
+    reload_spook! -- this reexecutes spook so "this" instance of spook is replaced by a new one, a complete reload of the program
 
 watch_file 'lint_config.lua', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
-    load_spookfile!
+    -- load_spookfile! -- this would "just" reload the spookfile, dependencies would stay in memory
+    reload_spook! -- this reexecutes spook so "this" instance of spook is replaced by a new one, a complete reload of the program
 ```
 
 So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
