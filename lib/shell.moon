@@ -6,20 +6,72 @@ parse = require 'moonscript.parse'
 compile = require 'moonscript.compile'
 :insert, :concat, :remove = table
 :max = math
+:getcwd = _G
+
+history_mt = {
+  __index: {
+    reset_pos: => @pos = #@ + 1
+
+    back: =>
+      at = @pos - 1
+      if at > 0
+        @pos = at
+        return @pos
+      false
+
+    forward: =>
+      at = @pos + 1
+      if at <= #@
+        @pos = at
+        return @pos
+      false
+
+    current: => @[@pos]
+
+    add: (line) =>
+      if line and #line > 0
+        for i, l in ipairs @
+          l1 = concat line, ''
+          l2 = concat l, ''
+          remove @, i if l1 == l2
+        insert @, line
+        @pos = #@ + 1
+        @save!
+
+    load: =>
+      hpath = getcwd! .. '/.spook_history'
+      file = io.open hpath, 'r'
+      content = if file
+        c = file\read '*a'
+        file\close!
+        c
+      else
+        ''
+      lines = content\split '\n'
+      for idx, line in ipairs lines
+        -- only load last 1000 (and therefore never really save more than 1000)
+        continue if (#line - idx) > 1000
+        l = line\split ''
+        @add l
+
+    save: =>
+      hpath = getcwd! .. '/.spook_history'
+      file = io.open hpath, 'w'
+      if file
+        for line in *@
+          file\write concat(line, '') .. '\n'
+        file\close!
+  }
+}
+
+new_history = ->
+  history = {pos: 1}
+  setmetatable history, history_mt
+  history\load!
+  history
 
 (prompt) ->
-  history = {}
-  history_idx = 1
-  history_insert = (line) ->
-    if line and #line > 0
-      for i, l in ipairs history
-        l1 = concat line, ''
-        l2 = concat l, ''
-        if l1 == l2
-          remove history, i
-      insert history, line
-      history_idx = #history + 1
-
+  history = new_history!
   get_prompt = is_callable(prompt) and prompt or -> prompt
 
   enable_raw = (screen) ->
@@ -120,7 +172,7 @@ compile = require 'moonscript.compile'
   ctrl = (char) -> char\upper!\byte!-64
 
   km\mapkey ctrl('c'), (screen) ->
-    history_idx = #history + 1
+    history\reset_pos!
     disable_raw screen
     S.kill S.getpid!, 'int'
     true
@@ -128,7 +180,7 @@ compile = require 'moonscript.compile'
   km\mapkey '\r', (screen) ->
     disable_raw screen
     screen.wfd\write '\n'
-    history_insert screen.line
+    history\add screen.line
     true
 
   km\mapkey 127, (screen) ->
@@ -140,7 +192,7 @@ compile = require 'moonscript.compile'
   km\mapkey ctrl('d'), (screen) ->
     disable_raw screen
     screen.wfd\write '\n'
-    history_insert screen.line
+    history\add screen.line
     true
 
   km\mapkey ctrl('u'), (screen) ->
@@ -183,19 +235,15 @@ compile = require 'moonscript.compile'
 
   -- up arrow
   okm\mapkey 'A', (screen) ->
-    at = history_idx-1
-    if at > 0
-      history_idx = at
-      line = history[at]
+    if history\back!
+      line = history\current!
       screen.line = line
       screen.pos = #line + 1
 
   -- down arrow
   okm\mapkey 'B', (screen) ->
-    at = history_idx+1
-    if at <= #history
-      history_idx = at
-      line = history[at]
+    if history\forward!
+      line = history\current!
       screen.line = line
       screen.pos = #line + 1
     else
