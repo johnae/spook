@@ -15,10 +15,6 @@ parser\flag("-i --initialize", "Initialize an example Spookfile in the current d
 -- How much log output can you handle? (ERR, WARN, INFO, DEBUG)
 log_level "INFO"
 
--- Make it a local for use in handlers. In Lua
--- it's generally preferable to make locals.
-load_spookfile = _G.load_spookfile
-
 -- Require some things that come with spook
 fs = require 'fs'
 
@@ -26,11 +22,6 @@ fs = require 'fs'
 -- interrupted using ctrl-c etc. I would recommend this most of the
 -- time even though os.execute works just fine (except for job control etc).
 execute = require('process').execute
-
--- notify is a global variable. Let's make it a local
--- as is generally recommended in Lua.
--- Let's add the built-in terminal_notifier.
-notify = _G.notify
 
 -- Adds the built-in terminal_notifier
 notify.add 'terminal_notifier'

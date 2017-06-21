@@ -1,5 +1,87 @@
 # Changelog
 
+## 0.8.4
+
+### New feature
+
+A repl has been added to spook (not when run in entr mode though). To use it, you would do something like this in the Spookfile:
+
+```moonscript
+-- the function given to the shell below is the prompt, it should be a function
+-- it is called on every screen update.
+:repl = require('shell') -> getcwd! .. ' spook% '
+S = require 'syscall'
+on_read S.stdin, repl
+```
+
+Press enter and the repl will present itself. Type "help" for a list of default commands. Defining more commands work like this:
+
+```moonscript
+:repl, :cmdline = require('shell') -> getcwd! .. ' spook% '
+S = require 'syscall'
+
+-- the first argument is the command name, second the help text
+cmdline\cmd "date", "Show the current date", (screen) ->
+  print os.date!
+
+-- the arguments given to the function (last arg) are first the
+-- screen object which may or may not be very interesting. The
+-- following arguments are whatever is given after the name of
+-- the command tokenized using space as delimiter.
+cmdline\cmd "date", "Show the current date", (screen) ->
+  print os.date!
+
+:concat = table
+cmdline\cmd "echo", "Echo whatever you want", (screen, ...) ->
+  args = {...}
+  str = concat args, '#'
+  print str
+-- examples of the output of above:
+-- echo one two three
+-- one#two#three
+
+-- it's possible to define a dynamic handler that would be a catchall for
+-- anything not defined, like this:
+cmdline\dynamic (c, key, value) ->
+  (screen, ...) ->
+    args = {key}
+    insert args, arg for arg in *{...}
+    os.execute concat(args, ' ')
+-- above would try to execute anything not already defined
+-- as a program on the PATH
+
+on_read S.stdin, repl
+```
+
+### Fixes
+
+Fixes a subtle bug (only manifested on FreeBSD) regarding file watches and entr mode.
+Makes globals available in the on_changed handlers. Basically, previously if you did this:
+
+```moonscript
+watch "dir", ->
+  on_changed "^dir/(.*)", (event, name) ->
+    notify.info "Stuff happened to: #{name}"
+```
+
+That would fail because notify is a global and within the on_\* handlers of the watches, globals
+weren't available. This has been fixed. (you'd have do make a local out of it somewhere in the Spookfile
+before the change handler and refer to that local previously - this was quite surprising behavior).
+
+Ctrl-c in quick succession will send the KILL signal to children (eg. if they're unresponsive).
+
+string.split can now split on nothing, eg. the empty string.
+
+It's now possible to peek at any element by index in a queue.
+
+_Development related fixes_
+
+Improved the integration test suite - tmux runs on a socket specific for the test run (eg. if you actually use tmux otherwise, that instance is not affected).
+Updated the dev dependency moonpick to the latest version.
+
+Also, binary builds have been disabled for now.
+
+
 ## 0.8.3
 
 An environment (a Lua k/v table) can now be passed to the command factory function and to the instances it creates (keys in the env passed to the instances takes precedence over the same keys passed to the factory function).

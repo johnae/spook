@@ -33,14 +33,16 @@ teardown() {
 ## slow to start. Later we just run new sessions in an
 ## already running server.
 TMUX_SESSION=spook-shpec-session-$$
-tmux -f /dev/null new-session -s $TMUX_SESSION -d
+TMUX="tmux -L $TMUX_SESSION"
+echo "tmux: $TMUX"
+$TMUX -f /dev/null new-session -s $TMUX_SESSION -d
 sleep 6 ## above can be really slow :-/
 teardown_tmux() {
-  tmux kill-session -t $TMUX_SESSION
+  $TMUX kill-session -t $TMUX_SESSION
 }
 
 new_tmux_window() {
-  window=$(tmux new-window -P -d)
+  window=$($TMUX new-window -P -d)
   sleep 4 ## above can be slow :-/
   echo $window
 }
@@ -120,7 +122,7 @@ pidfile\close!
 EOF
 
       window=$(new_tmux_window)
-      tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
+      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
       spid=$(cat $TESTDIR/pid)
       assert pid_running "$spid"
 
@@ -129,11 +131,11 @@ EOF
       slowpid=$(cat $TESTDIR/slowpid)
       assert pid_running "$slowpid"
 
-      tmux send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
       assert pid_running "$spid"
       assert pid_not_running "$slowpid"
 
-      tmux send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+      $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
       assert pid_not_running "$spid"
 
       teardown
@@ -180,7 +182,7 @@ pidfile\close!
 EOF
 
       window=$(new_tmux_window)
-      tmux send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
+      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
       spid=$(cat $TESTDIR/pid)
       assert pid_running "$spid"
 
@@ -193,16 +195,70 @@ EOF
       grandchildpid=$(cat $TESTDIR/grandchildpid)
       assert pid_running "$grandchildpid"
 
-      tmux send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
       assert pid_running "$spid"
       assert pid_not_running "$childpid"
       assert pid_not_running "$grandchildpid"
 
-      tmux send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+      $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
       assert pid_not_running "$spid"
 
       teardown
 
+    end
+  end
+
+  describe "repl functionality"
+    it "supports adding an extensible repl"
+      setup
+      cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+:repl, :cmdline = require('shell') -> "specrepl>"
+S = require "syscall"
+notify = _G.notify
+notify.add 'terminal_notifier'
+
+cmdline\cmd "mycmd", "Lists things", (screen, value)->
+  logfile = assert(io.open("log", "a"))
+  for name in *{value, "a","b","c"}
+    logfile\write name
+  logfile\close!
+
+on_read S.stdin, repl
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+      window=$(new_tmux_window)
+      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
+      spid=$(cat $TESTDIR/pid)
+      assert pid_running "$spid"
+
+      $TMUX send-keys -t $window Enter ; nap
+      prompt=$($TMUX capture-pane -t $window -p)
+      assert grep "$prompt" "specrepl>"
+      $TMUX send-keys -t $window -l "mycmd astring"
+      $TMUX send-keys -t $window Enter
+
+      assert equal "$(log)" "astringabc"
+
+      $TMUX send-keys -t $window Enter ; nap
+      $TMUX send-keys -t $window -l help
+      $TMUX send-keys -t $window Enter
+
+      helptext=$($TMUX capture-pane -t $window -p)
+      assert grep "$helptext" "mycmd"
+      assert grep "$helptext" "history"
+      assert grep "$helptext" "exit"
+      assert grep "$helptext" "\->"
+
+      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      assert pid_not_running "$spid"
+
+      teardown
     end
   end
 

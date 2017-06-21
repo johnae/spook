@@ -6,6 +6,7 @@ log_level "INFO"
 -- can be interrupted
 :execute = require 'process'
 os.execute = execute
+:repl, :cmdline = require('shell') -> getcwd! .. ' spook% '
 
 package.path = "#{package.path};spec/support/?.lua;spec/support/?/init.lua"
 
@@ -124,3 +125,18 @@ watch_file 'lint_config.lua', ->
   on_changed (event) ->
     notify.info "Reloading Spookfile..."
     load_spookfile!
+
+
+-- cmdline\cmd "spec_files", " - list all spec files", ->
+--   os.execute "find spec -type f -name '*_spec.moon'"
+
+-- this would execute any command in path
+-- :concat, :insert = table
+-- cmdline\dynamic (c, key, value) ->
+--   (screen, ...) ->
+--     args = {key}
+--     insert args, arg for arg in *{...}
+--     os.execute concat(args, ' ')
+
+S = require 'syscall'
+on_read S.stdin, repl

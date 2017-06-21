@@ -58,7 +58,7 @@ if fi = index_of arg, "-f"
   return chunk!
 
 cli = require "arguments"
-run = require'event_loop'.run
+:run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'
 local spook, queue
 last_match = false
@@ -166,6 +166,15 @@ load_spookfile = ->
   start!
 
 _G.load_spookfile = load_spookfile
+
+-- this reexecutes spook which means doing a full reload
+_G.reload_spook = ->
+  signalreset!
+  epoll_fd\close! if epoll_fd
+  args = {"/bin/sh", "-c", _G.arg[0]}
+  append args, arg for arg in *_G.arg
+  cmd = args[1]
+  S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
 stdin_input = ->
   sel = S.select(readfds: {S.stdin}, 0.01)

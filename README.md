@@ -39,21 +39,9 @@ Or gmake on FreeBSD for example.
 
 There's a [CHANGELOG](CHANGELOG.md) which may be useful when learning about any breaking changes, new features or other improvements. Please consult it when upgrading.
 
-
 ### Binaries
 
-If you prefer to just install the latest binary (sorry Linux 64-bit only) you can do so by running the following in a shell:
-
-```sh
-curl https://gist.githubusercontent.com/johnae/6fdc84ea7d843812152e/raw/install.sh | PREFIX=~/Local bash
-```
-
-After running the above you should have an executable called spook. See below for instructions on how to run it.
-
-You might want to check that script before you run it which you can do [here](https://gist.github.com/johnae/6fdc84ea7d843812152e).
-
-Obviously you can also just download the release manually from the github releases page, unpack it and place it where you like.
-
+There used to be binaries for Linux x86_64 but that stopped as of 0.8.4. It's very simple to build spook so just clone the source and follow the above procedure on building.
 
 ### Running it
 
@@ -233,6 +221,57 @@ watch_file 'lint_config.lua', ->
 ```
 
 So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
+
+### Adding a simple REPL
+
+As of Spook 0.8.4 there is a basic implementation of a REPL that can also be extended quite easily. To use the repl you would do something like this in the Spookfile:
+
+```moonscript
+-- the function given to the shell below is the prompt, it should be a function
+-- it is called on every screen update.
+:repl = require('shell') -> getcwd! .. ' spook% '
+S = require 'syscall'
+on_read S.stdin, repl
+```
+
+Press enter and the repl will present itself. Type "help" for a list of default commands. Defining more commands work like this:
+
+```moonscript
+:repl, :cmdline = require('shell') -> getcwd! .. ' spook% '
+S = require 'syscall'
+
+-- the first argument is the command name, second the help text
+cmdline\cmd "date", "Show the current date", (screen) ->
+  print os.date!
+
+-- the arguments given to the function (last arg) are first the
+-- screen object which may or may not be very interesting. The
+-- following arguments are whatever is given after the name of
+-- the command tokenized using space as delimiter.
+cmdline\cmd "date", "Show the current date", (screen) ->
+  print os.date!
+
+:concat = table
+cmdline\cmd "echo", "Echo whatever you want", (screen, ...) ->
+  args = {...}
+  str = concat args, '#'
+  print str
+-- examples of the output of above:
+-- echo one two three
+-- one#two#three
+
+-- it's possible to define a dynamic handler that would be a catchall for
+-- anything not defined, like this:
+cmdline\dynamic (c, key, value) ->
+  (screen, ...) ->
+    args = {key}
+    insert args, arg for arg in *{...}
+    os.execute concat(args, ' ')
+-- above would try to execute anything not already defined
+-- as a program on the PATH
+
+on_read S.stdin, repl
+```
 
 ### Timers, Signals and Readers
 
