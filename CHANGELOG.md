@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.5
+
+Repl history is now persistent and is stored in $PWD/.spook_history.
+
+Now generates Spookfiles that use reload_spook by default rather than load_spookfile, reload_spook re-executes spook which results
+in a cleaner environment where everything really does reload.
+
+An issue with keymapping in the repl has been fixed (escape sequence could result in trying to call a nil value).
+
 ## 0.8.4
 
 ### New feature
