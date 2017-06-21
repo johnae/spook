@@ -6,7 +6,12 @@ log_level "INFO"
 -- can be interrupted
 :execute = require 'process'
 os.execute = execute
-:repl, :cmdline = require('shell') -> getcwd! .. ' spook% '
+:repl, :cmdline = require('shell') ->
+  dir = getcwd!
+  if os.getenv('SPOOK_INTEGRATION') == 'yes'
+    dir .. ' integration testing on% '
+  else
+    dir .. ' integration testing off% '
 
 package.path = "#{package.path};spec/support/?.lua;spec/support/?/init.lua"
 
@@ -102,6 +107,7 @@ watch "lib", "spec", ->
 -- shpec integration testing
 watch "shpec", ->
   on_changed "^shpec/(.*)%.sh", (event, name) ->
+    return unless os.getenv('SPOOK_INTEGRATION') == 'yes'
     until_success ->
       notifies event.path, event,
         task_list(
@@ -138,4 +144,12 @@ watch_file 'lint_config.lua', ->
 --     os.execute concat(args, ' ')
 
 S = require 'syscall'
+cmdline\cmd 'integration', '<on/off> Turn shpec integration tests on or off', (screen, what) ->
+  if what and what\lower! == 'on'
+    S.setenv('SPOOK_INTEGRATION', 'yes', true)
+    notify.info 'integration testing ON'
+  else
+    S.setenv('SPOOK_INTEGRATION', 'no', true)
+    notify.info 'integration testing OFF'
+
 on_read S.stdin, repl
