@@ -16,14 +16,14 @@ history_mt = {
       at = @pos - 1
       if at > 0
         @pos = at
-        return @pos
+        return @current!
       false
 
     forward: =>
       at = @pos + 1
       if at <= #@
         @pos = at
-        return @pos
+        return @current!
       false
 
     current: => @[@pos]
@@ -215,13 +215,15 @@ new_history = ->
   km\mapkey 27, (screen) ->
     nxt = read(screen.rfd, 1)!
     byte = nxt\byte 1
-    esckm\keymap(tobyte(byte)) screen
+    if m = esckm\keymap(tobyte(byte))
+      m screen
 
   -- escape sub mapping
   esckm\mapkey 91, (screen) ->
     nxt = read(screen.rfd, 1)!
     byte = nxt\byte 1
-    okm\keymap(tobyte(byte)) screen
+    if m = okm\keymap(tobyte(byte))
+      m screen
 
   -- left arrow
   okm\mapkey 'D', (screen) ->
@@ -235,15 +237,13 @@ new_history = ->
 
   -- up arrow
   okm\mapkey 'A', (screen) ->
-    if history\back!
-      line = history\current!
+    if line = history\back!
       screen.line = line
       screen.pos = #line + 1
 
   -- down arrow
   okm\mapkey 'B', (screen) ->
-    if history\forward!
-      line = history\current!
+    if line = history\forward!
       screen.line = line
       screen.pos = #line + 1
     else
