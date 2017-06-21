@@ -126,14 +126,21 @@ watch_file 'lint_config.lua', ->
     notify.info "Reloading Spookfile..."
     load_spookfile!
 
+
 -- cmdline\cmd "spec_files", " - list all spec files", ->
 --   os.execute "find spec -type f -name '*_spec.moon'"
 
---cmdline\cmd "__dynamic", "", (lookup, key, value) ->
---  (...) ->
---    args = {key}
---    append args, arg for arg in *{...}
---    os.execute concat(args,' ')
+-- this would execute any command in path
+-- :concat, :insert = table
+-- cmdline\dynamic (c, key, value) ->
+--   (...) ->
+--     arg = {...}
+--     screen = arg[1]
+--     args = {key}
+--     for idx, item in ipairs arg
+--       continue if idx == 1
+--       insert args, item
+--     os.execute concat(args, ' ')
 
 S = require 'syscall'
 on_read S.stdin, repl
