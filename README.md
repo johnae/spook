@@ -369,7 +369,7 @@ every 5.0, (t) ->
 
 Obviously above it won't make much difference to override the default os.execute but with third party code or code you don't want to change it may be extremely handy.
 
-*NOTE:* basically use the execute that comes with spook rather than os.execute. If only for the ability to actually interrupt whatever spook is running using CTRL-C (another CTRL-C would kill spook itself).
+*NOTE:* you should probably prefer using the execute that comes with spook rather than os.execute. If only for the ability to actually interrupt whatever spook is running using CTRL-C (another CTRL-C would kill spook itself). Unless you have some specific reason to use os.execute of course.
 
 ### Notifications
 
