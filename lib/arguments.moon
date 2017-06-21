@@ -94,12 +94,13 @@ watch 'playground', ->
   on_changed '^playground/(.*)%.rb', (event, name) ->
     ruby "playground/#{a}.rb"
 
--- Let's reload this file when changing it, therefore
--- spook itself can be reconfigured without restarting it.
+-- have spook re-execute itself when the Spookfile changes,
+-- a "softer" version would be load_spookfile! but normally
+-- it's simpler and cleaner to just re-execute.
 watch_file 'Spookfile', ->
   on_changed (event) ->
-    notify.info 'Reloading Spookfile...'
-    load_spookfile!
+    notify.info 'Re-executing spook...'
+    reload_spook!
 
 ]]
   f\write(content)
