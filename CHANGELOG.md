@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6 - unreleased
+
+A bug in entr mode which could result in no action being taken has been fixed while at the same time simplifying some needlessly convoluted code.
+
+Command completion in REPL was improved.
+
 ## 0.8.5
 
 Repl history is now persistent and is stored in $PWD/.spook_history.
