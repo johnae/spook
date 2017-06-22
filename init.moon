@@ -61,7 +61,7 @@ cli = require "arguments"
 :run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'
 local spook, queue
-last_match = false
+entr_mode = false
 
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
@@ -72,25 +72,17 @@ event_handler = =>
   local pevent
   while #queue > 0
     event = queue\popright! -- latest event
-    right = queue\peekright!
-    if last_match and right and right.type == 'fs'
-      pevent = event unless event.action == 'deleted'
-      continue
-    if last_match
-      event = pevent if event.action == 'deleted' and pevent
-    if event.type == 'fs'
-      continue unless event.path -- ignore events without a path
-      continue if seen_paths[event.path] -- ignore events we've already seen
-      seen_paths[event.path] = true
-      matching = spook\match event
-      if last_match and #matching > 0
-        matching = {matching[#matching]}
-      if matching and #matching > 0
-        for handler in *matching
-          success, result = pcall handler
-          unless success
-            log.debug "An error occurred in change_handler: #{result}"
-          break if spook.first_match_only -- the default
+    continue unless event.path -- ignore events without a path
+    continue if seen_paths[event.path] -- ignore events we've already seen
+    seen_paths[event.path] = true
+    matching = spook\match event
+    if matching and #matching > 0
+      for handler in *matching
+        success, result = pcall handler
+        unless success
+          log.debug "An error occurred in change_handler: #{result}"
+        queue\reset! if entr_mode -- empty the queue when in entr mode
+        break if spook.first_match_only -- the default
   @again!
 
 kill_children = ->
@@ -248,8 +240,8 @@ watch_files_from_stdin = (files) ->
   spook = Spook.new!
   _G.spook = spook
   _G.notify.clear!
+  entr_mode = true
   queue = spook.queue
-  last_match = true
   args = [a for i, a in ipairs arg when i > 0]
   start_now = false
   exit_after_exec = false
