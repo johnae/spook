@@ -61,7 +61,6 @@ cli = require "arguments"
 :run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'
 local spook, queue
-entr_mode = false
 
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
@@ -81,7 +80,6 @@ event_handler = =>
         success, result = pcall handler
         unless success
           log.debug "An error occurred in change_handler: #{result}"
-        queue\reset! if entr_mode -- empty the queue when in entr mode
         break if spook.first_match_only -- the default
   @again!
 
@@ -240,7 +238,6 @@ watch_files_from_stdin = (files) ->
   spook = Spook.new!
   _G.spook = spook
   _G.notify.clear!
-  entr_mode = true
   queue = spook.queue
   args = [a for i, a in ipairs arg when i > 0]
   start_now = false
@@ -270,6 +267,7 @@ watch_files_from_stdin = (files) ->
   handler = if command
     (event, f) ->
       return unless is_match f
+      queue\reset! -- empty the queue when we have a match
       cmdline = expand_file command, f
       if pid > 0
         S.kill -pid, "term"
