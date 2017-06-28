@@ -39,21 +39,22 @@ notify.add 'terminal_notifier'
 
 -- If we find 'notifier' in the path, let's
 -- add that notifier also but fail silently
--- if something goes wrong (eg. not there).
+-- if something goes wrong (eg. wasn't
+-- found in path or a syntax error).
 pcall notify.add, 'notifier'
 
 -- Define a function for running rspec.
 -- Please see https://github.com/johnae/spook
 -- for more advanced examples which you may
 -- be interested in if you want to replace
--- guard.
+-- ruby guard.
 rspec = (file) ->
   return true unless fs.is_file file
   notify.info "RUNNING rspec #{file}"
   _, _, status = execute "./bin/rspec -f d #{file}"
   assert status == 0, "rspec #{file} - failed"
 
--- And another for running ruby
+-- And another for running ruby files
 ruby = (file) ->
   return true unless fs.is_file file
   notify.info "RUNNING ruby #{file}"
@@ -68,13 +69,9 @@ ruby = (file) ->
 -- Setup what directories to watch and what to do
 -- when a file is changed. For notifications, the
 -- function(s) to run should be wrapped in a "notifies"
--- call as below. The first argument to notifies is
--- the name of the event. Some notifiers may use this
--- for reporting. The second argument are the options,
--- those can be any table really. Certain keys in that
--- that table will be set by the notification system - such
--- as a timestamp for every notification run (which can
--- be used later to calculate how long a task took).
+-- call and possibly other calls from spookfile_helpers.
+-- See spook's own Spookfile for examples of that or
+-- browse the README at https://github.com/johnae/spook.
 watch 'app', 'lib', 'spec', ->
   on_changed '^(spec)/(spec_helper%.rb)', (event) ->
     rspec 'spec'
