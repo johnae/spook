@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.6 - unreleased
+## 0.8.6
 
 A bug in entr mode which could result in no action being taken has been fixed while at the same time simplifying some needlessly convoluted code.
 
