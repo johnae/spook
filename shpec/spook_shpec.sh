@@ -91,7 +91,71 @@ pid_not_running() {
 
 describe "spook"
 
-  describe "spook (tty mode)"
+  it "puts children in a process group so that grandchildren etc can be controlled"
+    setup
+    mkdir -p $TESTDIR/watchme
+    cat<<EOF>$TESTDIR/watchme/child.sh
+#!/bin/sh
+echo "\$\$" > $TESTDIR/childpid
+echo "I'm a child but I'm also a parent"
+$TESTDIR/watchme/grandchild.sh &
+while true; do
+sleep 1
+done
+EOF
+    chmod +x $TESTDIR/watchme/child.sh
+
+    cat<<EOF>$TESTDIR/watchme/grandchild.sh
+#!/bin/sh
+echo "\$\$" > $TESTDIR/grandchildpid
+echo "I'm a grandchild"
+while true; do
+sleep 1
+done
+EOF
+    chmod +x $TESTDIR/watchme/grandchild.sh
+
+    cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+S = require "syscall"
+notify.add 'terminal_notifier'
+watch "watchme", ->
+  on_changed "^watchme/child%.sh", (event) ->
+    execute "watchme/child.sh spook-spec-$$"
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+    window=$(new_tmux_window)
+    $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap ; nap
+    spid=$(cat $TESTDIR/pid)
+    assert pid_running "$spid"
+
+    touch $TESTDIR/watchme/child.sh ; nap ; nap
+    assert file_present $TESTDIR/childpid
+    childpid=$(cat $TESTDIR/childpid)
+    assert pid_running "$childpid"
+
+    assert file_present $TESTDIR/grandchildpid
+    grandchildpid=$(cat $TESTDIR/grandchildpid)
+    assert pid_running "$grandchildpid"
+
+    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+    assert pid_running "$spid"
+    assert pid_not_running "$childpid"
+    assert pid_not_running "$grandchildpid"
+
+    $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+    assert pid_not_running "$spid"
+
+    teardown
+
+  end
+
+  describe "tty mode / normal mode"
 
     it "initial ctrl-c kills only child processes if any are running"
       setup
@@ -110,7 +174,6 @@ EOF
 log_level "INFO"
 :execute = require "process"
 S = require "syscall"
-notify = _G.notify
 notify.add 'terminal_notifier'
 watch "watchme", ->
   on_changed "^watchme/(.*)", (event, name) ->
@@ -141,82 +204,14 @@ EOF
       teardown
     end
 
-    it "puts children in a process group so that grandchildren etc can be controlled"
-
-      setup
-      mkdir -p $TESTDIR/watchme
-      cat<<EOF>$TESTDIR/watchme/child.sh
-#!/bin/sh
-echo "\$\$" > $TESTDIR/childpid
-echo "I'm a child but I'm also a parent"
-$TESTDIR/watchme/grandchild.sh &
-while true; do
-  sleep 1
-done
-EOF
-      chmod +x $TESTDIR/watchme/child.sh
-
-      cat<<EOF>$TESTDIR/watchme/grandchild.sh
-#!/bin/sh
-echo "\$\$" > $TESTDIR/grandchildpid
-echo "I'm a grandchild"
-while true; do
-  sleep 1
-done
-EOF
-      chmod +x $TESTDIR/watchme/grandchild.sh
-
-      cat<<EOF>$TESTDIR/Spookfile
-log_level "INFO"
-:execute = require "process"
-S = require "syscall"
-notify = _G.notify
-notify.add 'terminal_notifier'
-watch "watchme", ->
-  on_changed "^watchme/child%.sh", (event) ->
-    execute "watchme/child.sh spook-spec-$$"
-
-pidfile = assert(io.open("pid", "w"))
-pidfile\write S.getpid!
-pidfile\close!
-EOF
-
-      window=$(new_tmux_window)
-      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
-      spid=$(cat $TESTDIR/pid)
-      assert pid_running "$spid"
-
-      touch $TESTDIR/watchme/child.sh ; nap ; nap
-      assert file_present $TESTDIR/childpid
-      childpid=$(cat $TESTDIR/childpid)
-      assert pid_running "$childpid"
-
-      assert file_present $TESTDIR/grandchildpid
-      grandchildpid=$(cat $TESTDIR/grandchildpid)
-      assert pid_running "$grandchildpid"
-
-      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-      assert pid_running "$spid"
-      assert pid_not_running "$childpid"
-      assert pid_not_running "$grandchildpid"
-
-      $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
-      assert pid_not_running "$spid"
-
-      teardown
-
-    end
-  end
-
-  describe "repl functionality"
-    it "supports adding an extensible repl"
-      setup
-      cat<<EOF>$TESTDIR/Spookfile
+    describe "repl functionality"
+      it "supports adding an extensible repl"
+        setup
+        cat<<EOF>$TESTDIR/Spookfile
 log_level "INFO"
 :execute = require "process"
 :repl, :cmdline = require('shell') -> "specrepl>"
 S = require "syscall"
-notify = _G.notify
 notify.add 'terminal_notifier'
 
 cmdline\cmd "mycmd", "Lists things", (screen, value)->
@@ -232,37 +227,39 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
-      window=$(new_tmux_window)
-      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
-      spid=$(cat $TESTDIR/pid)
-      assert pid_running "$spid"
+        window=$(new_tmux_window)
+        $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
+        spid=$(cat $TESTDIR/pid)
+        assert pid_running "$spid"
 
-      $TMUX send-keys -t $window Enter ; nap
-      prompt=$($TMUX capture-pane -t $window -p)
-      assert grep "$prompt" "specrepl>"
-      $TMUX send-keys -t $window -l "mycmd astring"
-      $TMUX send-keys -t $window Enter
+        $TMUX send-keys -t $window Enter ; nap
+        prompt=$($TMUX capture-pane -t $window -p)
+        assert grep "$prompt" "specrepl>"
+        $TMUX send-keys -t $window -l "mycmd astring"
+        $TMUX send-keys -t $window Enter
 
-      assert equal "$(log)" "astringabc"
+        assert equal "$(log)" "astringabc"
 
-      $TMUX send-keys -t $window Enter ; nap
-      $TMUX send-keys -t $window -l help
-      $TMUX send-keys -t $window Enter
+        $TMUX send-keys -t $window Enter ; nap
+        $TMUX send-keys -t $window -l "help"
+        $TMUX send-keys -t $window Enter ; nap
 
-      helptext=$($TMUX capture-pane -t $window -p)
-      assert grep "$helptext" "mycmd"
-      assert grep "$helptext" "history"
-      assert grep "$helptext" "exit"
-      assert grep "$helptext" "\->"
+        helptext=$($TMUX capture-pane -t $window -p)
+        assert grep "$helptext" "mycmd"
+        assert grep "$helptext" "history"
+        assert grep "$helptext" "exit"
+        assert grep "$helptext" "\->"
 
-      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-      assert pid_not_running "$spid"
+        $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+        assert pid_not_running "$spid"
 
-      teardown
+        teardown
+      end
     end
+
   end
 
-  describe "entr functionality"
+  describe "stdin mode / entr mode"
 
     it "executes the given command when any of the given files change"
       setup
@@ -278,8 +275,8 @@ EOF
       assert equal "$(log)" "$TESTDIR/file changed\n$TESTDIR/file changed"
 
       kill -INT $spid 2>/dev/null
-      teardown
 
+      teardown
     end
 
     describe "-o option"
@@ -300,11 +297,11 @@ EOF
         assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
 
         kill -INT $spid 2>/dev/null
-        teardown
 
+        teardown
       end
 
-      it "spook exits with the given commands exit code"
+      it "exits with the given commands exit code"
         setup
 
         cat<<EOF>$TESTDIR/exit_0.sh
@@ -371,6 +368,7 @@ EOF
         assert equal "$(log)" "Starting server 1\nStarting server 2"
 
         kill -INT $spid 2>/dev/null
+
         teardown
 
       end
@@ -378,4 +376,5 @@ EOF
     end
 
   end
+
 end
