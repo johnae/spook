@@ -72,7 +72,7 @@ ruby = (file) ->
 -- call and possibly other calls from spookfile_helpers.
 -- See spook's own Spookfile for examples of that or
 -- browse the README at https://github.com/johnae/spook.
-watch 'app', 'lib', 'spec', ->
+watch '.', ->
   on_changed '^(spec)/(spec_helper%.rb)', (event) ->
     rspec 'spec'
 
@@ -85,19 +85,24 @@ watch 'app', 'lib', 'spec', ->
   on_changed '^app/(.*)%.rb', (event, name) ->
     rspec "spec/#{a}_spec.rb"
 
--- Just some experimentation perhaps?
--- Here we don't bother with notifications.
-watch 'playground', ->
+  -- Some experimentation perhaps?
   on_changed '^playground/(.*)%.rb', (event, name) ->
     ruby "playground/#{a}.rb"
 
--- have spook re-execute itself when the Spookfile changes,
--- a "softer" version would be load_spookfile! but normally
--- it's simpler and cleaner to just re-execute.
-watch_file 'Spookfile', ->
-  on_changed (event) ->
+  -- have spook re-execute itself when the Spookfile changes,
+  -- a "softer" version would be load_spookfile! but normally
+  -- it's simpler and cleaner to just re-execute.
+  on_changed '^Spookfile$', ->
     notify.info 'Re-executing spook...'
     reload_spook!
+
+-- There are also single file watches. These MAY be useful if
+-- you're doing something very specific rather than watching a
+-- directory structure.
+-- watch_file 'Spookfile', ->
+--   on_changed (event) ->
+--     notify.info 'Re-executing spook...'
+--     reload_spook!
 
 ]]
   f\write(content)

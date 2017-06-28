@@ -69,9 +69,10 @@ lint = (file) ->
 
   io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
 
--- Directories to watch for changes, how to map detected changes to
--- files and what to run
-watch "lib", "spec", ->
+-- Watching for changes underneath . and matching them to handlers using
+-- lua patterns (see: http://lua-users.org/wiki/PatternsTutorial for example).
+watch ".", ->
+
   on_changed "^spec/spec_helper%.moon", (event) ->
     until_success ->
       notifies event.path, event,
@@ -104,8 +105,6 @@ watch "lib", "spec", ->
           spec, "spec/#{name}_spec.moon"
         )
 
--- shpec integration testing
-watch "shpec", ->
   on_changed "^shpec/(.*)%.sh", (event, name) ->
     return unless os.getenv('SPOOK_INTEGRATION') == 'yes'
     until_success ->
@@ -114,21 +113,17 @@ watch "shpec", ->
           shpec, "shpec/#{name}.sh"
         )
 
-if fs.is_present 'playground'
-  watch "playground", ->
-    on_changed "^playground/(.*)%.moon", (event, name) ->
-      exec "playground/#{name}.moon"
+  on_changed "^playground/(.*)%.moon", (event, name) ->
+    exec "playground/#{name}.moon"
 
-    on_changed "^playground/(.*)%.lua", (event, name) ->
-      exec "playground/#{name}.lua"
+  on_changed "^playground/(.*)%.lua", (event, name) ->
+    exec "playground/#{name}.lua"
 
-watch_file 'Spookfile', ->
-  on_changed (event) ->
+  on_changed "^Spookfile$", (event) ->
     notify.info "Re-executing spook..."
     reload_spook!
 
-watch_file 'lint_config.lua', ->
-  on_changed (event) ->
+  on_changed "^lint_config%.lua$", (event) ->
     notify.info "Re-executing spook..."
     reload_spook!
 

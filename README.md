@@ -159,9 +159,10 @@ lint = (file) ->
     io.stdout\write colors("\n[ %{green}LINT: %{white}All good ]\n\n")
   assert success == true, "lint #{file}"
 
--- Directories to watch for changes, how to map detected changes to
--- files and what to run
-watch "lib", "spec", ->
+-- Watching for changes underneath . and matching them to handlers using
+-- lua patterns (see: http://lua-users.org/wiki/PatternsTutorial for example).
+watch ".", ->
+
   on_changed "^spec/spec_helper%.moon", (event) ->
     until_success ->
       notifies event.path, event,
@@ -194,27 +195,33 @@ watch "lib", "spec", ->
           spec, "spec/#{name}_spec.moon"
         )
 
-watch "playground", ->
+  on_changed "^shpec/(.*)%.sh", (event, name) ->
+    return unless os.getenv('SPOOK_INTEGRATION') == 'yes'
+    until_success ->
+      notifies event.path, event,
+        task_list(
+          shpec, "shpec/#{name}.sh"
+        )
+
   on_changed "^playground/(.*)%.moon", (event, name) ->
-      exec "playground/#{name}.moon"
+    exec "playground/#{name}.moon"
 
   on_changed "^playground/(.*)%.lua", (event, name) ->
-      exec "playground/#{name}.lua"
+    exec "playground/#{name}.lua"
 
-watch_file 'Spookfile', ->
-  on_changed (event) ->
-    notify.info "Reloading Spookfile..."
-    -- load_spookfile! -- this would "just" reload the spookfile, dependencies would stay in memory
-    reload_spook! -- this reexecutes spook so "this" instance of spook is replaced by a new one, a complete reload of the program
+  on_changed "^Spookfile$", (event) ->
+    notify.info "Re-executing spook..."
+    reload_spook!
 
-watch_file 'lint_config.lua', ->
-  on_changed (event) ->
-    notify.info "Reloading Spookfile..."
-    -- load_spookfile! -- this would "just" reload the spookfile, dependencies would stay in memory
-    reload_spook! -- this reexecutes spook so "this" instance of spook is replaced by a new one, a complete reload of the program
+  on_changed "^lint_config%.lua$", (event) ->
+    notify.info "Re-executing spook..."
+    reload_spook!
 ```
 
 So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
+
+Of note is that while it's possible to define several watch statements with different directories, as soon as you want to watch something in PWD (that goes for watch_file statements as well even though non-obvious) it's better to just watch '.' and define on_changed handlers (or on_deleted, on_attrib, on_created etc.) to match on them.
+The reason for this is that the matchers are all in the same "bucket" and it's more straightforward to ensure no collisions eg. something unexpected matches before the match you expected - spook ONLY executes the handler for the first match by default.
 
 ### Adding a simple REPL
 
