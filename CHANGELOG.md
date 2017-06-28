@@ -3,9 +3,11 @@
 ## 0.8.6 - unreleased
 
 A bug in entr mode which could result in no action being taken has been fixed while at the same time simplifying some needlessly convoluted code.
+
 spook -i should now generate a Spookfile that works (eg. not note.info but notify.info).
 
 Command completion in REPL was improved.
+
 Added an fs.dirname function.
 
 ## 0.8.5
