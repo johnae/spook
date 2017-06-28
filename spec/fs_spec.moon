@@ -89,3 +89,15 @@ describe 'fs', ->
       assert.equal 'file.dot.ext', basename
       basename = fs.basename('file.dot.ext')
       assert.equal 'file.dot.ext', basename
+
+  describe 'dirname', ->
+
+    it 'returns the directory containing the given path', ->
+      dirname = fs.dirname('/path/to/my/file.dot.ext')
+      assert.equal '/path/to/my', dirname
+      dirname = fs.dirname('path/to/my/file.dot.ext')
+      assert.equal 'path/to/my', dirname
+      dirname = fs.dirname('/path/to/my/')
+      assert.equal '/path/to', dirname
+      dirname = fs.dirname('file.dot.ext')
+      assert.equal '.', dirname

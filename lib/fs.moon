@@ -32,7 +32,10 @@ name_ext = (filename) ->
   return filename unless name
   name, ext
 
-basename = (filename) -> filename\match "[^/]+$"
+basename = (path) -> path\match "[^/]+$"
+dirname = (path) ->
+  path = path\gsub '/$', ''
+  path\match("^(.*)/.*$") or '.'
 
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
@@ -89,5 +92,6 @@ rm_rf = (path, attr) ->
   :is_file,
   :is_present,
   :name_ext,
-  :basename
+  :basename,
+  :dirname
 }
