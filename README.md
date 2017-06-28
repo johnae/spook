@@ -221,7 +221,49 @@ watch ".", ->
 So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
 
 Of note is that while it's possible to define several watch statements with different directories, as soon as you want to watch something in PWD (that goes for watch_file statements as well even though non-obvious) it's better to just watch '.' and define on_changed handlers (or on_deleted, on_attrib, on_created etc.) to match on them.
+
 The reason for this is that the matchers are all in the same "bucket" and it's more straightforward to ensure no collisions eg. something unexpected matches before the match you expected - spook ONLY executes the handler for the first match by default.
+
+Basically instead of this:
+
+```moonscript
+watch 'lib', 'spec', ->
+  on_changed '^lib/(.*)%.moon', (event, name) ->
+    run_spec "spec/#{name}_spec.moon"
+
+  on_changed '^spec/(.*)%.moon', (event, name) ->
+    run_spec "spec/#{name}.moon"
+
+-- anything we may easily assume
+  on_changed '.*', (event) ->
+    print "something changed"
+
+-- this will never run because the above catch-all will be matched -
+-- at the moment all matchers are in the same "bucket".
+watch_file 'spookfile', ->
+  on_changed (event) ->
+    notify.info "re-executing spook..."
+    reload_spook!
+```
+
+Do this:
+
+```moonscript
+watch '.', ->
+  on_changed '^lib/(.*)%.moon', (event, name) ->
+    run_spec "spec/#{name}_spec.moon"
+
+  on_changed '^spec/(.*)%.moon', (event, name) ->
+    run_spec "spec/#{name}.moon"
+
+  on_changed '^Spookfile$', (event) ->
+    notify.info "re-executing spook..."
+    reload_spook!
+
+-- anything else - this would actually work as expected
+  on_changed '.*', (event) ->
+    print "something changed"
+```
 
 ### Adding a simple REPL
 
