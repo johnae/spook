@@ -49,14 +49,14 @@ pcall notify.add, 'notifier'
 -- guard.
 rspec = (file) ->
   return true unless fs.is_file file
-  note.info "RUNNING rspec #{file}"
+  notify.info "RUNNING rspec #{file}"
   _, _, status = execute "./bin/rspec -f d #{file}"
   assert status == 0, "rspec #{file} - failed"
 
 -- And another for running ruby
 ruby = (file) ->
   return true unless fs.is_file file
-  note.info "RUNNING ruby #{file}"
+  notify.info "RUNNING ruby #{file}"
   _, _, status = execute "ruby #{file}"
   assert status == 0, "ruby #{file} - failed"
   status == 0
