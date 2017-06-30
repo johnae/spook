@@ -44,6 +44,15 @@ pcall notify.add, 'notifier'
   :notifies
 } = require 'spookfile_helpers'
 
+-- since the built-in helpers (required above) can be
+-- combined in different ways but usually in the same
+-- way again and again, we wrap this up in a function
+-- that takes the event and the task list (at least for
+-- spook, that's the way I run the tests).
+test = (event, tasks) ->
+  until_success ->
+    notifies event.path, event, tasks
+
 -- we use this for notifications, by filtering out
 -- the commands not runnable (because the mapped files
 -- aren't present), we don't unnecessarily notify on
@@ -74,44 +83,34 @@ lint = (file) ->
 watch ".", ->
 
   on_changed "^spec/spec_helper%.moon", (event) ->
-    until_success ->
-      notifies event.path, event,
-        task_list(
-          lint, "spec/spec_helper.moon"
-          spec, "spec"
-        )
+    test event, task_list(
+      lint, "spec/spec_helper.moon"
+      spec, "spec"
+    )
 
   on_changed "^spec/(.*)%.moon", (event, name) ->
-    until_success ->
-      notifies event.path, event,
-        task_list(
-          lint, "spec/#{name}.moon"
-          spec, "spec/#{name}.moon"
-        )
+    test event, task_list(
+      lint, "spec/#{name}.moon"
+      spec, "spec/#{name}.moon"
+    )
 
   on_changed "^lib/(.*)/event_loop%.moon", (event, name) ->
-    until_success ->
-      notifies event.path, event,
-        task_list(
-          lint, "lib/#{name}/event_loop.moon"
-          spec, "spec/event_loop_spec.moon"
-        )
+    test event, task_list(
+      lint, "lib/#{name}/event_loop.moon"
+      spec, "spec/event_loop_spec.moon"
+    )
 
   on_changed "^lib/(.*)%.moon", (event, name) ->
-    until_success ->
-      notifies event.path, event,
-        task_list(
-          lint, "lib/#{name}.moon"
-          spec, "spec/#{name}_spec.moon"
-        )
+    test event, task_list(
+      lint, "lib/#{name}.moon"
+      spec, "spec/#{name}_spec.moon"
+    )
 
   on_changed "^shpec/(.*)%.sh", (event, name) ->
     return unless os.getenv('SPOOK_INTEGRATION') == 'yes'
-    until_success ->
-      notifies event.path, event,
-        task_list(
-          shpec, "shpec/#{name}.sh"
-        )
+    test event, task_list(
+      shpec, "shpec/#{name}.sh"
+    )
 
   on_changed "^playground/(.*)%.moon", (event, name) ->
     exec "playground/#{name}.moon"
