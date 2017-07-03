@@ -64,7 +64,7 @@ describe 'spook', ->
 
       describe 'deleting watched files', ->
 
-        it 'puts the delete event on the internal queue', ->
+        it 'puts a delete event on the internal queue', ->
           create_file file, "some content"
           spook -> watch dir, ->
           spook\start!
@@ -112,6 +112,36 @@ describe 'spook', ->
             path: "#{dir}/newname.txt"
             from: file
             to: "#{dir}/newname.txt"
+          }, spook.queue\peekleft!
+
+      describe 'watching a single file for changes', ->
+
+        it 'puts the expected events on the internal queue', ->
+          create_file file, "some content"
+          spook -> watch_file file, ->
+          spook\start!
+
+          f = assert io.open(file, 'a'), "Couldn't open file '#{file}'"
+          f\write "content"
+          f\close!
+
+          loop block_for: 50, loops: 3
+          assert.equal 1, #spook.queue
+          assert.same {
+            type: 'fs'
+            action: 'modified'
+            path: "#{file}"
+          }, spook.queue\peekleft!
+
+          spook.queue\popleft!
+
+          os.remove file
+          loop block_for: 50, loops: 3
+          assert.equal 1, #spook.queue
+          assert.same {
+            type: 'fs'
+            action: 'deleted'
+            path: file
           }, spook.queue\peekleft!
 
     it 'configures log_level via supplied function', ->

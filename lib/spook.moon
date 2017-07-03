@@ -100,7 +100,7 @@ define 'Spook', ->
         @handlers["on_#{wname}"] = (fun) ->
           setfenv fun, me.caller_env
           wrap = to_coro_fs me
-          append store, {file\escape_pattern!, wrap(fun)}
+          append store, {"^#{file\escape_pattern!}$", wrap(fun)}
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers
