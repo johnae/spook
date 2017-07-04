@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.7 - unreleased
+
+The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.
+The use case is that any executed utility now has access to some basic information on what changed.
+If the action was a move, the env var SPOOK_MOVED_FROM will also be set to the path where the file
+used to be found.
+
 ## 0.8.6
 
 A bug in entr mode which could result in no action being taken has been fixed while at the same time simplifying some needlessly convoluted code.
