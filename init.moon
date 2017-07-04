@@ -62,6 +62,13 @@ cli = require "arguments"
 Spook = require 'spook'
 local spook, queue
 
+fs_event_to_env = (event) ->
+  S.setenv('SPOOK_CHANGE_PATH', event.path, true)
+  S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
+  S.unsetenv('SPOOK_MOVED_FROM')
+  if event.action == 'move'
+    S.setenv('SPOOK_MOVED_FROM', event.from, true)
+
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
 -- interval which coalesces the events into one (here it's
@@ -77,6 +84,7 @@ event_handler = =>
     matching = spook\match event
     if matching and #matching > 0
       for handler in *matching
+        fs_event_to_env event
         success, result = pcall handler
         unless success
           log.debug "An error occurred in change_handler: #{result}"
