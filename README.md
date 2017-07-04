@@ -626,6 +626,11 @@ There's also a oneshot option (can't be used with the -s option for obvious reas
 find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jpg
 ```
 
+### Other features
+
+As of spook 0.8.7, any child process running in response to a file system change will have access to the env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH. These would correspond to the change that triggered the run. If the detected change is a move, SPOOK_MOVED_FROM will also be set.
+
+
 ### License
 
 Spook is released under the MIT license (see [LICENSE.md](LICENSE.md) for details).
