@@ -204,10 +204,9 @@ EOF
       teardown
     end
 
-    describe "repl functionality"
-      it "supports adding an extensible repl"
-        setup
-        cat<<EOF>$TESTDIR/Spookfile
+    it "supports adding a repl"
+      setup
+      cat<<EOF>$TESTDIR/Spookfile
 log_level "INFO"
 :execute = require "process"
 :repl, :cmdline = require('shell') -> "specrepl>"
@@ -227,36 +226,34 @@ pidfile\write S.getpid!
 pidfile\close!
 EOF
 
-        window=$(new_tmux_window)
-        $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
-        spid=$(cat $TESTDIR/pid)
-        assert pid_running "$spid"
+      window=$(new_tmux_window)
+      $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
+      spid=$(cat $TESTDIR/pid)
+      assert pid_running "$spid"
 
-        $TMUX send-keys -t $window Enter ; nap
-        prompt=$($TMUX capture-pane -t $window -p)
-        assert grep "$prompt" "specrepl>"
-        $TMUX send-keys -t $window -l "mycmd astring"
-        $TMUX send-keys -t $window Enter
+      $TMUX send-keys -t $window Enter ; nap
+      prompt=$($TMUX capture-pane -t $window -p)
+      assert grep "$prompt" "specrepl>"
+      $TMUX send-keys -t $window -l "mycmd astring"
+      $TMUX send-keys -t $window Enter ; nap
 
-        assert equal "$(log)" "astringabc"
+      assert equal "$(log)" "astringabc"
 
-        $TMUX send-keys -t $window Enter ; nap
-        $TMUX send-keys -t $window -l "help"
-        $TMUX send-keys -t $window Enter ; nap
+      $TMUX send-keys -t $window Enter ; nap
+      $TMUX send-keys -t $window -l "help"
+      $TMUX send-keys -t $window Enter ; nap
 
-        helptext=$($TMUX capture-pane -t $window -p)
-        assert grep "$helptext" "mycmd"
-        assert grep "$helptext" "history"
-        assert grep "$helptext" "exit"
-        assert grep "$helptext" "\->"
+      helptext=$($TMUX capture-pane -t $window -p)
+      assert grep "$helptext" "mycmd"
+      assert grep "$helptext" "history"
+      assert grep "$helptext" "exit"
+      assert grep "$helptext" "\->"
 
-        $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-        assert pid_not_running "$spid"
+      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+      assert pid_not_running "$spid"
 
-        teardown
-      end
+      teardown
     end
-
   end
 
   describe "stdin mode / entr mode"
