@@ -295,11 +295,12 @@ Watcher = define 'Watcher', ->
 
           if event.ATTRIB
             attr = lfs.attributes path
-            old = @watches[path]
-            if not old or old.size != attr.size or old.modification != attr.modification or old.change != attr.change
-              append events, {action: 'attrib', :path}
-            for key in *{'modification', 'access', 'change', 'size', 'ino', 'mode'}
-              @watches[path][key] = attr[key] if attr[key]
+            if attr
+              old = @watches[path]
+              if not old or old.size != attr.size or old.modification != attr.modification or old.change != attr.change
+                append events, {action: 'attrib', :path}
+              for key in *{'modification', 'access', 'change', 'size', 'ino', 'mode'}
+                @watches[path][key] = attr[key] if attr[key]
 
       if has_rename
         new_events = {}
