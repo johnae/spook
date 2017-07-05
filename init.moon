@@ -80,11 +80,11 @@ event_handler = =>
     event = queue\popright! -- latest event
     continue unless event.path -- ignore events without a path
     continue if seen_paths[event.path] -- ignore events we've already seen
+    fs_event_to_env event
     seen_paths[event.path] = true
     matching = spook\match event
     if matching and #matching > 0
       for handler in *matching
-        fs_event_to_env event
         success, result = pcall handler
         unless success
           log.debug "An error occurred in change_handler: #{result}"
