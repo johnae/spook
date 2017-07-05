@@ -66,7 +66,7 @@ fs_event_to_env = (event) ->
   S.setenv('SPOOK_CHANGE_PATH', event.path, true)
   S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
   S.unsetenv('SPOOK_MOVED_FROM')
-  if event.action == 'move'
+  if event.action == 'moved'
     S.setenv('SPOOK_MOVED_FROM', event.from, true)
 
 -- to prevent multiple events happening very quickly

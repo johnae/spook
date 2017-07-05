@@ -122,7 +122,7 @@ S = require "syscall"
 notify.add 'terminal_notifier'
 watch "watchme", ->
   on_changed "^watchme/child%.sh", (event) ->
-    execute "watchme/child.sh spook-spec-$$"
+    execute "watchme/child.sh"
 
 pidfile = assert(io.open("pid", "w"))
 pidfile\write S.getpid!
@@ -155,6 +155,50 @@ EOF
 
   end
 
+  it "sets environment variables for the detected change"
+    setup
+    mkdir -p $TESTDIR/watchme
+    cat<<EOF>$TESTDIR/watchme/getenv.sh
+#!/bin/sh
+echo "" > $LOG
+echo "SPOOK_CHANGE_PATH: \$SPOOK_CHANGE_PATH" >> $LOG
+echo "SPOOK_CHANGE_ACTION: \$SPOOK_CHANGE_ACTION" >> $LOG
+echo "SPOOK_MOVED_FROM: \$SPOOK_MOVED_FROM" >> $LOG
+EOF
+    chmod +x $TESTDIR/watchme/getenv.sh
+
+    cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+S = require "syscall"
+notify.add 'terminal_notifier'
+watch "watchme", ->
+  on_changed "^watchme/(.*)", (event) ->
+    execute "watchme/getenv.sh"
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+    window=$(new_tmux_window)
+    $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap ; nap
+    spid=$(cat $TESTDIR/pid)
+    assert pid_running "$spid"
+
+    echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
+    assert equal "$(log)" "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
+
+    mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
+    assert equal "$(log)" "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
+
+    $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+    assert pid_not_running "$spid"
+
+    teardown
+
+  end
+
   describe "tty mode / normal mode"
 
     it "initial ctrl-c kills only child processes if any are running"
@@ -177,7 +221,7 @@ S = require "syscall"
 notify.add 'terminal_notifier'
 watch "watchme", ->
   on_changed "^watchme/(.*)", (event, name) ->
-    execute "watchme/#{name} spook-spec-$$"
+    execute "watchme/#{name}"
 
 pidfile = assert(io.open("pid", "w"))
 pidfile\write S.getpid!
