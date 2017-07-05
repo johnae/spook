@@ -7,6 +7,8 @@ The use case is that any executed utility now has access to some basic informati
 If the action was a move, the env var SPOOK_MOVED_FROM will also be set to the path where the file
 used to be found.
 
+Fix crashing bug on BSD when moving files around.
+
 ## 0.8.6
 
 A bug in entr mode which could result in no action being taken has been fixed while at the same time simplifying some needlessly convoluted code.
