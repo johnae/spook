@@ -9,8 +9,6 @@ While spook may seem to be geared towards running tests in a feedback loop, ther
 
 Spook was also somewhat inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). However the goal of spook was always broader and more general. Still, entr is a very nice tool which is why spook has (since version 0.8.1) gained the basic functionality entr provides - namely: read a list of files on stdin and run a command when any of them changes. It's a bonus feature for one off tasks more than anything else. See far down for some examples.
 
-You can download releases from [spook/releases](https://github.com/johnae/spook/releases). Currently only available for Linux x86_64. Compiling it is quite simple though and the only artifact is the binary itself which you can place wherever you like (somewhere in your PATH probably).
-
 Building spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
 
 ```sh
