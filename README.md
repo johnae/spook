@@ -74,6 +74,14 @@ Options:
 For more see https://github.com/johnae/spook
 ```
 
+### MacOS
+
+Check your ulimits. If set to a small value it will likely make spook crash. Setting it higher looks something like:
+
+```sh
+ulimit -n 4096
+```
+
 ### The Spookfile
 
 To do anything useful you need to create a Spookfile in a directory (probably your project):
