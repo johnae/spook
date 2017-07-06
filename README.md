@@ -82,6 +82,8 @@ Check your ulimits. If set to a small value it will likely make spook crash. Set
 ulimit -n 4096
 ```
 
+Here's a guide on how to permanently set your ulimits on MacOS: [ulimit-shenanigans-on-osx-el-capitan](https://blog.dekstroza.io/ulimit-shenanigans-on-osx-el-capitan/)
+
 ### The Spookfile
 
 To do anything useful you need to create a Spookfile in a directory (probably your project):
