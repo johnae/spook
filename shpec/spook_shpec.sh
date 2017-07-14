@@ -73,19 +73,19 @@ trap sig_cleanup INT QUIT TERM
 #### some custom matchers
 process_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  print_result "[ '0' = '$?' ]" "Expected process '$1' to be running"
+  print_result "[ '0' = '$?' ]" "Expected process '$1' to be running $2"
 }
 process_not_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  print_result "[ '0' != '$?' ]" "Expected process '$1' to NOT be running"
+  print_result "[ '0' != '$?' ]" "Expected process '$1' to NOT be running $2"
 }
 pid_running() {
   ps -p $1 > /dev/null 2>&1
-  print_result "[ '0' = '$?' ]" "Expected process pid '$1' to be running"
+  print_result "[ '0' = '$?' ]" "Expected process pid '$1' to be running $2"
 }
 pid_not_running() {
   ps -p $1 > /dev/null 2>&1
-  print_result "[ '0' != '$?' ]" "Expected process pid '$1' NOT to be running"
+  print_result "[ '0' != '$?' ]" "Expected process pid '$1' to NOT be running $2"
 }
 last_log_eq() {
   lines=$(log | tail -$1)
@@ -93,7 +93,7 @@ last_log_eq() {
 }
 last_log_not_eq() {
   lines=$(log | tail -$1)
-  print_result "[ '$(sanitize "$lines")' != '$(sanitize "$2")' ]" "Expected last $1 log lines to not equal:\n\n-----------------------\n$2\n-----------------------\n\nwas\n-----------------------\n$lines\n-----------------------\n\nfull log:\n-----------------------\n$(log)\n-----------------------\n"
+  print_result "[ '$(sanitize "$lines")' != '$(sanitize "$2")' ]" "Expected last $1 log lines to NOT equal:\n\n-----------------------\n$2\n-----------------------\n\nwas\n-----------------------\n$lines\n-----------------------\n\nfull log:\n-----------------------\n$(log)\n-----------------------\n"
 }
 ####
 
@@ -140,24 +140,24 @@ EOF
     window=$(new_tmux_window)
     $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap ; nap
     spid=$(cat $TESTDIR/pid)
-    assert pid_running "$spid"
+    assert pid_running "$spid" "(spook itself)"
 
     touch $TESTDIR/watchme/child.sh ; nap ; nap
     assert file_present $TESTDIR/childpid
     childpid=$(cat $TESTDIR/childpid)
-    assert pid_running "$childpid"
+    assert pid_running "$childpid" "(child pid)"
 
     assert file_present $TESTDIR/grandchildpid
     grandchildpid=$(cat $TESTDIR/grandchildpid)
-    assert pid_running "$grandchildpid"
+    assert pid_running "$grandchildpid" "(grand child pid)"
 
     $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
     assert pid_running "$spid"
-    assert pid_not_running "$childpid"
-    assert pid_not_running "$grandchildpid"
+    assert pid_not_running "$childpid" "(child pid)"
+    assert pid_not_running "$grandchildpid" "(grand child pid)"
 
     $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-    assert pid_not_running "$spid"
+    assert pid_not_running "1$spid" "(spook itself)"
 
     teardown
 
@@ -191,7 +191,7 @@ EOF
     window=$(new_tmux_window)
     $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap ; nap
     spid=$(cat $TESTDIR/pid)
-    assert pid_running "$spid"
+    assert pid_running "$spid" "(spook itself)"
 
     echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
     assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
@@ -200,7 +200,7 @@ EOF
     assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
 
     $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
-    assert pid_not_running "$spid"
+    assert pid_not_running "$spid" "(spook itself)"
 
     teardown
 
@@ -238,19 +238,19 @@ EOF
       window=$(new_tmux_window)
       $TMUX send-keys -t $window "$SPOOK -w $TESTDIR >> $LOG" Enter; nap
       spid=$(cat $TESTDIR/pid)
-      assert pid_running "$spid"
+      assert pid_running "$spid" "(spook itself)"
 
       touch $TESTDIR/watchme/slow.sh ; nap ; nap
       assert file_present $TESTDIR/slowpid
       slowpid=$(cat $TESTDIR/slowpid)
-      assert pid_running "$slowpid"
+      assert pid_running "$slowpid" "(slow child)"
 
       $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-      assert pid_running "$spid"
-      assert pid_not_running "$slowpid"
+      assert pid_running "$spid" "(spook itself)"
+      assert pid_not_running "$slowpid" "(slow child)"
 
       $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
-      assert pid_not_running "$spid"
+      assert pid_not_running "$spid" "(spook itself)"
 
       teardown
     end
@@ -280,7 +280,7 @@ EOF
       window=$(new_tmux_window)
       $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap
       spid=$(cat $TESTDIR/pid)
-      assert pid_running "$spid"
+      assert pid_running "$spid" "(spook itself)"
 
       $TMUX send-keys -t $window Enter ; nap
       prompt=$($TMUX capture-pane -t $window -p)
@@ -301,7 +301,7 @@ EOF
       assert grep "$helptext" "\->"
 
       $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-      assert pid_not_running "$spid"
+      assert pid_not_running "$spid" "(spook itself)"
 
       teardown
     end
@@ -342,7 +342,7 @@ EOF
         nap ; echo "content" >> $TESTDIR/file ; nap
         assert equal "$TESTDIR/file changed" "$(log)" ## no change
 
-        assert pid_not_running $spid
+        assert pid_not_running $spid "(spook itself)"
 
         kill -INT $spid 2>/dev/null
 
