@@ -73,19 +73,19 @@ trap sig_cleanup INT QUIT TERM
 #### some custom matchers
 process_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  assert equal "$?" 0
+  assert equal "0" "$?"
 }
 process_not_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  assert unequal "$?" 0
+  assert unequal "0" "$?"
 }
 pid_running() {
   ps -p $1 > /dev/null 2>&1
-  assert equal "$?" 0
+  assert equal "0" "$?"
 }
 pid_not_running() {
   ps -p $1 > /dev/null 2>&1
-  assert unequal "$?" 0
+  assert unequal "0" "$?"
 }
 ####
 
@@ -148,7 +148,7 @@ EOF
     assert pid_not_running "$childpid"
     assert pid_not_running "$grandchildpid"
 
-    $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid"
 
     teardown
@@ -187,10 +187,12 @@ EOF
     assert pid_running "$spid"
 
     echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
-    assert equal "$(log)" "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
+    assert equal "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: " "$(log)"
+
+    nap
 
     mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
-    assert equal "$(log)" "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
+    assert equal "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile" "$(log)"
 
     $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid"
@@ -281,7 +283,7 @@ EOF
       $TMUX send-keys -t $window -l "mycmd astring"
       $TMUX send-keys -t $window Enter ; nap
 
-      assert equal "$(log)" "astringabc"
+      assert equal "astringabc" "$(log)"
 
       $TMUX send-keys -t $window Enter ; nap
       $TMUX send-keys -t $window -l "help"
@@ -310,10 +312,10 @@ EOF
       spid=$! ; nap ; nap
 
       touch $TESTDIR/file ; nap ; nap
-      assert equal "$(log)" "$TESTDIR/file changed"
+      assert equal "$TESTDIR/file changed" "$(log)"
 
       nap ; echo "content" >> $TESTDIR/file ; nap ; nap
-      assert equal "$(log)" "$TESTDIR/file changed\n$TESTDIR/file changed"
+      assert equal "$TESTDIR/file changed\n$TESTDIR/file changed" "$(log)"
 
       kill -INT $spid 2>/dev/null
 
@@ -330,12 +332,12 @@ EOF
         spid=$!; nap ; nap
 
         echo "content" >> $TESTDIR/file ; nap
-        assert equal "$(log)" "$TESTDIR/file changed"
+        assert equal "$TESTDIR/file changed" "$(log)"
 
         nap ; echo "content" >> $TESTDIR/file ; nap
-        assert equal "$(log)" "$TESTDIR/file changed" ## no change
+        assert equal "$TESTDIR/file changed" "$(log)" ## no change
 
-        assert equal "$(ps aux | awk '{print $2}' | grep $spid)" ""
+        assert pid_not_running $spid
 
         kill -INT $spid 2>/dev/null
 
@@ -364,7 +366,7 @@ EOF
         touch $TESTDIR/file ; nap
         kill -INT $spid 2>/dev/null ## it should be dead already (oneshot) but just in case so we don't hang on wait
         wait $spid
-        assert equal "$?" "0"
+        assert equal "0" "$?"
 
         ## test 123 exit code
         touch $TESTDIR/file
@@ -374,7 +376,7 @@ EOF
         touch $TESTDIR/file ; nap
         kill -INT $spid 2>/dev/null ## it should be dead already (oneshot) but just in case so we don't hang on wait
         wait $spid
-        assert equal "$?" "123"
+        assert equal "123" "$?"
 
         teardown
 
@@ -402,11 +404,11 @@ EOF
         find $TESTDIR/file -type f | $SPOOK -s $TESTDIR/server.sh >>$LOG 2>/dev/null &
         spid=$!; nap ; nap
 
-        assert equal "$(log)" "Starting server 1"
+        assert equal "Starting server 1" "$(log)"
         nap
         echo "stuff" >> $TESTDIR/file ; nap
 
-        assert equal "$(log)" "Starting server 1\nStarting server 2"
+        assert equal "Starting server 1\nStarting server 2" "$(log)"
 
         kill -INT $spid 2>/dev/null
 
