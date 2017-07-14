@@ -57,7 +57,6 @@ math.round = (num, dp) ->
   m = 10 ^ (dp or 0)
   floor( num * m + 0.5 ) / m
 
-local g_timeval
 g_timeval = ffi.new("struct timeval")
 gettimeofday = ->
   S.gettimeofday(g_timeval)
