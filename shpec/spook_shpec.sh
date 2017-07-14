@@ -196,10 +196,12 @@ EOF
     echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
     assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
 
+    nap
+
     mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
     assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
 
-    $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid" "(spook itself)"
 
     teardown
@@ -249,7 +251,7 @@ EOF
       assert pid_running "$spid" "(spook itself)"
       assert pid_not_running "$slowpid" "(slow child)"
 
-      $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
+      $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
       assert pid_not_running "$spid" "(spook itself)"
 
       teardown
