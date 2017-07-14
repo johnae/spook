@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.8.7 - unreleased
+## 0.8.8 - unreleased
+
+## 0.8.7
 
 The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.
 The use case is that any executed utility now has access to some basic information on what changed.
@@ -8,6 +10,10 @@ If the action was a move, the env var SPOOK_MOVED_FROM will also be set to the p
 used to be found.
 
 Fix crashing bug on BSD when moving files around.
+
+Some fixes and improvements to the integration tests and updates to the travis yml to use ubuntu Trusty.
+This made the tmux-next both unnecessary and seemingly buggy - so a simplified travis yml without any reference
+to some launchpad repo for a later tmux.
 
 ## 0.8.6
 
