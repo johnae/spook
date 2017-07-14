@@ -73,19 +73,27 @@ trap sig_cleanup INT QUIT TERM
 #### some custom matchers
 process_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  assert equal "0" "$?"
+  print_result "[ '0' = '$?' ]" "Expected process '$1' to be running"
 }
 process_not_running() {
   ps aux | awk '{for(i=11;i<=NF;i++){printf "%s ", $i}; printf "\n"}' | grep "$1" | grep -v grep > /dev/null 2>&1
-  assert unequal "0" "$?"
+  print_result "[ '0' != '$?' ]" "Expected process '$1' to NOT be running"
 }
 pid_running() {
   ps -p $1 > /dev/null 2>&1
-  assert equal "0" "$?"
+  print_result "[ '0' = '$?' ]" "Expected process pid '$1' to be running"
 }
 pid_not_running() {
   ps -p $1 > /dev/null 2>&1
-  assert unequal "0" "$?"
+  print_result "[ '0' != '$?' ]" "Expected process pid '$1' NOT to be running"
+}
+last_log_eq() {
+  lines=$(log | tail -$1)
+  print_result "[ '$(sanitize "$lines")' = '$(sanitize "$2")' ]" "Expected last $1 log lines to equal:\n\n-----------------------\n$2\n-----------------------\n\nwas\n-----------------------\n$lines\n-----------------------\n\nfull log:\n-----------------------\n$(log)\n-----------------------\n"
+}
+last_log_not_eq() {
+  lines=$(log | tail -$1)
+  print_result "[ '$(sanitize "$lines")' != '$(sanitize "$2")' ]" "Expected last $1 log lines to not equal:\n\n-----------------------\n$2\n-----------------------\n\nwas\n-----------------------\n$lines\n-----------------------\n\nfull log:\n-----------------------\n$(log)\n-----------------------\n"
 }
 ####
 
@@ -160,7 +168,6 @@ EOF
     mkdir -p $TESTDIR/watchme
     cat<<EOF>$TESTDIR/watchme/getenv.sh
 #!/bin/sh
-echo "" > $LOG
 echo "SPOOK_CHANGE_PATH: \$SPOOK_CHANGE_PATH" >> $LOG
 echo "SPOOK_CHANGE_ACTION: \$SPOOK_CHANGE_ACTION" >> $LOG
 echo "SPOOK_MOVED_FROM: \$SPOOK_MOVED_FROM" >> $LOG
@@ -187,12 +194,10 @@ EOF
     assert pid_running "$spid"
 
     echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
-    assert equal "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: " "$(log)"
-
-    nap
+    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
 
     mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
-    assert equal "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile" "$(log)"
+    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
 
     $TMUX send-keys -t $window C-c ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid"
