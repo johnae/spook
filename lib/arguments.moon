@@ -120,7 +120,7 @@ parser\option("-w --dir", "Expects the path to working directory - overrides the
     print "#{dir} is not a directory"
     os.exit 1
 
-parser\option("-f --file", "Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely")\args(1)
+parser\option("-f --file", "Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely")\args(1)
 
 parser\flag("-s", "In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o")
 
