@@ -638,6 +638,7 @@ find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jp
 
 As of spook 0.8.7, any child process running in response to a file system change will have access to the env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH. These would correspond to the change that triggered the run. If the detected change is a move, SPOOK_MOVED_FROM will also be set.
 
+Do note however that it isn't entirely deterministic which event will be the actual trigger when using "on_changed". Basically - if the event has a path matching the pattern given, that will be the event that triggers the execution of the utility if it happens to be the first one. Normally any following events for the same path are ignored. Also \*BSD and Linux are quite different so they will most certainly differ in what events you see. If you use more fine grained event handlers like on_deleted, on_created etc. you would see those events in the env variables but then again you would know the trigger events already so it's less useful in those scenarios anyway. Just mentioning this caveat if you do make use of this feature.
 
 ### License
 
