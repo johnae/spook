@@ -48,7 +48,9 @@ Timer = define 'Timer', ->
 
   instance
     initialize: (interval, callback) =>
-      @interval = interval * 1000 -- kqueue takes ms
+      -- kqueue uses a timespec, when initializing that with single value it takes seconds
+      -- to be compatible with the linux version (which assumes ms) we "fix" that here
+      @interval = interval * 1000
       @callback = callback
       @ident = next_id! -- NOTE: ident becomes the fd field when receiving event
       @filter = 'timer'
@@ -226,7 +228,7 @@ Watcher = define 'Watcher', ->
     stopped: => not @started
 
   instance
-    initialize: (paths, watch_for, opts={}) => 
+    initialize: (paths, watch_for, opts={}) =>
       @recursive = opts.recursive or false
       @callback = opts.callback
       assert is_callable(@callback), "'callback' is a required option for a Watcher and must be a callable object (like a function)"
@@ -285,7 +287,7 @@ Watcher = define 'Watcher', ->
             @.unwatch path
             append events, {action: 'deleted', :path}
             continue
-          
+
           if event.RENAME
             has_rename = true
             append events, {action: 'renamed', :path, attr: @watches[path]}
@@ -389,7 +391,9 @@ wait_for_events = (block_for) ->
 run_once = (opts={}) ->
   process = opts.process or -> nil
   block_for = opts.block_for or 500 -- default 500 ms blocking wait
-  block_for = block_for / 1000 -- kqueue takes seconds it seems
+  -- kqueue uses a timespec, when initializing that with single value it takes seconds
+  -- to be compatible with the linux version (which assumes ms) we "fix" that here
+  block_for = block_for / 1000
   for _, v in wait_for_events block_for
     if v.filter == Constants.EVFILT['vnode']
       wp = ffi.cast('watch_path*', v.udata)
