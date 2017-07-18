@@ -2,6 +2,8 @@
 
 ## 0.8.8 - unreleased
 
+Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
+
 ## 0.8.7
 
 The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.
