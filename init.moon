@@ -9,7 +9,7 @@ S = require 'syscall'
 :readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
-insert: append, :concat = table
+insert: append, :concat, remove: pop, :clear = table
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
@@ -60,7 +60,7 @@ if fi = index_of arg, "-f"
 cli = require "arguments"
 :run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'
-local spook, queue
+local spook, event_stack
 
 fs_event_to_env = (event) ->
   S.setenv('SPOOK_CHANGE_PATH', event.path, true)
@@ -76,8 +76,11 @@ fs_event_to_env = (event) ->
 event_handler = =>
   seen_paths = {}
   local pevent
-  while #queue > 0
-    event = queue\popright! -- latest event
+  while #event_stack > 0
+    -- latest event that occurred (well, according to the OS anyway),
+    -- because the last fs events are (usually) the more interesting
+    -- ones in practice.
+    event = pop event_stack
     continue unless event.path -- ignore events without a path
     continue if seen_paths[event.path] -- ignore events we've already seen
     fs_event_to_env event
@@ -149,7 +152,7 @@ load_spookfile = ->
     spook.log_level = args.log_level if args.log_level
   _G.spook = spook
   _G.notify.clear!
-  queue = spook.queue
+  event_stack = spook.event_stack
   success, result = pcall -> spook spookfile
   loadfail spookfile_path, result unless success
   dir_or_dirs = (num) ->
@@ -246,7 +249,7 @@ watch_files_from_stdin = (files) ->
   spook = Spook.new!
   _G.spook = spook
   _G.notify.clear!
-  queue = spook.queue
+  event_stack = spook.event_stack
   args = [a for i, a in ipairs arg when i > 0]
   start_now = false
   exit_after_exec = false
@@ -275,7 +278,7 @@ watch_files_from_stdin = (files) ->
   handler = if command
     (event, f) ->
       return unless is_match f
-      queue\reset! -- empty the queue when we have a match
+      clear event_stack -- empty the stack in place when we have a match
       cmdline = expand_file command, f
       if pid > 0
         S.kill -pid, "term"

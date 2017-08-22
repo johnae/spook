@@ -36,6 +36,16 @@ describe "globals", ->
     assert.equal 3, table.index_of(t, "three")
     assert.nil table.index_of(t, "five")
 
+  it "table.clear clears an indexed table", ->
+    t = {"one", "two", "three", "four"}
+    table.clear t
+    assert.same {}, t
+
+  it "table.clear clears a key/value table", ->
+    t = {one: 1, two: 2, three: 3, four: 4}
+    table.clear t
+    assert.same {}, t
+
   it "math.round rounds to nearest integer by default", ->
     num = 11.6
     assert.equal 12, math.round(num)
