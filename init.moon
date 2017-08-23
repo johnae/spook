@@ -9,7 +9,7 @@ S = require 'syscall'
 :readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
-insert: append, :concat, remove: pop, :clear = table
+insert: append, :concat, remove: pop, :clear, :sort = table
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
@@ -208,40 +208,25 @@ expand_file = (data, file) ->
 -- ./a/b/c
 -- ./b/c
 watch_dirs = (files) ->
-  list = {}
+  -- normalize the paths, eg. a/b/c/file.txt becomes ./a/b/c
   dirs = {}
-  for f in *files
-    path = if f\sub(1,1) == '/'
-      f\split('/')
-    else
-      p = {'.'}
-      s = f\split('/')
-      for c in *s
-        append p, c
-      p
-    local pcd, pd, cd
-    for i, d in ipairs path
-      if i == #path
-        pcd[pd] = 0
+  watches = {}
+  for path in *files
+    path_start = path\sub 1, 1
+    if path_start != '/' and path_start != '.'
+      path = "./#{path}"
+    append dirs, fs.dirname(path)
+  sort dirs, (a, b) -> #a > #b
+  watches = {d, true for d in *dirs}
+
+  for idx, dir in ipairs dirs
+    for idx2=#dirs,1,-1
+      continue if idx2 == idx
+      if string.find(dir, dirs[idx2]) == 1
+        watches[dir] = nil
         break
-      cd = dirs unless cd
-      cd[d] = {} unless cd[d]
-      if cd[d] == 0
-        break
-      pd = d
-      pcd = cd
-      cd = cd[d]
-  list = (tbl, path) ->
-    for k, v in pairs tbl
-      p = if path
-        "#{path}/#{k}"
-      else
-        k
-      if v == 0
-        coroutine.yield p
-      else
-        list v, p
-  coroutine.wrap -> list dirs
+
+  [w for w in pairs watches]
 
 -- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
 watch_files_from_stdin = (files) ->
@@ -294,7 +279,7 @@ watch_files_from_stdin = (files) ->
       return unless is_match f
       io.stderr\write colors "%{green}'#{f}'%{reset} changed, no command was given so I'm just echoing\n"
 
-  for dir in watch_dirs(files)
+  for dir in *watch_dirs(files)
     spook\watch dir, ->
       on_changed '(.*)', handler
 
