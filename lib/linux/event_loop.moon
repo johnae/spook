@@ -36,6 +36,7 @@ recurse_paths = (paths) ->
   all_paths
 
 EventHandlers = {}
+num_watches = 0
 Watcher = define 'Watcher', ->
   properties
     stopped: => not @started
@@ -110,7 +111,10 @@ Watcher = define 'Watcher', ->
       @stop!
       EventHandlers[@fdnum] = @
       for p in *@paths
-        wd = @fd\inotify_add_watch p, @watch_for
+        wd, err = @fd\inotify_add_watch p, @watch_for
+        unless wd
+          error "#{tostring(err)}, not allowed to add more inotify watches (currently at #{num_watches})"
+        num_watches += 1
         continue unless wd
         @watchers[wd] = p
       epoll_fd\epoll_ctl 'add', @fdnum, 'in'
@@ -121,6 +125,7 @@ Watcher = define 'Watcher', ->
       epoll_fd\epoll_ctl 'del', @fdnum, 'in'
       for k, _ in pairs @watchers
         @fd\inotify_rm_watch k
+        num_watches -= 1
       @watchers = {}
       @started = false
 
