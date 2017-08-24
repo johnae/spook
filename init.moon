@@ -9,6 +9,7 @@ S = require 'syscall'
 :readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
+gettimeofday = gettimeofday
 insert: append, :concat, remove: pop, :clear = table
 
 -- add some default load paths
@@ -75,7 +76,6 @@ fs_event_to_env = (event) ->
 -- just the latest event, disregarding any previous ones).
 event_handler = =>
   seen_paths = {}
-  local pevent
   while #event_stack > 0
     -- latest event that occurred (well, according to the OS anyway),
     -- because the last fs events are (usually) the more interesting
@@ -96,7 +96,7 @@ event_handler = =>
 
 kill_children = ->
   killed = 0
-  for pid, process in pairs children
+  for pid in pairs children
     S.kill -pid, "KILL"
     S.waitpid pid
     children[pid] == nil
@@ -117,7 +117,7 @@ start = ->
       signaled_at = gettimeofday!
       unless killall
         killed = 0
-        for pid, process in pairs children
+        for pid in pairs children
           S.kill -pid, "term"
           killed += 1
         dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
@@ -161,8 +161,8 @@ load_spookfile = ->
     num == 1 and 'file' or 'files'
 
   if log[spook.log_level] > log.WARN
-    notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)}%{reset}"
-    notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
+    _G.notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)}%{reset}"
+    _G.notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
 
   start!
 
@@ -173,7 +173,7 @@ _G.reload_spook = ->
   signalreset!
   epoll_fd\close! if epoll_fd
   args = {"/bin/sh", "-c", _G.arg[0]}
-  append args, arg for arg in *_G.arg
+  append args, anarg for anarg in *_G.arg
   cmd = args[1]
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
@@ -189,7 +189,7 @@ stdin_input = ->
 
 expand_file = (data, file) ->
   return nil unless data
-  filename, ext = fs.name_ext file
+  filename, _ = fs.name_ext file
   basename = fs.basename file
   basenamenoext = fs.basename filename
   data = data\gsub '([[{%<](file)[]}>])', file
@@ -289,7 +289,7 @@ watch_files_from_stdin = (files) ->
         S.kill -pid, "term"
       opts = {}
       if exit_after_exec
-        opts.on_death = (success, exittype, exitstatus, pid) ->
+        opts.on_death = (success, exittype, exitstatus) ->
           os.exit(0) if success
           os.exit(exitstatus) if exitstatus > 0
           os.exit(1)
