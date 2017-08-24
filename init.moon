@@ -9,7 +9,7 @@ S = require 'syscall'
 :readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
-insert: append, :concat, remove: pop, :clear, :sort = table
+insert: append, :concat, remove: pop, :clear = table
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
