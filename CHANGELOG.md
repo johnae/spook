@@ -4,8 +4,8 @@
 
 Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
 
-Spook now aborts if the inotify watch limit is reached rather than watching some of the given files
-(well actually directories) without notifying the user.
+Spook now aborts if the inotify (so linux only) watch limit is reached rather than watching some of
+the given files (well actually directories) without notifying the user.
 
 The Queue thing was removed and replaced by a table. The queue wasn't actually needed.
 
