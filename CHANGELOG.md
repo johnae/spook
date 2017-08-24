@@ -4,6 +4,13 @@
 
 Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
 
+Spook now aborts if the inotify watch limit is reached rather than watching some of the given files
+(well actually directories) without notifying the user.
+
+The Queue thing was removed and replaced by a table. The queue wasn't actually needed.
+
+A bit of code cleanup - make lint now lints init.moon as well.
+
 ## 0.8.7
 
 The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.
