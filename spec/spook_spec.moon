@@ -1,6 +1,7 @@
 S = require 'syscall'
 Spook = require 'spook'
 fs = require 'fs'
+remove: pop = table
 
 describe 'spook', ->
   local spook
@@ -64,59 +65,59 @@ describe 'spook', ->
 
       describe 'deleting watched files', ->
 
-        it 'puts a delete event on the internal queue', ->
+        it 'puts a delete event on the internal event stack', ->
           create_file file, "some content"
           spook -> watch dir, ->
           spook\start!
           os.remove file
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.queue
+          assert.equal 1, #spook.event_stack
           assert.same {
             type: 'fs'
             action: 'deleted'
             path: file
-          }, spook.queue\peekleft!
+          }, spook.event_stack[1]
 
       describe 'creating files in a watched directory', ->
 
-        it 'puts a create and a modified event on the internal queue', ->
+        it 'puts a create and a modified event on the internal event stack', ->
           spook -> watch dir, ->
           spook\start!
           create_file file, "some content"
           loop block_for: 50, loops: 3
-          assert.equal 2, #spook.queue
+          assert.equal 2, #spook.event_stack
           assert.same {
             type: 'fs'
             action: 'created'
             path: file
-          }, spook.queue\peekleft!
+          }, spook.event_stack[1]
           assert.same {
             type: 'fs'
             action: 'modified'
             path: file
-          }, spook.queue\peekright!
+          }, spook.event_stack[2]
 
       describe 'moving files within a watched directory', ->
 
-        it 'puts a move event on the internal queue', ->
+        it 'puts a move event on the internal event stack', ->
           create_file file, "some content"
           spook -> watch dir, ->
           spook\start!
 
           S.rename "#{file}", "#{dir}/newname.txt"
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.queue
+          assert.equal 1, #spook.event_stack
           assert.same {
             type: 'fs'
             action: 'moved'
             path: "#{dir}/newname.txt"
             from: file
             to: "#{dir}/newname.txt"
-          }, spook.queue\peekleft!
+          }, spook.event_stack[1]
 
       describe 'watching a single file for changes', ->
 
-        it 'puts the expected events on the internal queue', ->
+        it 'puts the expected events on the internal event stack', ->
           create_file file, "some content"
           spook -> watch_file file, ->
           spook\start!
@@ -126,23 +127,23 @@ describe 'spook', ->
           f\close!
 
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.queue
+          assert.equal 1, #spook.event_stack
           assert.same {
             type: 'fs'
             action: 'modified'
             path: "#{file}"
-          }, spook.queue\peekleft!
+          }, spook.event_stack[1]
 
-          spook.queue\popleft!
+          pop spook.event_stack
 
           os.remove file
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.queue
+          assert.equal 1, #spook.event_stack
           assert.same {
             type: 'fs'
             action: 'deleted'
             path: file
-          }, spook.queue\peekleft!
+          }, spook.event_stack[1]
 
     it 'configures log_level via supplied function', ->
       spook ->

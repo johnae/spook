@@ -9,7 +9,8 @@ S = require 'syscall'
 :readline = require 'utils'
 fs = require 'fs'
 getcwd = getcwd
-insert: append, :concat = table
+gettimeofday = gettimeofday
+insert: append, :concat, remove: pop, :clear = table
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
@@ -60,7 +61,7 @@ if fi = index_of arg, "-f"
 cli = require "arguments"
 :run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'
-local spook, queue
+local spook, event_stack
 
 fs_event_to_env = (event) ->
   S.setenv('SPOOK_CHANGE_PATH', event.path, true)
@@ -75,9 +76,11 @@ fs_event_to_env = (event) ->
 -- just the latest event, disregarding any previous ones).
 event_handler = =>
   seen_paths = {}
-  local pevent
-  while #queue > 0
-    event = queue\popright! -- latest event
+  while #event_stack > 0
+    -- latest event that occurred (well, according to the OS anyway),
+    -- because the last fs events are (usually) the more interesting
+    -- ones in practice.
+    event = pop event_stack
     continue unless event.path -- ignore events without a path
     continue if seen_paths[event.path] -- ignore events we've already seen
     fs_event_to_env event
@@ -93,7 +96,7 @@ event_handler = =>
 
 kill_children = ->
   killed = 0
-  for pid, process in pairs children
+  for pid in pairs children
     S.kill -pid, "KILL"
     S.waitpid pid
     children[pid] == nil
@@ -114,7 +117,7 @@ start = ->
       signaled_at = gettimeofday!
       unless killall
         killed = 0
-        for pid, process in pairs children
+        for pid in pairs children
           S.kill -pid, "term"
           killed += 1
         dead_children = (num) -> num == 1 and "#{num} child" or "#{num} children"
@@ -149,7 +152,7 @@ load_spookfile = ->
     spook.log_level = args.log_level if args.log_level
   _G.spook = spook
   _G.notify.clear!
-  queue = spook.queue
+  event_stack = spook.event_stack
   success, result = pcall -> spook spookfile
   loadfail spookfile_path, result unless success
   dir_or_dirs = (num) ->
@@ -158,8 +161,8 @@ load_spookfile = ->
     num == 1 and 'file' or 'files'
 
   if log[spook.log_level] > log.WARN
-    notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)}%{reset}"
-    notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
+    _G.notify.info colors "%{blue}Watching #{spook.num_dirs} #{dir_or_dirs(spook.num_dirs)}%{reset}"
+    _G.notify.info colors "%{blue}Watching #{spook.file_watches} single #{file_or_files(spook.file_watches)}%{reset}"
 
   start!
 
@@ -170,7 +173,7 @@ _G.reload_spook = ->
   signalreset!
   epoll_fd\close! if epoll_fd
   args = {"/bin/sh", "-c", _G.arg[0]}
-  append args, arg for arg in *_G.arg
+  append args, anarg for anarg in *_G.arg
   cmd = args[1]
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
@@ -186,7 +189,7 @@ stdin_input = ->
 
 expand_file = (data, file) ->
   return nil unless data
-  filename, ext = fs.name_ext file
+  filename, _ = fs.name_ext file
   basename = fs.basename file
   basenamenoext = fs.basename filename
   data = data\gsub '([[{%<](file)[]}>])', file
@@ -194,50 +197,55 @@ expand_file = (data, file) ->
   data = data\gsub '([[{%<](basename)[]}>])', basename
   data\gsub '([[{%<](basenamenoext)[]}>])', basenamenoext
 
--- this basically finds the top directories to watch
+-- This may seem a bit convoluted, perhaps it is. However finding
+-- the common top directories among several hundred thousand paths
+-- isn't entirely trivial.
+-- This basically finds the top directories to watch
 -- in a list of files (eg. perhaps from ls or find . -type f)
 -- for example, this file list:
 -- ./a/b/c/d/e/file-e.txt
 -- ./a/b/c/file-c.txt
 -- ./b/c/file-bc.txt
 -- ./b/c/e/file-bc.txt
--- should give us this list of dirs:
+-- should give us this list of dirs (to watch):
 -- ./a/b/c
 -- ./b/c
 watch_dirs = (files) ->
-  list = {}
   dirs = {}
-  for f in *files
-    path = if f\sub(1,1) == '/'
-      f\split('/')
-    else
-      p = {'.'}
-      s = f\split('/')
-      for c in *s
-        append p, c
-      p
-    local pcd, pd, cd
-    for i, d in ipairs path
-      if i == #path
-        pcd[pd] = 0
+  -- normalize the paths, eg. a/b/c/file.txt becomes ./a/b/c
+  for path in *files
+    path_start = path\sub 1, 1
+    path = path\split '/'
+    unless (path_start == '/' or path_start == '.')
+      p = path
+      path = {'.'}
+      for seg in *p
+        append path, seg
+
+    local prev_node, prev_seg
+    cur_node = dirs
+    for idx, seg in ipairs path
+      -- break if a zero was ever written to this node
+      break if cur_node[seg] == 0
+      if idx == #path
+        if prev_seg
+          prev_node[prev_seg] = 0 -- overwrite anything at this node with a 0
         break
-      cd = dirs unless cd
-      cd[d] = {} unless cd[d]
-      if cd[d] == 0
-        break
-      pd = d
-      pcd = cd
-      cd = cd[d]
+
+      cur_node[seg] or= {}
+      prev_seg = seg
+      prev_node = cur_node
+      cur_node = cur_node[seg]
+
+  -- finally return a generator
   list = (tbl, path) ->
     for k, v in pairs tbl
-      p = if path
-        "#{path}/#{k}"
-      else
-        k
+      p = path and "#{path}/#{k}" or k
       if v == 0
         coroutine.yield p
       else
         list v, p
+
   coroutine.wrap -> list dirs
 
 -- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
@@ -246,7 +254,7 @@ watch_files_from_stdin = (files) ->
   spook = Spook.new!
   _G.spook = spook
   _G.notify.clear!
-  queue = spook.queue
+  event_stack = spook.event_stack
   args = [a for i, a in ipairs arg when i > 0]
   start_now = false
   exit_after_exec = false
@@ -275,13 +283,13 @@ watch_files_from_stdin = (files) ->
   handler = if command
     (event, f) ->
       return unless is_match f
-      queue\reset! -- empty the queue when we have a match
+      clear event_stack -- empty the stack in place when we have a match
       cmdline = expand_file command, f
       if pid > 0
         S.kill -pid, "term"
       opts = {}
       if exit_after_exec
-        opts.on_death = (success, exittype, exitstatus, pid) ->
+        opts.on_death = (success, exittype, exitstatus) ->
           os.exit(0) if success
           os.exit(exitstatus) if exitstatus > 0
           os.exit(1)

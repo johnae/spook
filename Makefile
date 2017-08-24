@@ -56,7 +56,7 @@ test: spook
 	$(SHPEC_BIN)
 
 lint: spook
-	$(LUAJIT_BIN) spec/support/run_linter.lua lib/*.moon lib/bsd/*.moon lib/linux/*.moon
+	$(LUAJIT_BIN) spec/support/run_linter.lua *.moon lib/*.moon lib/bsd/*.moon lib/linux/*.moon
 	$(LUAJIT_BIN) spec/support/run_linter.lua spec/*.moon
 
 install: all

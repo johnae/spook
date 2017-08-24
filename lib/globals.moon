@@ -53,6 +53,10 @@ table.empty = (t) ->
     return true
   false
 
+table.clear = (t) ->
+  for k in next, t
+    t[k] = nil
+
 math.round = (num, dp) ->
   m = 10 ^ (dp or 0)
   floor( num * m + 0.5 ) / m
