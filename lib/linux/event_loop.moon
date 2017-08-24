@@ -113,7 +113,7 @@ Watcher = define 'Watcher', ->
       for p in *@paths
         wd, err = @fd\inotify_add_watch p, @watch_for
         unless wd
-          error "#{tostring(err)}, not allowed to add more inotify watches (currently at #{num_watches})"
+          error "#{tostring(err)}, not allowed to add more inotify watches (this spook instance is currently at #{num_watches}) - see /proc/sys/fs/inotify/max_user_watches"
         num_watches += 1
         continue unless wd
         @watchers[wd] = p
