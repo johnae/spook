@@ -11,6 +11,9 @@ The Queue thing was removed and replaced by a table. The queue wasn't actually n
 
 A bit of code cleanup - make lint now lints init.moon as well.
 
+Luajit now at https://github.com/LuaJIT/LuaJIT/commit/6b0824852677cc12570c20a3211fbfe0e4f0ce14 - 
+x64/LJ_GC64: Fix fallback case of asm_fuseloadk64().
+
 ## 0.8.7
 
 The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.
