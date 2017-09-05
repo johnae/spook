@@ -49,13 +49,13 @@ define 'Spook', ->
       @file_watches = 0
       @first_match_only = true
       @one_fs_handler_at_a_time = true
-      @event_stack = {}
+      @fs_events = {}
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
       @_log_level =  log.INFO
       for f in *{'watch', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
-      @caller_env.event_stack = @event_stack
+      @caller_env.fs_events = @fs_events
       @caller_env.log_level = (v) ->
         if @_log_level == log.INFO
           @log_level = v
@@ -78,7 +78,7 @@ define 'Spook', ->
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
       new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', recursive: true, callback: (w, events) ->
-        append @event_stack, Event.new('fs', e) for e in *events
+        append @fs_events, Event.new('fs', e) for e in *events
       append @watchers, new_watcher
       @num_dirs += #new_watcher.paths
       setfenv func, @handlers
@@ -112,7 +112,7 @@ define 'Spook', ->
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
       new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', callback: (w, events) ->
-        append @event_stack, Event.new('fs', e) for e in *events
+        append @fs_events, Event.new('fs', e) for e in *events
       append @watchers, new_watcher
       setfenv func, @handlers
       func!

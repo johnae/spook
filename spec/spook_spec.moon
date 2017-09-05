@@ -71,12 +71,12 @@ describe 'spook', ->
           spook\start!
           os.remove file
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.event_stack
+          assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
             action: 'deleted'
             path: file
-          }, spook.event_stack[1]
+          }, spook.fs_events[1]
 
       describe 'creating files in a watched directory', ->
 
@@ -85,17 +85,17 @@ describe 'spook', ->
           spook\start!
           create_file file, "some content"
           loop block_for: 50, loops: 3
-          assert.equal 2, #spook.event_stack
+          assert.equal 2, #spook.fs_events
           assert.same {
             type: 'fs'
             action: 'created'
             path: file
-          }, spook.event_stack[1]
+          }, spook.fs_events[1]
           assert.same {
             type: 'fs'
             action: 'modified'
             path: file
-          }, spook.event_stack[2]
+          }, spook.fs_events[2]
 
       describe 'moving files within a watched directory', ->
 
@@ -106,14 +106,14 @@ describe 'spook', ->
 
           S.rename "#{file}", "#{dir}/newname.txt"
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.event_stack
+          assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
             action: 'moved'
             path: "#{dir}/newname.txt"
             from: file
             to: "#{dir}/newname.txt"
-          }, spook.event_stack[1]
+          }, spook.fs_events[1]
 
       describe 'watching a single file for changes', ->
 
@@ -127,23 +127,23 @@ describe 'spook', ->
           f\close!
 
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.event_stack
+          assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
             action: 'modified'
             path: "#{file}"
-          }, spook.event_stack[1]
+          }, spook.fs_events[1]
 
-          pop spook.event_stack
+          pop spook.fs_events
 
           os.remove file
           loop block_for: 50, loops: 3
-          assert.equal 1, #spook.event_stack
+          assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
             action: 'deleted'
             path: file
-          }, spook.event_stack[1]
+          }, spook.fs_events[1]
 
     it 'configures log_level via supplied function', ->
       spook ->
