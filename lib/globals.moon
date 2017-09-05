@@ -72,7 +72,8 @@ _chdir = S.chdir
 chdir = (path, f) ->
   cwd = getcwd!
   r = _chdir path
+  fret = {}
   if f
-    f!
+    fret = {f(r)}
     _chdir cwd
-  r
+  r, unpack(fret)

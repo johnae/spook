@@ -14,6 +14,8 @@ A bit of code cleanup - make lint now lints init.moon as well.
 Luajit now at https://github.com/LuaJIT/LuaJIT/commit/6b0824852677cc12570c20a3211fbfe0e4f0ce14 - 
 x64/LJ_GC64: Fix fallback case of asm_fuseloadk64().
 
+The chdir helper which takes a function now returns not only whether chdir was successful but also any return values of the given function. The function also receives the success status of the actual chdir execution - either true (successful) or nil (failed).
+
 ## 0.8.7
 
 The env vars SPOOK_CHANGE_ACTION and SPOOK_CHANGE_PATH are now always set when a change is detected.

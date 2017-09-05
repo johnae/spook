@@ -69,11 +69,34 @@ describe "globals", ->
 
     it "chdir changes working directory", ->
       cwd = getcwd!
-      chdir("#{cwd}/lib")
+      assert.true chdir("#{cwd}/lib")
       assert.same "#{cwd}/lib", getcwd!
 
-    it "chdir takes a function in which to temporarily change working directory", ->
+    it "chdir returns nil when changing dir fails", ->
       cwd = getcwd!
-      chdir "#{cwd}/lib", ->
-        assert.same "#{cwd}/lib", getcwd!
+      assert.nil chdir("#{cwd}/no-such-directory")
       assert.same cwd, getcwd!
+
+    describe "chdir takes a function", ->
+
+      it "function is executed after switching directory", ->
+        cwd = getcwd!
+        success, r1, r2 = chdir "#{cwd}/lib", (chdir_successful) ->
+          assert.true chdir_successful
+          assert.same "#{cwd}/lib", getcwd!
+          123, 345
+        assert.true success
+        assert.equal 123, r1
+        assert.equal 345, r2
+        assert.same cwd, getcwd!
+
+      it "function receives success status of chdir", ->
+        cwd = getcwd!
+        success, r1, r2 = chdir "#{cwd}/failing-doesnt-exist", (chdir_successful) ->
+          assert.nil chdir_successful
+          assert.same cwd, getcwd!
+          123, 345
+        assert.nil success
+        assert.equal 123, r1
+        assert.equal 345, r2
+        assert.same cwd, getcwd!
