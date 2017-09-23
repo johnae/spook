@@ -1,12 +1,12 @@
 stage("Test") {
   parallel linux: {
     node("linux") {
-      stage("Checkout") {
-        checkout scm
-      }
       stage("Install dependencies") {
         sh "apk update"
         sh "apk add tmux"
+      }
+      stage("Checkout") {
+        checkout scm
       }
       stage("Build") {
         sh "make -j4"
@@ -21,11 +21,11 @@ stage("Test") {
   },
   freebsd: {
     node("freebsd") {
+      stage("Install dependencies") {
+        sh "pkg add tmux gmake git"
+      }
       stage("Checkout") {
         checkout scm
-      }
-      stage("Install dependencies") {
-        sh "pkg add tmux gmake"
       }
       stage("Build") {
         sh "gmake -j4"
