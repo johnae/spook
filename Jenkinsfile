@@ -1,5 +1,8 @@
 stage("Test") {
   node("linux") {
+    stage("Checkout") {
+      checkout scm
+    }
     stage("Install dependencies") {
       sh "apk update"
       sh "apk add tmux"
@@ -15,6 +18,9 @@ stage("Test") {
     }
   }
   node("freebsd") {
+    stage("Checkout") {
+      checkout scm
+    }
     stage("Install dependencies") {
       sh "pkg add tmux gmake"
     }
