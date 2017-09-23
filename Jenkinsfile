@@ -3,8 +3,8 @@ stage("Test") {
     node("linux") {
       deleteDir()
       stage("Install dependencies") {
-        sh "apk update"
-        sh "apk add tmux"
+        sh "apt-get update"
+        sh "apt-get install -y tmux git"
       }
       stage("Checkout") {
         checkout scm
