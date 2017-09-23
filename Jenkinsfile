@@ -21,8 +21,10 @@ stage("Test") {
   },
   freebsd: {
     node("freebsd") {
-      stage("Install dependencies") {
-        sh "pkg install tmux gmake git"
+      withEnv(['ASSUME_ALWAYS_YES=YES']) {
+        stage("Install dependencies") {
+          sh "pkg install tmux gmake git"
+        }
       }
       stage("Checkout") {
         checkout scm
