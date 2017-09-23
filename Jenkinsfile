@@ -1,6 +1,7 @@
 stage("Test") {
   parallel linux: {
     node("linux") {
+      deleteDir()
       stage("Install dependencies") {
         sh "apk update"
         sh "apk add tmux"
@@ -21,6 +22,7 @@ stage("Test") {
   },
   freebsd: {
     node("freebsd") {
+      deleteDir()
       withEnv(['ASSUME_ALWAYS_YES=YES']) {
         stage("Install dependencies") {
           sh "pkg install tmux gmake git"
