@@ -22,7 +22,7 @@ stage("Test") {
   freebsd: {
     node("freebsd") {
       stage("Install dependencies") {
-        sh "pkg add tmux gmake git"
+        sh "pkg install tmux gmake git"
       }
       stage("Checkout") {
         checkout scm
