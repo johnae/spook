@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.8.8 - unreleased
+## 0.8.9 - unreleased
+
+## 0.8.8
 
 Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
 
