@@ -1,3 +1,5 @@
+#!/usr/bin/groovy
+
 stage("Test") {
   parallel linux: {
     node("linux") {
