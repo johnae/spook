@@ -11,8 +11,7 @@ The Queue thing was removed and replaced by a table. The queue wasn't actually n
 
 A bit of code cleanup - make lint now lints init.moon as well.
 
-Luajit now at https://github.com/LuaJIT/LuaJIT/commit/05fbdf565c700365d22e38f11478101a0d92a23e - 
-x64/LJ_GC64: Fix type-check-only variant of SLOAD.
+Luajit now at https://github.com/LuaJIT/LuaJIT/commit/850f8c59d3d04a9847f21f32a6c36d8269b5b6b1 - LJ_GC64: Make ASMREF_L references 64 bit.
 
 The chdir helper which takes a function now returns not only whether chdir was successful but also any return values of the given function. The function also receives the success status of the actual chdir execution - either true (successful) or nil (failed).
 
