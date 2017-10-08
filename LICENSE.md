@@ -61,7 +61,7 @@ Spook incorporates other software, below follows a list of the embedded dependen
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-### [lsyscall](http://github.com/justincormack/ljsyscall)
+### [ljsyscall](http://github.com/justincormack/ljsyscall)
 
     The ABI description files (ffifunctions, ffitypes, constants) do not consist of
     copyrightable material and should be considered public domain.
