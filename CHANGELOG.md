@@ -4,6 +4,8 @@
 
 Fix a segmentation fault occurring seemingly randomly. We cannot write nil to the value of an env var.
 
+Spook now gives a descriptive message when setting bad log level.
+
 ## 0.8.8
 
 Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
