@@ -15,8 +15,11 @@ define 'Spook', ->
     log_level:
       get: => @_log_level
       set: (v) =>
-        @_log_level = v
-        log.level log[@_log_level]
+        if log[v]
+          @_log_level = v
+          log.level log[@_log_level]
+        else
+          log.error "No such log level '#{v}'"
 
     all_event_emitters: =>
       emitters = [w for w in *@watchers]

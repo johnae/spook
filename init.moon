@@ -156,7 +156,7 @@ load_spookfile = ->
   spookfile = result
   spook = Spook.new!
   if args.log_level
-    spook.log_level = args.log_level if args.log_level
+    spook.log_level = args.log_level\upper!
   _G.spook = spook
   _G.notify.clear!
   fs_events = spook.fs_events
