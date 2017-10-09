@@ -2,6 +2,8 @@
 
 ## 0.8.9 - unreleased
 
+Fix a segmentation fault occurring seemingly randomly. We cannot write nil to the value of an env var.
+
 ## 0.8.8
 
 Correct the helptext on the -f option so it notes that BOTH MoonScript and Lua files are supported.
