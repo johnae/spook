@@ -64,11 +64,21 @@ Spook = require 'spook'
 local spook, fs_events
 
 fs_event_to_env = (event) ->
-  S.setenv('SPOOK_CHANGE_PATH', event.path, true)
-  S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
-  S.unsetenv('SPOOK_MOVED_FROM')
-  if event.action == 'moved'
-    S.setenv('SPOOK_MOVED_FROM', event.from, true)
+  if event
+    if event.path
+      S.setenv('SPOOK_CHANGE_PATH', event.path, true)
+    else
+      log.debug "expected the event to have a path: ", event
+    if event.action
+      S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
+    else
+      log.debug "expected the event to have an action: ", event
+    S.unsetenv('SPOOK_MOVED_FROM')
+    if event.action == 'moved'
+      if event.from
+        S.setenv('SPOOK_MOVED_FROM', event.from, true)
+      else
+        log.debug "expected the event to have a from field: ", event
 
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
