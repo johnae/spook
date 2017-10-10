@@ -1,5 +1,14 @@
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get update -yqqu && sudo apt-get install -yqq tmux; else brew install tmux; fi
+  # so homebrew doesn't work on default ruby anymore
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      rvm install ruby-2.3.3;
+      rvm --default use 2.3.1;
+      brew install tmux;
+    fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then
+      sudo apt-get update -yqqu;
+      sudo apt-get install -yqq tmux;
+    fi
 
 matrix:
   include:
