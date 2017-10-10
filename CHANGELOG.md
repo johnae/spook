@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.8.9 - unreleased
+## 0.8.10 - unreleased
 
-Fix a segmentation fault occurring seemingly randomly. We cannot write nil to the value of an env var.
+## 0.8.9
+
+*NOTE:* Please update to this version if you are on 0.8.7 or 0.8.8 since those have a bug randomly resulting in a segmentation fault.
+
+Fix a segmentation fault occurring seemingly randomly. We cannot write nil to the value of an env var. So I would really recommend using this
 
 Spook now gives a descriptive message when setting bad log level.
 
