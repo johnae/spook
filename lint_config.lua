@@ -13,6 +13,12 @@ return {
       'first_match_only',
       'one_fs_handler_at_a_time'
     },
+    ["Spookfile"] = {
+       'on_read',
+       'notify',
+       'getcwd',
+       'reload_spook'
+    },
     ["lib/config.moon"] = {
       'log_level',
       'notifier'
