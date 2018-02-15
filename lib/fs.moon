@@ -37,11 +37,15 @@ dirname = (path) ->
   path = path\gsub '/$', ''
   path\match("^(.*)/.*$") or '.'
 
+remove_trailing_slash = (path) ->
+  while path\sub(#path) == "/"
+    path = path\sub 1, #path - 1
+  path
+
 dirtree = (dir, recursive) ->
   assert dir and dir != "", "directory parameter is missing or empty"
-
-  if dir\sub(-1) == "/"
-    dir = dir\sub 1,-2
+  dir = remove_trailing_slash dir
+  dir = "/" if dir == "" -- was /
 
   yieldtree = (current_dir) ->
     unless can_access(current_dir)
@@ -49,7 +53,7 @@ dirtree = (dir, recursive) ->
       return
     for entry in lfs.dir current_dir
       if entry != "." and entry != ".."
-        entry = "#{current_dir}/#{entry}"
+        entry = "#{remove_trailing_slash(current_dir)}/#{entry}"
         unless can_access(entry)
           log.debug "No access to #{entry}, skipping"
           continue
