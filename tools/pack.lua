@@ -6,6 +6,15 @@ package.path = package.path .. ';' .. base_dir .. '/lib/?.lua'
 
 local lpeg = require("lpeglj")
 package.loaded['lpeg'] = lpeg
+local function logwrite(...)
+   io.stderr:write("LOG: " .. ... .. "\n")
+end
+package.loaded['log'] = {
+   info = logwrite,
+   error = logwrite,
+   warn = logwrite,
+   debug = logwrite
+}
 require("moonscript")
 local to_lua = require("moonscript.base").to_lua
 local fs = require("fs")
