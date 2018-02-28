@@ -1,6 +1,24 @@
 # Changelog
 
-## 0.8.10 - unreleased
+## 0.9.1 - unreleased
+
+## 0.9.0
+
+Simplifies the entr functionality. This means spook shouldn't choke on a dir such as $HOME (which likely
+has alot of sub directories).
+
+Make sure the logger doesn't cause problems when packing code. This is a fix to the build system.
+
+Fix fs.dirtree when root is given. When / is given to fs.dirtree would erroneously remove the / and we
+would be left with an empty string.
+
+Update lint_config (avoids lint errors on Spookfile in this repo).
+
+Updates ljsyscall to 3e482bc.
+
+Updates luajit to v2.1 fe651bf.
+
+Fixes travis build error on OS X.
 
 ## 0.8.9
 
