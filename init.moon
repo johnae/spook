@@ -204,56 +204,28 @@ expand_file = (data, file) ->
   data = data\gsub '([[{%<](basename)[]}>])', basename
   data\gsub '([[{%<](basenamenoext)[]}>])', basenamenoext
 
--- This may seem a bit convoluted, perhaps it is. However finding
--- the common top directories among several hundred thousand paths
--- isn't entirely trivial.
--- This basically finds the top directories to watch
--- in a list of files (eg. perhaps from ls or find . -type f)
 -- for example, this file list:
 -- ./a/b/c/d/e/file-e.txt
 -- ./a/b/c/file-c.txt
 -- ./b/c/file-bc.txt
 -- ./b/c/e/file-bc.txt
 -- should give us this list of dirs (to watch):
+-- ./a/b/c/d/e
 -- ./a/b/c
 -- ./b/c
+-- ./b/c/e
 watch_dirs = (files) ->
+  seen = {}
   dirs = {}
-  -- normalize the paths, eg. a/b/c/file.txt becomes ./a/b/c
-  for path in *files
-    path_start = path\sub 1, 1
-    path = path\split '/'
-    unless (path_start == '/' or path_start == '.')
-      p = path
-      path = {'.'}
-      for seg in *p
-        append path, seg
-
-    local prev_node, prev_seg
-    cur_node = dirs
-    for idx, seg in ipairs path
-      -- break if a zero was ever written to this node
-      break if cur_node[seg] == 0
-      if idx == #path
-        if prev_seg
-          prev_node[prev_seg] = 0 -- overwrite anything at this node with a 0
-        break
-
-      cur_node[seg] or= {}
-      prev_seg = seg
-      prev_node = cur_node
-      cur_node = cur_node[seg]
-
-  -- finally return a generator
-  list = (tbl, path) ->
-    for k, v in pairs tbl
-      p = path and "#{path}/#{k}" or k
-      if v == 0
-        coroutine.yield p
-      else
-        list v, p
-
-  coroutine.wrap -> list dirs
+  for file in *files
+    s = file\sub 1, 1
+    unless s == '/' or s == '.'
+      file = './' .. file
+    d = fs.dirname(file)
+    unless seen[d]
+      seen[d] = true
+      append dirs, d
+  dirs
 
 -- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
 watch_files_from_stdin = (files) ->
@@ -306,8 +278,8 @@ watch_files_from_stdin = (files) ->
       return unless is_match f
       io.stderr\write colors "%{green}'#{f}'%{reset} changed, no command was given so I'm just echoing\n"
 
-  for dir in watch_dirs(files)
-    spook\watch dir, ->
+  for dir in *watch_dirs(files)
+    spook\watchnr dir, ->
       on_changed '(.*)', handler
 
   start!

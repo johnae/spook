@@ -56,7 +56,7 @@ define 'Spook', ->
       @watches = {changed: {}, deleted: {}, moved: {}, created: {}, modified: {}, attrib: {}}
       @handlers = {}
       @_log_level =  log.INFO
-      for f in *{'watch', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
+      for f in *{'watch', 'watchnr', 'watch_file', 'timer', 'every', 'after', 'on_signal', 'on_read'}
         @caller_env[f] = (...) -> @[f] @, ...
       @caller_env.fs_events = @fs_events
       @caller_env.log_level = (v) ->
@@ -73,20 +73,32 @@ define 'Spook', ->
           append store, {pattern, wrap(func)}
       setmetatable @handlers, __index: _G
 
-    -- defines recursive watchers (eg. all directories underneath given directories)
-    watch: (...) =>
-      args = {...}
-      dirs = [d for i, d in ipairs args when i<#args]
-      func = args[#args]
+
+    _watch: (dirs, opts = {}) =>
+      :func = opts
+      recursive = opts.recursive or true
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
-      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', recursive: true, callback: (w, events) ->
+      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', :recursive, callback: (w, events) ->
         append @fs_events, Event.new('fs', e) for e in *events
       append @watchers, new_watcher
       @num_dirs += #new_watcher.paths
       setfenv func, @handlers
       func!
       new_watcher
+
+    watchnr: (...) =>
+      args = {...}
+      dirs = [d for i, d in ipairs args when i<#args]
+      func = args[#args]
+      @_watch dirs, recursive: false, :func
+
+    -- defines recursive watchers (eg. all directories underneath given directories)
+    watch: (...) =>
+      args = {...}
+      dirs = [d for i, d in ipairs args when i<#args]
+      func = args[#args]
+      @_watch dirs, :func
 
     watch_file: (file, func) =>
       dir = '.'
