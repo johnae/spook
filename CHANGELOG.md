@@ -2,6 +2,12 @@
 
 ## 0.9.1 - unreleased
 
+Fixes around "entr" behavior (eg. reading the files to be watched on stdin). When there is a controlling terminal this behavior is
+now completely skipped, otherwise there is a default timeout waiting for data on stdin (2 seconds). This timeout can be changed via
+the commandline argument ```-r```. ```-r 0``` disables waiting for stdin completely.
+
+There has been further performance improvements to the actual fs events behavior in "entr" mode.
+
 ## 0.9.0
 
 Simplifies the entr functionality. This means spook shouldn't choke on a dir such as $HOME (which likely

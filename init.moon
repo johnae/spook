@@ -185,8 +185,16 @@ _G.reload_spook = ->
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
 stdin_input = ->
-  sel = S.select(readfds: {S.stdin}, 0.01)
-  return if sel.count == 0
+  return if S.isatty(S.stdin)
+  wait = 2.0
+  if w = index_of arg, "-r"
+    success, w = pcall tonumber, arg[w + 1]
+    wait = w if success
+  return if wait <= 0.0
+  sel = S.select(readfds: {S.stdin}, wait)
+  if sel.count == 0
+    print "Waited for data on stdin for #{wait}s but got nothing."
+    return
   -- using a table because excessive string concatenation
   -- in Lua is the wrong approach and will be very slow here
   input = {}
@@ -261,7 +269,9 @@ watch_files_from_stdin = (files) ->
 
   handler = if command
     (event, f) ->
-      return unless is_match f
+      unless is_match f
+        os.exit! if exit_after_exec
+        return
       clear fs_events -- empty the event list in place when we have a match
       cmdline = expand_file command, f
       if pid > 0
@@ -275,12 +285,14 @@ watch_files_from_stdin = (files) ->
       pid = coroutine.wrap(-> execute cmdline, opts)!
   else
     (event, f) ->
-      return unless is_match f
+      unless is_match f
+        os.exit! if exit_after_exec
+        return
       io.stderr\write colors "%{green}'#{f}'%{reset} changed, no command was given so I'm just echoing\n"
+      os.exit! if exit_after_exec
 
-  for dir in *watch_dirs(files)
-    spook\watchnr dir, ->
-      on_changed '(.*)', handler
+  spook\watchnr watch_dirs(files), ->
+    on_changed '(.*)', handler
 
   start!
 

@@ -53,7 +53,7 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <log_level>] [-c <config>] [-w <dir>]
-       [-f <file>] [-s] [-o] [-h]
+       [-f <f>] [-s] [-o] [-r <r>] [-h]
 
 Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)
 
@@ -65,10 +65,10 @@ Options:
    -c <config>, --config <config>
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -w <dir>, --dir <dir> Expects the path to working directory - overrides the default of using wherever spook was launched
-   -f <file>, --file <file>
-                         Expects a path to a moonscript file - this runs the script within the context of spook, skipping the default behavior completely
+   -f <f>, file <f>      Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely. Any arguments following the path to the file will be given to the file itself.
    -s                    In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o
    -o                    In entr mode, exit immediately after running utility - can't be used with -s
+   -r <r>                Wait this many seconds for data on stdin before bailing (default 2 seconds, 0 ofc means don't wait for any data at all)
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook

@@ -75,6 +75,8 @@ define 'Spook', ->
 
 
     _watch: (dirs, opts = {}) =>
+      if #dirs == 1 and type(dirs[1] == 'table')
+        dirs = dirs[1]
       :func = opts
       recursive = opts.recursive or true
       unless type(func) == 'function'
@@ -117,21 +119,6 @@ define 'Spook', ->
       @watchnr dir, func
       @file_watches += 1
       @handlers = old_handlers
-
-    -- defines non-recursive watchers (eg. only given directories are watched)
-    -- only used internally for now.
-    watchnr: (...) =>
-      args = {...}
-      dirs = [d for i, d in ipairs args when i<#args]
-      func = args[#args]
-      unless type(func) == 'function'
-        error 'last argument to watch must be a setup function'
-      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', callback: (w, events) ->
-        append @fs_events, Event.new('fs', e) for e in *events
-      append @watchers, new_watcher
-      setfenv func, @handlers
-      func!
-      new_watcher
 
     timer: (interval, callback) =>
       new_timer = Timer.new interval, to_coro(callback)
