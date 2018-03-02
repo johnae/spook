@@ -8,6 +8,8 @@ the commandline argument ```-r```. ```-r 0``` disables waiting for stdin complet
 
 There has been further performance improvements to the actual fs events behavior in "entr" mode.
 
+An issue, under some preconditions, of adding several instances of the same directory to a watch has been solved.
+
 ## 0.9.0
 
 Simplifies the entr functionality. This means spook shouldn't choke on a dir such as $HOME (which likely

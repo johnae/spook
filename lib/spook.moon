@@ -77,8 +77,7 @@ define 'Spook', ->
     _watch: (dirs, opts = {}) =>
       if #dirs == 1 and type(dirs[1] == 'table')
         dirs = dirs[1]
-      :func = opts
-      recursive = opts.recursive or true
+      :recursive, :func = opts
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
       new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', :recursive, callback: (w, events) ->
@@ -100,7 +99,7 @@ define 'Spook', ->
       args = {...}
       dirs = [d for i, d in ipairs args when i<#args]
       func = args[#args]
-      @_watch dirs, :func
+      @_watch dirs, recursive: true, :func
 
     watch_file: (file, func) =>
       dir = '.'

@@ -2,8 +2,7 @@ S = require 'syscall'
 Types = S.t
 Util = S.util
 :define = require 'classy'
-log = require 'log'
-:is_dir, :dirtree, :can_access = require 'fs'
+:unique_subtrees, :can_access = require 'fs'
 :concat, insert: append = table
 :is_callable = require 'utils'
 
@@ -11,29 +10,6 @@ MAX_EVENTS = 1024
 
 epoll_fd = S.epoll_create 'cloexec'
 epoll_events = Types.epoll_events MAX_EVENTS
-
-subdirs = (dir) ->
-  dirs = {dir}
-  for entry, attr in dirtree dir, true
-    unless can_access(entry)
-      log.debug "No access to #{entry}, skipping"
-      continue
-    if attr.mode == 'directory'
-      append dirs, entry
-  dirs
-
-recurse_paths = (paths) ->
-  all_paths = {}
-  for p in *paths
-    unless can_access(p)
-      log.debug "No access to #{p}, skipping"
-      continue
-    if is_dir p
-      for d in *subdirs(p)
-        append all_paths, d
-      continue
-    append all_paths, p
-  all_paths
 
 EventHandlers = {}
 num_watches = 0
@@ -102,7 +78,7 @@ Watcher = define 'Watcher', ->
       if #@paths == 0
         error "None of the given paths (#{concat ["'#{path}'" for path in *paths], ', '}) were accessible"
       if @recursive
-        @paths = recurse_paths @paths
+        @paths = unique_subtrees @paths
       @watch_for = watch_for
       @watchers = {}
       @started = false

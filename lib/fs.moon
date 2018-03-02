@@ -2,7 +2,7 @@ require 'globals'
 lfs = require "syscall.lfs"
 S = require 'syscall'
 log = require'log'
-:remove = table
+insert: append, :remove = table
 
 is_dir = (dir) ->
   return false unless type(dir) == "string"
@@ -64,6 +64,34 @@ dirtree = (dir, recursive) ->
 
   coroutine.wrap -> yieldtree dir
 
+subdirs = (dir, seen ={}) ->
+  dirs = {dir}
+  for entry, attr in dirtree dir, true
+    unless can_access(entry)
+      log.debug "No access to #{entry}, skipping"
+      continue
+    if attr.mode == 'directory'
+      continue if seen[attr.ino]
+      seen[attr.ino] = true
+      append dirs, entry
+  dirs
+
+unique_subtrees = (paths) ->
+  all_paths = {}
+  seen = {}
+  for p in *paths
+    unless can_access(p)
+      log.debug "No access to #{p}, skipping"
+      continue
+    if is_dir p
+      attr = lfs.attributes p
+      continue if seen[attr.ino]
+      seen[attr.ino] = true
+      for d in *subdirs(p, seen)
+        append all_paths, d
+      continue
+  all_paths
+
 mkdir_p = (path) ->
   path_elements = path\split "/"
   local dir
@@ -97,5 +125,6 @@ rm_rf = (path, attr) ->
   :is_present,
   :name_ext,
   :basename,
-  :dirname
+  :dirname,
+  :unique_subtrees
 }
