@@ -2,7 +2,7 @@ require 'globals'
 lfs = require "syscall.lfs"
 S = require 'syscall'
 log = require'log'
-insert: append, :remove = table
+:remove = table
 
 is_dir = (dir) ->
   return false unless type(dir) == "string"
@@ -64,33 +64,20 @@ dirtree = (dir, recursive) ->
 
   coroutine.wrap -> yieldtree dir
 
-subdirs = (dir, seen ={}) ->
-  dirs = {dir}
-  for entry, attr in dirtree dir, true
-    unless can_access(entry)
-      log.debug "No access to #{entry}, skipping"
-      continue
-    if attr.mode == 'directory'
-      continue if seen[attr.ino]
-      seen[attr.ino] = true
-      append dirs, entry
-  dirs
-
 unique_subtrees = (paths) ->
-  all_paths = {}
-  seen = {}
+  accessible_dir = (entry, attr) ->
+    can_access(entry) and
+      ((attr or lfs.attributes(entry)).mode == 'directory')
+  recursive_dirmap = (dir) ->
+    return {} unless accessible_dir(dir)
+    map = { attr.ino, entry for entry, attr in dirtree(dir, true) when accessible_dir(entry, attr) }
+    map[lfs.attributes(dir).ino] = dir
+    map
+
+  trees = {}
   for p in *paths
-    unless can_access(p)
-      log.debug "No access to #{p}, skipping"
-      continue
-    if is_dir p
-      attr = lfs.attributes p
-      continue if seen[attr.ino]
-      seen[attr.ino] = true
-      for d in *subdirs(p, seen)
-        append all_paths, d
-      continue
-  all_paths
+    trees[ino] = entry for ino, entry in pairs recursive_dirmap(p)
+  [entry for _, entry in pairs trees]
 
 mkdir_p = (path) ->
   path_elements = path\split "/"

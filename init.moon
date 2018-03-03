@@ -186,13 +186,16 @@ _G.reload_spook = ->
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
 stdin_input = ->
+  -- if we have a controlling terminal, this doesn't apply
   return if S.isatty(S.stdin)
+  -- wait for a specified time for input on stdin
   wait = 2.0
   if w = index_of arg, "-r"
     success, w = pcall tonumber, arg[w + 1]
     wait = w if success
   return if wait <= 0.0
   sel = S.select(readfds: {S.stdin}, wait)
+  -- if there was no input, bail into normal spook mode
   if sel.count == 0
     print "Waited for data on stdin for #{wait}s but got nothing."
     return
@@ -224,21 +227,14 @@ expand_file = (data, file) ->
 -- ./b/c
 -- ./b/c/e
 watch_dirs = (files) ->
-  seen = {}
-  dirs = {}
-  for file in *files
+  to_dir = (file) ->
     s = file\sub 1, 1
-    unless s == '/' or s == '.'
-      file = './' .. file
-    attr = lfs.attributes file
-    d = if attr.mode == 'directory'
-      file
-    else
-      fs.dirname(file)
-    unless seen[d]
-      seen[d] = true
-      append dirs, d
-  dirs
+    file = './' .. file if s == '/' or s == '.'
+    attr = lfs.attributes  file
+    attr.mode == 'directory' and file or fs.dirname(file)
+  dirs = [to_dir(file) for file in *files]
+  dirmap = {lfs.attributes(dir).ino, dir for dir in *dirs}
+  [dir for _, dir in pairs dirmap]
 
 -- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
 watch_files_from_stdin = (files) ->
