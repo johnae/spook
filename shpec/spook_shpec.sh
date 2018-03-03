@@ -99,7 +99,7 @@ last_log_not_eq() {
 
 describe "spook"
 
-  it "puts children in a process group so that grandchildren etc can be controlled"
+  it "puts children in a process group"
     setup
     mkdir -p $TESTDIR/watchme
     cat<<EOF>$TESTDIR/watchme/child.sh
