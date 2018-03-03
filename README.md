@@ -303,7 +303,7 @@ Or keeping a log of changes like so:
 find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
 ```
 
-The "restart server on changes" should work, something like:
+The "restart server on changes" works something like:
 
 ```sh
 find . -type f -name "*.go" | spook -s go run server.go
