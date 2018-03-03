@@ -1,7 +1,7 @@
 [![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
 [![Travis CI](https://travis-ci.org/johnae/spook.svg?branch=master)](https://travis-ci.org/johnae/spook)
 
-## Spook
+## Spook - react to change
 
 Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become more than that over time. It is mostly written in [MoonScript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [MoonScript](https://github.com/leafo/moonscript), which is also part of the compiled binary.
 
