@@ -3,11 +3,11 @@
 
 ## Spook
 
-Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become more than that over time. It is mostly written in [MoonScript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [MoonScript](https://github.com/leafo/moonscript), which is also part of the binary.
+Spook started out as a light weight replacement for [guard](https://github.com/guard/guard) but has become more than that over time. It is mostly written in [MoonScript](https://github.com/leafo/moonscript), a language that compiles to [Lua](http://www.lua.org) - with a sprinkle of C. It's built as a single binary. The ridiculously fast [LuaJIT VM](http://luajit.org/) is embedded and compiled with Lua 5.2 compatibility. Extensions are easily written in [MoonScript](https://github.com/leafo/moonscript), which is also part of the compiled binary.
 
-While spook may seem to be geared towards running tests in a feedback loop, there are many other potential uses. For some inspiration, check out my i3bar implementation [moonbar](https://github.com/johnae/moonbar) for the [i3 window manager](https://i3wm.org/) which is also using a Spookfile but in most other ways is doing something very different. Otherwise the Spookfile in this repo and the examples in the readme should point you in the right direction if you're just looking for a lightweight test runner.
+While spook may seem to be geared towards running tests in a feedback loop, there are many other potential uses. For some inspiration, check out my i3bar implementation [moonbar](https://github.com/johnae/moonbar) for the [i3 window manager](https://i3wm.org/) which is also using a Spookfile but is doing something very different. Otherwise the Spookfile in this repo and the examples in the readme should point you in the right direction if you're just looking for a lightweight test feedback loop runner.
 
-Spook was also somewhat inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). However the goal of spook was always broader and more general. Still, entr is a very nice tool which is why spook has (since version 0.8.1) gained the basic functionality entr provides - namely: read a list of files on stdin and run a command when any of them changes. It's a bonus feature for one off tasks more than anything else. See far down for some examples.
+Spook was also inspired by the [entrproject](http://entrproject.org/) and it's simplicity (eg. the lightweight "feel" of entr). The goal of spook was always broader and more general. Still, entr is a very nice tool which is why spook has (since version 0.8.1) gained some of the functionality entr provides. More specifically it can read a list of files on stdin and run a command when any of them changes or even be part of a longer unix pipeline. See further down for some examples of this.
 
 Building spook requires the usual tools (eg. make and gcc/clang), so you may need to install some things before building it. Otherwise it should be as straightforward as:
 
@@ -22,7 +22,7 @@ sudo pkg install gmake
 gmake
 ```
 
-Everything in the lib directory and top level is part of spook itself, anything in vendor and deps is other peoples work.
+Everything in the lib directory and top level is part of spook itself, anything in vendor and deps is other peoples work. See [LICENSE](LICENSE.md) for more.
 
 
 Installation is as straightforward as:
@@ -36,10 +36,6 @@ Or gmake on FreeBSD for example.
 ### Changelog
 
 There's a [CHANGELOG](CHANGELOG.md) which may be useful when learning about any breaking changes, new features or other improvements. Please consult it when upgrading.
-
-### Binaries
-
-There used to be binaries for Linux x86_64 but that stopped as of 0.8.4. It's very simple to build spook so just clone the source and follow the above procedure on building.
 
 ### Running it
 
@@ -272,6 +268,77 @@ watch '.', ->
   on_changed '.*', (event) ->
     print "something changed"
 ```
+
+### Pipelining with spook (eg. files on stdin functionality)
+
+As mentioned up top, spook (since version 0.8.1) has gained the basic functionality of [entr](http://entrproject.org/). Using it in this mode is as simple as:
+
+```sh
+find . -type f | spook echo file changed: {file}
+```
+
+Or
+
+```sh
+ls *.moon | spook echo file changed: {file}
+```
+
+Since all commands in this scenario are passed to /bin/sh, this is also possible:
+
+```sh
+ls *.moon | spook "echo file changed: {file} && echo something else"
+```
+
+Perhaps a more relevant example of that would be something like:
+
+```sh
+ag -l | spook "make test && make"
+```
+
+Basically if tests pass, run the build.
+
+Or keeping a log of changes like so:
+
+```sh
+find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
+```
+
+The "restart server on changes" should work, something like:
+
+```sh
+find . -type f -name "*.go" | spook -s go run server.go
+```
+
+The above would run the server until a file in the given list of files changed at which time spook would restart the server. Using the "-s" switch means that the given utility to run is started immediately, not after a change is detected.
+
+There's also a oneshot option, -o, which executes the given utility just once then exits when a watched file changes:
+
+```sh
+find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jpg
+```
+
+Together, the oneshot option and the "server" option results in the given command being started immediately and terminated on the first change detected. Perhaps something like:
+
+```sh
+while true; do find . -type f -name "*.go" | spook -o -s go run server.go; done
+```
+
+The above might be useful when you'd want to find new files between each restart (eg. the find would be executed again in this scenario).
+
+These are exactly the kinds of things entr was made to do in a very simple and unsurprising fashion.
+
+That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. There's also {filenoext} which will be the filename without extension (with the path), there's {basename} which is the filename without the path and finally {basenamenoext} which is the filename without path and extension.
+
+Here's another example one might modify to do more interesting things:
+
+```sh
+find . -type f -name "*.txt" | spook | grep "secrets"
+```
+
+Say we're in $HOME, the above would watch ALL files (ending in .txt) underneath $HOME (whatever find returns basically) and then we grep the changes for files called "secret" so we're notified if they change.
+
+So far I've implemented the features of entr most useful to me. If more advanced features of are desired I'd suggest using spook with a Spookfile since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
+
 
 ### Adding a simple REPL
 
@@ -579,76 +646,6 @@ chdir("/some/dir")
 
 This returns the current working directory (where you run spook, probably your git checkout of your app).
 
-
-### Entr functionality
-
-As mentioned up top, spook (since version 0.8.1) has gained the basic functionality of [entr](http://entrproject.org/). Using it in this mode is as simple as:
-
-```sh
-find . -type f | spook echo file changed: {file}
-```
-
-Or
-
-```sh
-ls *.moon | spook echo file changed: {file}
-```
-
-Since all commands in this scenario are passed to /bin/sh, this is also possible:
-
-```sh
-ls *.moon | spook "echo file changed: {file} && echo something else"
-```
-
-Perhaps a more relevant example of that would be something like:
-
-```sh
-ag -l | spook "make test && make"
-```
-
-Basically if tests pass, run the build.
-
-Or keeping a log of changes like so:
-
-```sh
-find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
-```
-
-The "restart server on changes" should work, something like:
-
-```sh
-find . -type f -name "*.go" | spook -s go run server.go
-```
-
-The above would run the server until a file in the given list of files changed at which time spook would restart the server. Using the "-s" switch means that the given utility to run is started immediately, not after a change is detected.
-
-There's also a oneshot option, -o, which executes the given utility just once then exits when a watched file changes:
-
-```sh
-find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jpg
-```
-
-Together, the oneshot option and the "server" option results in the given command being started immediately and terminated on the first change detected. Perhaps something like:
-
-```sh
-while true; do find . -type f -name "*.go" | spook -o -s go run server.go; done
-```
-
-The above might be useful when you'd want to find new files between each restart (eg. the find would be executed again in this scenario).
-
-These are exactly the kinds of things entr was made to do in a very simple and unsurprising fashion.
-
-That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. There's also {filenoext} which will be the filename without extension (with the path), there's {basename} which is the filename without the path and finally {basenamenoext} which is the filename without path and extension.
-
-Here's another example one might modify to do more interesting things:
-
-```sh
-find . -type f -name "*.txt" | spook | grep "secrets"
-```
-
-Say we're in $HOME, the above would watch ALL files (ending in .txt) underneath $HOME (whatever find returns basically) and then we grep the changes for files called "secret" so we're notified if they change.
-
-Please note that spook is not entr. So far I've implemented the features most useful to me. If more advanced features of are desired I'd suggest using spook with a Spookfile since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
 
 ### Other features
 
