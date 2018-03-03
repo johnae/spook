@@ -238,6 +238,7 @@ watch_dirs = (files) ->
 
 -- if there's anything on stdin, then work somewhat like entr: http://entrproject.org
 watch_files_from_stdin = (files) ->
+  io.stdout\setvbuf 'no'
   spook\stop! if spook
   spook = Spook.new!
   _G.spook = spook
