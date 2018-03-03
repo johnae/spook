@@ -8,6 +8,7 @@ S = require 'syscall'
 :execute, :children = require 'process'
 :readline = require 'utils'
 fs = require 'fs'
+lfs = require 'syscall.lfs'
 getcwd = getcwd
 gettimeofday = gettimeofday
 insert: append, :concat, remove: pop, :clear = table
@@ -229,7 +230,11 @@ watch_dirs = (files) ->
     s = file\sub 1, 1
     unless s == '/' or s == '.'
       file = './' .. file
-    d = fs.dirname(file)
+    attr = lfs.attributes file
+    d = if attr.mode == 'directory'
+      file
+    else
+      fs.dirname(file)
     unless seen[d]
       seen[d] = true
       append dirs, d
