@@ -229,7 +229,7 @@ expand_file = (data, file) ->
 watch_dirs = (files) ->
   to_dir = (file) ->
     s = file\sub 1, 1
-    file = './' .. file if s == '/' or s == '.'
+    file = './' .. file unless (s == '/' or s == '.')
     attr = lfs.attributes  file
     attr.mode == 'directory' and file or fs.dirname(file)
   dirs = [to_dir(file) for file in *files]
