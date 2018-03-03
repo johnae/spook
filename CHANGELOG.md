@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.1 - unreleased
+## 0.9.2 - unreleased
+
+## 0.9.1
 
 Fixes around "entr" behavior (eg. reading the files to be watched on stdin). When there is a controlling terminal this behavior is
 now completely skipped, otherwise there is a default timeout waiting for data on stdin (2 seconds). This timeout can be changed via
