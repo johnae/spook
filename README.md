@@ -55,7 +55,7 @@ Currently that would output something like:
 Usage: spook [-v] [-i] [-l <log_level>] [-c <config>] [-w <dir>]
        [-f <f>] [-s] [-o] [-r <r>] [-h]
 
-Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)
+Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile) or watches any files it is given on stdin (similar to the entrproject).
 
 Options:
    -v, --version         Show the Spook version you're running and exit
@@ -66,13 +66,13 @@ Options:
                          Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
    -w <dir>, --dir <dir> Expects the path to working directory - overrides the default of using wherever spook was launched
    -f <f>, file <f>      Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely. Any arguments following the path to the file will be given to the file itself.
-   -s                    In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o
-   -o                    In entr mode, exit immediately after running utility - can't be used with -s
+   -s                    Stdin mode only: start the given utility immediately without waiting for changes first. The utility to run should be given as the last arg(s) on the
+commandline. Without a utility spook will output the changed file path.
+   -o                    Stdin mode only: exit immediately after running utility (or receiving an event basically). The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.
    -r <r>                Wait this many seconds for data on stdin before bailing (default 2 seconds, 0 ofc means don't wait for any data at all)
    -h, --help            Show this help message and exit.
 
-For more see https://github.com/johnae/spook
-```
+For more see https://github.com/johnae/spook```
 
 ### MacOS
 
@@ -614,13 +614,7 @@ Or keeping a log of changes like so:
 find . -type f | spook "echo \$(date): {file} >> /tmp/changelog.txt"
 ```
 
-These are exactly the kinds of things entr was made to do in a very simple and unsurprising fashion.
-
-That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. There's also {filenoext} which will be the filename without extension (with the path), there's {basename} which is the filename without the path and finally {basenamenoext} which is the filename without path and extension.
-
-Please note that the entr functionality hasn't been extensively tested and some features of entr are missing. So far I've implemented the basics only. If the somewhat more advanced features of entr are desired I'd suggest using spook with a Spookfile as originally intended since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
-
-Also, the "restart server on changes" should work, something like:
+The "restart server on changes" should work, something like:
 
 ```sh
 find . -type f -name "*.go" | spook -s go run server.go
@@ -628,11 +622,33 @@ find . -type f -name "*.go" | spook -s go run server.go
 
 The above would run the server until a file in the given list of files changed at which time spook would restart the server. Using the "-s" switch means that the given utility to run is started immediately, not after a change is detected.
 
-There's also a oneshot option (can't be used with the -s option for obvious reasons), -o, which executes the given utility just once then exits when a watched file changes:
+There's also a oneshot option, -o, which executes the given utility just once then exits when a watched file changes:
 
 ```sh
 find . -type f -name "*.jpg" | spook -o convert {file} -50% {filenoext}.small.jpg
 ```
+
+Together, the oneshot option and the "server" option results in the given command being started immediately and terminated on the first change detected. Perhaps something like:
+
+```sh
+while true; do find . -type f -name "*.go" | spook -o -s go run server.go; done
+```
+
+The above might be useful when you'd want to find new files between each restart (eg. the find would be executed again in this scenario).
+
+These are exactly the kinds of things entr was made to do in a very simple and unsurprising fashion.
+
+That last {file} "thing" by the way is a replacement string which will actually contain the file that changed. Two other variants of that are [file] and &lt;file&gt;. There's also {filenoext} which will be the filename without extension (with the path), there's {basename} which is the filename without the path and finally {basenamenoext} which is the filename without path and extension.
+
+Here's another example one might modify to do more interesting things:
+
+```sh
+find . -type f -name "*.txt" | spook | grep "secrets"
+```
+
+Say we're in $HOME, the above would watch ALL files (ending in .txt) underneath $HOME (whatever find returns basically) and then we grep the changes for files called "secret" so we're notified if they change.
+
+Please note that spook is not entr. So far I've implemented the features most useful to me. If more advanced features of are desired I'd suggest using spook with a Spookfile since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
 
 ### Other features
 

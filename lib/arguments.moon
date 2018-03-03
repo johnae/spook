@@ -122,9 +122,9 @@ parser\option("-w --dir", "Expects the path to working directory - overrides the
 
 parser\option("-f file", "Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely. Any arguments following the path to the file will be given to the file itself.")\args(1)
 
-parser\flag("-s", "In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o. The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
+parser\flag("-s", "Stdin mode only: start the given utility immediately without waiting for changes first. The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
-parser\flag("-o", "In entr mode, exit immediately after running utility - can't be used with -s. The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
+parser\flag("-o", "Stdin mode only: exit immediately after running utility (or receiving an event basically). The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
 parser\flag("-r", "Wait this many seconds for data on stdin before bailing (default 2 seconds, 0 ofc means don't wait for any data at all)")\args(1)
 

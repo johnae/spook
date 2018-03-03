@@ -12,6 +12,11 @@ An issue, under some preconditions, of adding several instances of the same dire
 
 When not given a command to run in entr mode, spook will now echo the changed file path on stdout rather than some debug string on stderr.
 
+Output buffering has been turned off in entr mode as it interferes with using spook as part of a pipeline (with spook not being the last
+thing in it).
+
+In stdin mode -o and -s can be used together and means: start the given utility immediately, exit as soon as any watched file changes (so spook itself exits here as well).
+
 ## 0.9.0
 
 Simplifies the entr functionality. This means spook shouldn't choke on a dir such as $HOME (which likely

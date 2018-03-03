@@ -244,20 +244,24 @@ watch_files_from_stdin = (files) ->
   _G.spook = spook
   _G.notify.clear!
   fs_events = spook.fs_events
-  args = [a for i, a in ipairs arg when i > 0]
   start_now = false
-  exit_after_exec = false
-  if index_of(args, "-s") and index_of(args, "-o")
-    print "-o can't be used with -s"
-    os.exit 1
+  exit_after_event = false
+  --if index_of(args, "-s") and index_of(args, "-o")
+  --  print "-o can't be used with -s"
+  --  os.exit 1
 
-  if fi = index_of args, "-s"
+  local si
+  local oi
+  if si = index_of arg, "-s"
     start_now = true
-    args = [a for i, a in ipairs args when i > fi]
+  si or= 0
 
-  if fi = index_of args, "-o"
-    exit_after_exec = true
-    args = [a for i, a in ipairs args when i > fi]
+  if oi = index_of arg, "-o"
+    exit_after_event = true
+  oi or= 0
+
+  li = si > oi and si or oi
+  args = [a for i, a in ipairs arg when i > li]
 
   command = if #args > 0
     concat ([a for i, a in ipairs args]), ' '
@@ -269,17 +273,25 @@ watch_files_from_stdin = (files) ->
 
   is_match = (name) -> filemap[name]
 
+  -- if oneshot, on event run command (or echo file) and exit
+  -- if server, run command immediately without waiting for event, restart
+  -- server on event
+  -- if both, run command immediately, exit on event
+
   handler = if command
     (event, f) ->
-      unless is_match f
-        os.exit! if exit_after_exec
-        return
-      clear fs_events -- empty the event list in place when we have a match
-      cmdline = expand_file command, f
       if pid > 0
         S.kill -pid, "term"
+        os.exit(0) if exit_after_event
+
+      unless is_match f
+        os.exit(0) if exit_after_event
+        return
+
+      clear fs_events -- empty the event list in place when we have a match
+      cmdline = expand_file command, f
       opts = {}
-      if exit_after_exec
+      if exit_after_event
         opts.on_death = (success, exittype, exitstatus) ->
           os.exit(0) if success
           os.exit(exitstatus) if exitstatus > 0
@@ -288,10 +300,10 @@ watch_files_from_stdin = (files) ->
   else
     (event, f) ->
       unless is_match f
-        os.exit! if exit_after_exec
+        os.exit(0) if exit_after_event
         return
       io.stdout\write f, "\n"
-      os.exit! if exit_after_exec
+      os.exit(0) if exit_after_event
 
   spook\watchnr watch_dirs(files), ->
     on_changed '(.*)', handler
