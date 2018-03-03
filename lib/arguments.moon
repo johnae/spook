@@ -2,7 +2,7 @@ argparse = require "argparse"
 fs = require "fs"
 chdir = _G.chdir
 
-parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile)", epilog: "For more see https://github.com/johnae/spook"
+parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile) or watches any files it is given on stdin (similar to the entrproject).", epilog: "For more see https://github.com/johnae/spook"
 
 parser\flag("-v --version", "Show the Spook version you're running and exit")\action ->
   print(require "version")
@@ -122,9 +122,9 @@ parser\option("-w --dir", "Expects the path to working directory - overrides the
 
 parser\option("-f file", "Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely. Any arguments following the path to the file will be given to the file itself.")\args(1)
 
-parser\flag("-s", "In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o")
+parser\flag("-s", "In entr mode, start the given utility immediately without waiting for changes first - can't be used with -o. The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
-parser\flag("-o", "In entr mode, exit immediately after running utility - can't be used with -s")
+parser\flag("-o", "In entr mode, exit immediately after running utility - can't be used with -s. The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
 parser\flag("-r", "Wait this many seconds for data on stdin before bailing (default 2 seconds, 0 ofc means don't wait for any data at all)")\args(1)
 
