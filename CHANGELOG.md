@@ -10,6 +10,8 @@ There has been further performance improvements to the actual fs events behavior
 
 An issue, under some preconditions, of adding several instances of the same directory to a watch has been solved.
 
+When not given a command to run in entr mode, spook will now echo the changed file path on stdout rather than some debug string on stderr.
+
 ## 0.9.0
 
 Simplifies the entr functionality. This means spook shouldn't choke on a dir such as $HOME (which likely

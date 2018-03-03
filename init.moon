@@ -289,7 +289,7 @@ watch_files_from_stdin = (files) ->
       unless is_match f
         os.exit! if exit_after_exec
         return
-      io.stderr\write colors "%{green}'#{f}'%{reset} changed, no command was given so I'm just echoing\n"
+      io.stdout\write f, "\n"
       os.exit! if exit_after_exec
 
   spook\watchnr watch_dirs(files), ->
