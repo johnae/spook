@@ -279,13 +279,13 @@ watch_files_from_stdin = (files) ->
 
   handler = if command
     (event, f) ->
-      if pid > 0
+      if exit_after_event and pid > 0
         S.kill -pid, "term"
-        os.exit(0) if exit_after_event
+        os.exit(0)
 
-      unless is_match f
-        os.exit(0) if exit_after_event
-        return
+      return unless is_match f
+
+      S.kill -pid, "term" if start_now
 
       clear fs_events -- empty the event list in place when we have a match
       cmdline = expand_file command, f
