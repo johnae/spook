@@ -153,14 +153,14 @@ start = ->
 -- Spookfile).
 load_spookfile = ->
   args = cli\parse!
-  spookfile_path = args.config or os.getenv('SPOOKFILE') or "Spookfile"
+  spookfile_path = args.c or os.getenv('SPOOKFILE') or "Spookfile"
   spook\stop! if spook
   success, result = pcall moonscript.loadfile, spookfile_path
   loadfail spookfile_path, result unless success
   spookfile = result
   spook = Spook.new!
-  if args.log_level
-    spook.log_level = args.log_level\upper!
+  if args.l
+    spook.log_level = args.l\upper!
   _G.spook = spook
   _G.notify.clear!
   fs_events = spook.fs_events
@@ -250,12 +250,10 @@ watch_files_from_stdin = (files) ->
   fs_events = spook.fs_events
   start_now = false
   exit_after_event = false
-  --if index_of(args, "-s") and index_of(args, "-o")
-  --  print "-o can't be used with -s"
-  --  os.exit 1
 
   local si
   local oi
+  local ll
   if si = index_of arg, "-s"
     start_now = true
   si or= 0
@@ -264,7 +262,13 @@ watch_files_from_stdin = (files) ->
     exit_after_event = true
   oi or= 0
 
+  if ll = index_of arg, "-l"
+    ll += 1
+    spook.log_level = arg[ll]\upper!
+  ll or= 0
+
   li = si > oi and si or oi
+  li = li > ll and li or ll
   args = [a for i, a in ipairs arg when i > li]
 
   command = if #args > 0
@@ -304,7 +308,10 @@ watch_files_from_stdin = (files) ->
       io.stdout\write f, "\n"
       os.exit(0) if exit_after_event
 
-  spook\watchnr watch_dirs(files), ->
+  dirs = watch_dirs(files)
+  log.debug "Start watching #{#dirs} (unique) directories..."
+  log.debug "Matching events against #{#files} files..."
+  spook\watchnr dirs, ->
     on_changed '(.*)', handler
 
   start!

@@ -2,6 +2,16 @@
 
 ## 0.9.2 - unreleased
 
+Allow using log levels in stdin mode.
+
+Backwards incompatible changes: all long commandline options have been removed. There are only short ones now. This was done to simplify parsing for the stdin mode of operation.
+
+Somewhat improve the logic around using -s and -o together in stdin mode.
+
+Fix the commandline help output so it looks nicer (and is more readable as a result).
+
+Removal of debug code in places.
+
 ## 0.9.1
 
 Fixes around "entr" behavior (eg. reading the files to be watched on stdin). When there is a controlling terminal this behavior is
