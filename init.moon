@@ -65,21 +65,24 @@ Spook = require 'spook'
 local spook, fs_events
 
 fs_event_to_env = (event) ->
-  if event
-    if event.path
-      S.setenv('SPOOK_CHANGE_PATH', event.path, true)
+  return unless event
+
+  if event.path
+    S.setenv('SPOOK_CHANGE_PATH', event.path, true)
+  else
+    log.debug "expected the event to have a path: ", event
+
+  if event.action
+    S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
+  else
+    log.debug "expected the event to have an action: ", event
+
+  S.unsetenv('SPOOK_MOVED_FROM')
+  if event.action == 'moved'
+    if event.from
+      S.setenv('SPOOK_MOVED_FROM', event.from, true)
     else
-      log.debug "expected the event to have a path: ", event
-    if event.action
-      S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
-    else
-      log.debug "expected the event to have an action: ", event
-    S.unsetenv('SPOOK_MOVED_FROM')
-    if event.action == 'moved'
-      if event.from
-        S.setenv('SPOOK_MOVED_FROM', event.from, true)
-      else
-        log.debug "expected the event to have a from field: ", event
+      log.debug "expected the event to have a from field: ", event
 
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
@@ -139,7 +142,7 @@ start = ->
       os.exit(1)
 
   -- 0.35 interval is something I've found works
-  -- reasonably well.
+  -- reasonably well. So we collect events every interval.
   spook\after 0.35, event_handler
   spook\start!
 
@@ -176,7 +179,8 @@ load_spookfile = ->
 
 _G.load_spookfile = load_spookfile
 
--- this reexecutes spook which means doing a full reload
+-- this reexecutes spook which means doing a full reload of everything as
+-- the old process is replaced by a new one.
 _G.reload_spook = ->
   signalreset!
   epoll_fd\close! if epoll_fd
@@ -272,11 +276,6 @@ watch_files_from_stdin = (files) ->
     pid = coroutine.wrap(-> execute command)!
 
   is_match = (name) -> filemap[name]
-
-  -- if oneshot, on event run command (or echo file) and exit
-  -- if server, run command immediately without waiting for event, restart
-  -- server on event
-  -- if both, run command immediately, exit on event
 
   handler = if command
     (event, f) ->

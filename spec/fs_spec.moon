@@ -111,8 +111,6 @@ describe 'fs', ->
       fs.mkdir_p tmpdir .. '/my/dir/a/b/c/c/d/e/f'
       fs.mkdir_p tmpdir .. '/my/dir/a/b/c/d/e/f/g'
       basedir = tmpdir .. '/my/dir'
-      for entry, _ in fs.dirtree(basedir, true)
-        print entry
       trees = fs.unique_subtrees({
         basedir,
         basedir .. '/a/b',
