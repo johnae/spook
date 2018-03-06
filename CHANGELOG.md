@@ -12,6 +12,10 @@ Fix the commandline help output so it looks nicer (and is more readable as a res
 
 Removal of debug code in places.
 
+Fix a potential issue when prepending current directory in stdin mode.
+
+Note when the stdin input may not be what you think it is (eg. special awesome ls alias).
+
 ## 0.9.1
 
 Fixes around "entr" behavior (eg. reading the files to be watched on stdin). When there is a controlling terminal this behavior is
