@@ -232,9 +232,14 @@ expand_file = (data, file) ->
 -- ./b/c/e
 watch_dirs = (files) ->
   to_dir = (file) ->
-    s = file\sub 1, 1
-    file = './' .. file unless (s == '/' or s == '.')
+    fst = file\sub 1, 1
+    snd = file\sub 2, 1
+    if fst != '/'
+      file == './' .. file if fst != '.' or (fst == '.' and snd != '/')
     attr = lfs.attributes  file
+    unless attr
+      log.error "What is this '#{file}' you give me? There's nothing called that where you say there is.\nDid you use your special awesome 'ls' alias that outputs very cool stuff maybe?\nPlease give me actual names of files or directories. The standard find utility usually does a good job.\n\nAnyway - k thx bye."
+      os.exit 1
     attr.mode == 'directory' and file or fs.dirname(file)
   dirs = [to_dir(file) for file in *files]
   dirmap = {lfs.attributes(dir).ino, dir for dir in *dirs}
