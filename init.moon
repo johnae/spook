@@ -238,7 +238,7 @@ watch_dirs = (files) ->
     fst = file\sub 1, 1
     snd = file\sub 2, 1
     if fst != '/'
-      file == './' .. file if fst != '.' or (fst == '.' and snd != '/')
+      file = './' .. file if "#{fst}#{snd}" != './'
     attr = lfs.attributes  file
     unless attr
       log.error "What is this '#{file}' you give me? There's nothing called that where you say there is.\nDid you use your special awesome 'ls' alias that outputs very cool stuff maybe?\nPlease give me actual names of files or directories. The standard find utility usually does a good job.\n\nAnyway - k thx bye."
