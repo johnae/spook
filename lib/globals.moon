@@ -1,4 +1,4 @@
-{:floor} = math
+:floor = math
 
 S = require 'syscall'
 ffi = require 'ffi'
@@ -56,6 +56,16 @@ table.empty = (t) ->
 table.clear = (t) ->
   for k in next, t
     t[k] = nil
+
+take_while = (func) ->
+  keep = true
+  (...) ->
+    keep and= func(...)
+    keep
+
+drop_while = (func) ->
+  t = take_while func
+  (...) -> not t(...)
 
 math.round = (num, dp) ->
   m = 10 ^ (dp or 0)

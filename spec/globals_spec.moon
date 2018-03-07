@@ -55,6 +55,19 @@ describe "globals", ->
     assert.equal 11.67, math.round(num, 2)
     assert.equal 11.7, math.round(num, 1)
 
+  it "take_while takes until given function returns false", ->
+    t = {0,2,5,8,8.1,9,11,16}
+    upto_eight = take_while (item) -> item != 8.1
+    nt = [a for a in *t when upto_eight(a)]
+    assert.same {0,2,5,8}, nt
+
+  it "drop_while drops items until given function returns false", ->
+    t = {0,2,5,8,8.1,9,11,16}
+    t = {'drop', 'drop', 'take', 'drop', 'drop'}
+    drop_drops = drop_while (item) -> item == 'drop'
+    nt = [a for a in *t when drop_drops(a)]
+    assert.same {'take', 'drop', 'drop'}, nt
+
   describe "getting/changing directory", ->
     local cwd
 

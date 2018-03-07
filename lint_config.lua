@@ -11,6 +11,8 @@ return {
       'notifier',
       'log_level',
       'first_match_only',
+      'take_while',
+      'drop_while',
       'one_fs_handler_at_a_time'
     },
     ["Spookfile"] = {
