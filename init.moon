@@ -236,15 +236,17 @@ expand_file = (data, file) ->
 watch_dirs = (files) ->
   to_dir = (file) ->
     fst = file\sub 1, 1
-    snd = file\sub 2, 1
-    if fst != '/'
-      file = './' .. file if "#{fst}#{snd}" != './'
-    attr = lfs.attributes  file
+    snd = file\sub 2, 2
+    file = './' .. file if fst != '/' and "#{fst}#{snd}" != './'
+    attr = lfs.attributes file
     unless attr
+      if S.lstat file -- broken symbolic link - we can skip those I hope
+        log.debug "Broken symbolic link here: '#{file}' - skipping"
+        return nil
       log.error "What is this '#{file}' you give me? There's nothing called that where you say there is.\nDid you use your special awesome 'ls' alias that outputs very cool stuff maybe?\nPlease give me actual names of files or directories. The standard find utility usually does a good job.\n\nAnyway - k thx bye."
       os.exit 1
     attr.mode == 'directory' and file or fs.dirname(file)
-  dirs = [to_dir(file) for file in *files]
+  dirs = [to_dir(file) for file in *files when to_dir(file)]
   dirmap = {lfs.attributes(dir).ino, dir for dir in *dirs}
   [dir for _, dir in pairs dirmap]
 
