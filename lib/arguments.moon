@@ -96,14 +96,6 @@ watch '.', ->
     notify.info 'Re-executing spook...'
     reload_spook!
 
--- There are also single file watches. These MAY be useful if
--- you're doing something very specific rather than watching a
--- directory structure.
--- watch_file 'Spookfile', ->
---   on_changed (event) ->
---     notify.info 'Re-executing spook...'
---     reload_spook!
-
 ]]
   f\write(content)
   f\close!
