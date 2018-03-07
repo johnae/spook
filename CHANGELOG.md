@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.2 - unreleased
+## 0.9.3 -- unreleased
+
+## 0.9.2
 
 Allow using log levels in stdin mode.
 
@@ -15,6 +17,12 @@ Removal of debug code in places.
 Fix a potential issue when prepending current directory in stdin mode.
 
 Note when the stdin input may not be what you think it is (eg. special awesome ls alias).
+
+Allow use of "--" in stdin mode to exit command line argument parsing (useful if the command to execute has the same arg names as spook does).
+
+Added two new helpers for list comprehensions - take_while, drop_while (both return functions). They are stateful so for reuse they should be recreated.
+
+Slight change in argparse to allow for disabling of arg parsing.
 
 ## 0.9.1
 
