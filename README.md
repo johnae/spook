@@ -49,7 +49,7 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <l>] [-c <c>] [-w <w>] [-f <f>] [-s] [-o]
-       [-r <r>] [-h]
+       [-r <r>] [--] [-h]
 
 Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile) or watches any files it is given on stdin (similar to the entrproject).
 
@@ -66,6 +66,7 @@ Options:
    -o                    Stdin mode only: exit immediately after running utility (or receiving an event basically).
                          The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.
    -r <r>                Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all) (default: 2)
+   --                    Disable argument parsing from here
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
@@ -337,6 +338,12 @@ find . -type f -name "*.txt" | spook | grep "secrets"
 ```
 
 Say we're in $HOME, the above would watch ALL files (ending in .txt) underneath $HOME (whatever find returns basically) and then we grep the changes for files called "secret" so we're notified if they change.
+
+If it so happens that the command you want to run has the same switches as spook does, command line argument parsing can be disabled like this:
+
+```sh
+find . -type f -name "*.pdf" | spook -- ls -o {file}
+```
 
 So far I've implemented the features of entr most useful to me. If more advanced features of are desired I'd suggest using spook with a Spookfile since that gives you almost unlimited flexibility. Or use the real entr - it is a very useful tool.
 
