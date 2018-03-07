@@ -971,7 +971,7 @@ end
 function ParseState:get_command(name)
    local command = self.commands[name]
 
-   if not command then
+   if not command and self.require_command then
       if #self.commands > 0 then
          self:error("unknown command '%s'%s", name, get_tip(self.commands, name))
       else
@@ -1014,13 +1014,15 @@ function ParseState:pass(arg)
       end
    else
       local command = self:get_command(arg)
-      self.result[command._target or command._name] = true
+      if command then
+        self.result[command._target or command._name] = true
 
-      if self.parser._command_target then
-         self.result[self.parser._command_target] = command._name
+        if self.parser._command_target then
+            self.result[self.parser._command_target] = command._name
+        end
+
+        self:switch(command)
       end
-
-      self:switch(command)
    end
 end
 
