@@ -126,6 +126,8 @@ parser\flag("-s", "Stdin mode only: start the given utility immediately without 
 
 parser\flag("-o", "Stdin mode only: exit immediately after running utility (or receiving an event basically). \nThe utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
-parser\flag("-r", "Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all)", "2")\args(1)
+parser\option("-r", "Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all)", "2")\args(1)
+
+parser\flag("--", "Disable argument parsing from here")
 
 parser
