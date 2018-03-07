@@ -1,4 +1,5 @@
 require 'globals'
+lfs = require 'syscall.lfs'
 :empty, :concat, insert: append = table
 define = require'classy'.define
 log = require 'log'
@@ -77,6 +78,9 @@ define 'Spook', ->
     _watch: (dirs, opts = {}) =>
       if #dirs == 1 and type(dirs[1] == 'table')
         dirs = dirs[1]
+      if type(dirs) == 'table'
+        dirmap = {lfs.attributes(dir).ino, dir for dir in *dirs}
+        dirs = [dir for _, dir in pairs dirmap]
       :recursive, :func = opts
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
