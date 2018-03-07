@@ -12,6 +12,7 @@ lfs = require 'syscall.lfs'
 getcwd = getcwd
 gettimeofday = gettimeofday
 insert: append, :concat, remove: pop, :clear = table
+:max = math
 
 -- add some default load paths
 for base in *{getcwd!, os.getenv('HOME')}
@@ -194,7 +195,9 @@ stdin_input = ->
   return if S.isatty(S.stdin)
   -- wait for a specified time for input on stdin
   wait = 2.0
-  if w = index_of arg, "-r"
+  take = take_while (item) -> item != '--'
+  args = [a for a in *arg when take a]
+  if w = index_of args, "-r"
     success, w = pcall tonumber, arg[w + 1]
     wait = w if success
   return if wait <= 0.0
@@ -255,26 +258,26 @@ watch_files_from_stdin = (files) ->
   fs_events = spook.fs_events
   start_now = false
   exit_after_event = false
+  take = take_while (item) -> item != '--'
+  args = [a for a in *arg when take(a)]
 
-  local si
-  local oi
-  local ll
-  if si = index_of arg, "-s"
+  local si, oi, ll
+  if si = index_of args, "-s"
     start_now = true
   si or= 0
 
-  if oi = index_of arg, "-o"
+  if oi = index_of args, "-o"
     exit_after_event = true
   oi or= 0
 
-  if ll = index_of arg, "-l"
+  if ll = index_of args, "-l"
     ll += 1
     spook.log_level = arg[ll]\upper!
   ll or= 0
 
-  li = si > oi and si or oi
-  li = li > ll and li or ll
-  args = [a for i, a in ipairs arg when i > li]
+  li = max(max(si, oi), ll)
+  take = drop_while (index, item) -> index <= li or item == '--'
+  args = [a for i, a in ipairs arg when take i, a]
 
   command = if #args > 0
     concat ([a for i, a in ipairs args]), ' '
