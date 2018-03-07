@@ -24,6 +24,8 @@ Added two new helpers for list comprehensions - take_while, drop_while (both ret
 
 Slight change in argparse to allow for disabling of arg parsing.
 
+Skip any broken symbolic links in stdin mode (but log at debug level).
+
 ## 0.9.1
 
 Fixes around "entr" behavior (eg. reading the files to be watched on stdin). When there is a controlling terminal this behavior is
