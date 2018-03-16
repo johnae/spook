@@ -1,5 +1,4 @@
-[![Circle CI](https://circleci.com/gh/johnae/spook.svg?style=svg)](https://circleci.com/gh/johnae/spook)
-[![Travis CI](https://travis-ci.org/johnae/spook.svg?branch=master)](https://travis-ci.org/johnae/spook)
+[![Buildkite CI](https://badge.buildkite.com/41c70ee26c601a323ea26103e67674cae9bdcbaa8fc17786ae.svg?branch=master)](https://buildkite.com/insane/spook) (tests currently run on Linux, macOS and FreeBSD)
 
 ## Spook - react to change
 
