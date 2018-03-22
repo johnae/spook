@@ -3,7 +3,11 @@
 export DEFAULT_ALWAYS_YES=true
 export ASSUME_ALWAYS_YES=true
 
+echo --- Install build requirements
 pkg install tmux
+echo --- Build spook
 gmake
+echo +++ Lint
 gmake lint
+echo +++ Test
 gmake test
