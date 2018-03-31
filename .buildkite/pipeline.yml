@@ -1,9 +1,9 @@
 steps:
-  - label: Linux build
+  - label: Ubuntu build
     command:
-      - ./.ci/linux.sh
+      - ./.ci/ubuntu.sh
     agents:
-      queue: linux
+      queue: ubuntu
   - label: OSX build
     command:
       - ./.ci/osx.sh
