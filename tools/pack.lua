@@ -27,6 +27,20 @@ local files = {}
 local root = args[1]:gsub( "/$", "" )
               :gsub( "\\$", "" )
 
+function readfile(file)
+   local f = io.open(file)
+   local content
+   if f then
+     content = f:read("*a")
+     f:close()
+   else
+      local err = "couldn't open file: " .. file
+      io.stderr:write("ERROR: ", err, "\n")
+      error(err)
+   end
+   return content
+end
+
 function files_with_ext(dir, ext)
   local entry, attr
   local found = {}
@@ -51,7 +65,7 @@ function should_replace_with_file(str, pat)
 end
 
 function replace_with_file(str, file, pat)
-  local replacement = io.open( file ):read"*a"
+  local replacement = readfile(file)
   replacement = replacement:gsub("%%", "%%%%")
   return str:gsub ( "%[%[READ_FILE_" .. pat .. "%]%]", "[[" .. replacement .. "]]" )
 end
@@ -61,7 +75,7 @@ function scandir (root, path)
   for i, file in moonfiles( root..path ) do
     io.stderr:write("including: "..file, "\n")
     local hndl = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
-    local content = io.open( file ):read"*a"
+    local content = readfile(file)
     local rep = should_replace_with_file( content, ".*%.moon" )
     if rep then
       io.stderr:write("Replacing pattern in " .. file .. " with contents of lib/" .. rep .. "\n")
@@ -79,7 +93,7 @@ function scandir (root, path)
     local hndl = (file:gsub( "%.lua$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
     if not files[hndl] then
       io.stderr:write("including: "..file, "\n")
-      files[hndl] = io.open( file ):read"*a"
+      files[hndl] = readfile(file)
     else
       io.stderr:write("skipping include of: "..file, " - already present\n")
     end

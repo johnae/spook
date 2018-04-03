@@ -17,7 +17,14 @@ local file = args[1]:gsub( "/$", "" )
 
 io.stderr:write("compiling: "..file, "\n")
 local basename = (file:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" )
-local content = io.open( file ):read"*a"
+local f = io.open(file)
+local content
+if f then
+   content = f:read("*a")
+   f:close()
+else
+   error("couldn't open file: " .. file)
+end
 local lua_code, line_table = to_lua(content)
 if not lua_code then
   io.stderr:write("Error in: "..file, "\n")
