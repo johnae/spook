@@ -72,7 +72,12 @@ describe "globals", ->
     local cwd
 
     before_each ->
-      cwd = os.getenv("PWD")
+      p = io.popen("pwd")
+      if p
+        cwd = p\read!
+        p\close!
+      else
+        error "Couldn't open pipe for reading from command 'pwd'"
 
     after_each ->
       chdir(cwd)
