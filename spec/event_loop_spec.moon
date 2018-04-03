@@ -85,8 +85,8 @@ describe 'Event Loop', ->
         timer = Timer.new 0.01, s
         timer.recurring = true
         timer\start!
-        loop block_for: 20, 1
-        loop block_for: 20, 1
+        loop block_for: 21, 1
+        loop block_for: 21, 1
         assert.spy(s).was.called(2)
 
   describe 'Watcher', ->
