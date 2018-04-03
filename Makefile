@@ -16,10 +16,12 @@ ifneq ($(ARCH), x86_64)
 EXTRAS = -pagezero_size 10000 -image_base 100000000
 endif
 endif
-ifeq ($(UNAME), linux)		
+ifeq ($(UNAME), linux)
 EXTRAS = -ldl
 else ifeq ($(UNAME), freebsd)
 CC = cc
+else ifeq ($(UNAME), openbsd)
+CC = gcc
 endif
 GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
