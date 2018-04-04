@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.3 -- unreleased
+## 0.9.4 -- unreleased
+
+## 0.9.3
 
 Cosmetic fixes to help output.
 

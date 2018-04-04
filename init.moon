@@ -274,7 +274,7 @@ watch_files_from_stdin = (files) ->
   take = take_while (item) -> item != '--'
   args = [a for a in *arg when take(a)]
 
-  local si, oi, ll
+  local si, oi, ll, pp
   if si = index_of args, "-s"
     start_now = true
   si or= 0
@@ -288,7 +288,11 @@ watch_files_from_stdin = (files) ->
     spook.log_level = arg[ll]\upper!
   ll or= 0
 
-  li = max(max(si, oi), ll)
+  if pp = index_of args, "-p"
+    pp += 1
+  pp or= 0
+
+  li = max(max(max(si, oi), ll), pp)
   take = drop_while (index, item) -> index <= li or item == '--'
   args = [a for i, a in ipairs arg when take i, a]
 
