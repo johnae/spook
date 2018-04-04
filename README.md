@@ -48,24 +48,25 @@ Currently that would output something like:
 
 ```
 Usage: spook [-v] [-i] [-l <l>] [-c <c>] [-w <w>] [-f <f>] [-s] [-o]
-       [-r <r>] [--] [-h]
+       [-r <r>] [-p <p>] [--] [-h]
 
 Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile) or watches any files it is given on stdin (similar to the entrproject).
 
 Options:
-   -v                    Show the Spook version you're running and exit
-   -i                    Initialize an example Spookfile in the current dir
-   -l <l>                Log level either ERR, WARN, INFO or DEBUG
-   -c <c>                Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd
-   -w <w>                Expects the path to working directory - overrides the default of using wherever spook was launched
+   -v                    Show the Spook version you're running and exit.
+   -i                    Initialize an example Spookfile in the current dir.
+   -l <l>                Log level either ERR, WARN, INFO or DEBUG.
+   -c <c>                Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd.
+   -w <w>                Expects the path to working directory - overrides the default of using wherever spook was launched.
    -f <f>                Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely.
                          Any arguments following the path to the file will be given to the file itself.
    -s                    Stdin mode only: start the given utility immediately without waiting for changes first.
                          The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.
    -o                    Stdin mode only: exit immediately after running utility (or receiving an event basically).
                          The utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.
-   -r <r>                Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all) (default: 2)
-   --                    Disable argument parsing from here
+   -r <r>                Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all). (default: 2)
+   -p <p>                Write the pid of the running spook process to given file path.
+   --                    Disable argument parsing from here.
    -h, --help            Show this help message and exit.
 
 For more see https://github.com/johnae/spook
