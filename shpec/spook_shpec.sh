@@ -99,6 +99,38 @@ last_log_not_eq() {
 
 describe "spook"
 
+  it "the -p switch writes spook's pid to the given file"
+    setup
+
+    mkdir -p $TESTDIR/watchme
+
+    cat<<EOF>$TESTDIR/Spookfile
+log_level "INFO"
+:execute = require "process"
+S = require "syscall"
+notify.add 'terminal_notifier'
+watch "watchme", ->
+  on_changed "(.*)", (event) ->
+    print "blah"
+
+pidfile = assert(io.open("pid", "w"))
+pidfile\write S.getpid!
+pidfile\close!
+EOF
+
+    window=$(new_tmux_window)
+    $TMUX send-keys -t $window "$SPOOK -p $TESTDIR/spook_pid -w $TESTDIR >> $LOG" Enter; nap ; nap
+    spid=$(cat $TESTDIR/pid)
+    assert pid_running "$spid" "(spook itself)"
+    assert equal "$spid" "$(cat $TESTDIR/spook_pid)"
+
+    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+    assert pid_not_running "$spid" "(spook itself)"
+
+    teardown
+
+  end
+
   it "puts children in a process group"
     setup
     mkdir -p $TESTDIR/watchme
@@ -157,7 +189,7 @@ EOF
     assert pid_not_running "$grandchildpid" "(grand child pid)"
 
     $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-    assert pid_not_running "1$spid" "(spook itself)"
+    assert pid_not_running "$spid" "(spook itself)"
 
     teardown
 

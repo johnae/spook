@@ -60,6 +60,17 @@ if fi = index_of arg, "-f"
   loadfail file, chunk unless success
   return chunk!
 
+if pi = index_of arg, "-p"
+  pidfile = arg[pi + 1]
+  if not pidfile or pidfile\match('^-')
+    log.error "The -p option requires an argument"
+    os.exit 1
+  p = io.open(pidfile, "w")
+  unless p
+    log.error "Couldn't open given pidfile '#{pidfile}'"
+    os.exit 1
+  p\write S.getpid!
+
 cli = require "arguments"
 :run, :signalreset, :epoll_fd = require 'event_loop'
 Spook = require 'spook'

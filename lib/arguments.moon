@@ -120,6 +120,8 @@ parser\flag("-o", "Stdin mode only: exit immediately after running utility (or r
 
 parser\option("-r", "Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all)", "2")\args(1)
 
+parser\option("-p", "Write the pid of the running spook process to given file path")\args(1)
+
 parser\flag("--", "Disable argument parsing from here")
 
 parser
