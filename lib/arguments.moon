@@ -4,11 +4,11 @@ chdir = _G.chdir
 
 parser = argparse name: "spook", description: "Watches for changes and runs functions (and commands) in response, based on a config file (eg. Spookfile) or watches any files it is given on stdin (similar to the entrproject).", epilog: "For more see https://github.com/johnae/spook"
 
-parser\flag("-v", "Show the Spook version you're running and exit")\action ->
+parser\flag("-v", "Show the Spook version you're running and exit.")\action ->
   print(require "version")
   os.exit 0
 
-parser\flag("-i", "Initialize an example Spookfile in the current dir")\action ->
+parser\flag("-i", "Initialize an example Spookfile in the current dir.")\action ->
   f = io.open("Spookfile", "wb")
   content = [[
 -- vim: syntax=moon
@@ -101,11 +101,11 @@ watch '.', ->
   f\close!
   os.exit 0
 
-parser\option("-l", "Log level either ERR, WARN, INFO or DEBUG")\args(1)
+parser\option("-l", "Log level either ERR, WARN, INFO or DEBUG.")\args(1)
 
-parser\option("-c", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd")\args("1")
+parser\option("-c", "Expects the path to a Spook config file (eg. Spookfile) - overrides the default of loading a Spookfile from cwd.")\args("1")
 
-parser\option("-w", "Expects the path to working directory - overrides the default of using wherever spook was launched")\args("1")\action (args, _, dir) ->
+parser\option("-w", "Expects the path to working directory - overrides the default of using wherever spook was launched.")\args("1")\action (args, _, dir) ->
   if fs.is_dir dir
     chdir dir
   else
@@ -118,10 +118,10 @@ parser\flag("-s", "Stdin mode only: start the given utility immediately without 
 
 parser\flag("-o", "Stdin mode only: exit immediately after running utility (or receiving an event basically). \nThe utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 
-parser\option("-r", "Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all)", "2")\args(1)
+parser\option("-r", "Wait this many seconds for data on stdin before bailing (0 means don't wait for any data at all).", "2")\args(1)
 
-parser\option("-p", "Write the pid of the running spook process to given file path")\args(1)
+parser\option("-p", "Write the pid of the running spook process to given file path.")\args(1)
 
-parser\flag("--", "Disable argument parsing from here")
+parser\flag("--", "Disable argument parsing from here.")
 
 parser
