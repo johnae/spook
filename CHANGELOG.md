@@ -2,6 +2,21 @@
 
 ## 0.9.3 -- unreleased
 
+Cosmetic fixes to help output.
+
+Add the -p switch for writing spook's pid to given file.
+
+Give some more leeway in specs to make them pass on OpenBSD.
+
+Spook now builds and runs on OpenBSD when compiling with gcc (which is set in the Makefile).
+
+Use pwd cmd rather than env var PWD env var in specs for better portability.
+
+Ensure we close all files and fail loudly in helpers in tools/ (kind of a bad thing on some OS:es when compiling spook).
+
+Replace circleci and travisci with buildkite (#46) (this enables builds on any OS).
+
+
 ## 0.9.2
 
 Allow using log levels in stdin mode.
