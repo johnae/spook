@@ -224,7 +224,7 @@ watch ".", ->
     reload_spook!
 ```
 
-So as you can see, some things were defined in a helper file (until_success, notifies etc functions) and required from disk. Some others come built-in.
+So as you can see, some things were defined in a helper file (`until_success`, `notifies` etc functions) which was built in to spook. Some others (eg. the `notifier`) was required from somewhere on the package path (eg. from disk).
 
 Of note is that while it's possible to define several watch statements with different directories, as soon as you want to watch something in PWD (that goes for watch_file statements as well even though non-obvious) it's better to just watch '.' and define on_changed handlers (or on_deleted, on_attrib, on_created etc.) to match on them.
 
