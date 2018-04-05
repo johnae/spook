@@ -84,7 +84,7 @@ Here's a guide on how to permanently set your ulimits on MacOS: [ulimit-shenanig
 
 ### The Spookfile
 
-To do anything useful you need to create a Spookfile in a directory (probably your project):
+For alot of things it is useful to create a Spookfile in a directory (probably your project). The Spookfile enables you to control spook in a rather fine grained fashion - you could build almost anything out of spook this way:
 
 ```sh
 cd /to/your/project
@@ -271,7 +271,7 @@ watch '.', ->
     print "something changed"
 ```
 
-### Pipelining with spook (eg. files on stdin functionality)
+### Pipelining with spook (eg. watch files given on stdin)
 
 As mentioned up top, spook (since version 0.8.1) has gained the basic functionality of [entr](http://entrproject.org/). Using it in this mode is as simple as:
 
