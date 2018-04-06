@@ -219,6 +219,7 @@ stdin_input = ->
     return
   -- using a table because excessive string concatenation
   -- in Lua is the wrong approach and will be very slow here
+  log.output io.stderr -- use stderr in stdin mode for logging
   input = {}
   append input, line for line in readline(S.stdin)
   return unless #input > 0

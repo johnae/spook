@@ -5,9 +5,12 @@ format = (p) ->
     return serpent.block p, comment: false, sortkeys: true
   p
 
-local logger
+local logger, output
+output = io.stdout
 
-logger = (...) -> print ...
+logger = (...) ->
+  output\write ...
+  output\write "\n"
 
 log = (req_level, level, ...) ->
   if req_level >= level
@@ -25,6 +28,9 @@ log_level = INFO
   :WARN
   :INFO
   :DEBUG
+
+  output: (f) ->
+    output = f
 
   logger: (f) ->
     logger = f
