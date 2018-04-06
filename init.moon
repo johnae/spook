@@ -29,6 +29,7 @@ colors = require 'ansicolors'
 {:index_of} = table
 arg = arg
 log = _G.log
+timer = _G.timer
 log.level log.INFO
 
 loadfail = (file, result) ->
