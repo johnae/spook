@@ -62,7 +62,7 @@ lint: spook
 	$(LUAJIT_BIN) spec/support/run_linter.lua spec/*.moon
 
 install: all
-	cp spook $(DESTDIR)$(PREFIX)/bin
+	install -Dm 755 spook $(DESTDIR)$(PREFIX)/bin/spook
 
 lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
