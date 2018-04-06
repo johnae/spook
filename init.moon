@@ -141,7 +141,7 @@ start = ->
   tostring = tostring
   os = os
   io = io
-  for sig in *{'int', 'term', 'quit'}
+  for sig in *{'int', 'term', 'quit', 'pipe'}
     spook\on_signal sig, (s) ->
       killall = gettimeofday! - signaled_at < 500
       signaled_at = gettimeofday!
