@@ -4,15 +4,17 @@
 
 Also handle SIGPIPE and kill children as a result.
 
-Add a debug log level timing output for spook startup
+Add a debug log level timing output for spook startup.
 
-Add a global timer helper (for timing of things)
+Add a global timer helper (for timing of things).
 
-Reset env fs events vars once before handling events (this may have been an issue failing the specs on occasion on Linux)
+Reset env fs events vars once before handling events (this may have been an issue failing the specs on occasion on Linux).
 
-Allow logging to stderr (always do that in stdin mode)
+Allow logging to stderr (always do that in stdin mode).
 
-Support DESTDIR in the Makefile
+Support DESTDIR in the Makefile.
+
+Use `install` for installation rather than cp.
 
 ## 0.9.3
 
