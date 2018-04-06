@@ -349,9 +349,10 @@ watch_files_from_stdin = (files) ->
 
   start!
 
+t = timer "initialization"
 if input = stdin_input!
   watch_files_from_stdin input
 else
   load_spookfile!
-
+t log.debug
 run!
