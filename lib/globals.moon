@@ -87,3 +87,9 @@ chdir = (path, f) ->
     fret = {f(r)}
     _chdir cwd
   r, unpack(fret)
+
+timer = (name) ->
+  ts = gettimeofday!
+  (func) ->
+    func or= print
+    func "#{name} completed in #{gettimeofday!-ts}ms"
