@@ -76,6 +76,13 @@ cli = require "arguments"
 Spook = require 'spook'
 local spook, fs_events
 
+reset_env_fs_events = ->
+  S.unsetenv(ev) for ev in *{
+    'SPOOK_CHANGE_PATH',
+    'SPOOK_CHANGE_ACTION',
+    'SPOOK_MOVED_FROM'
+  }
+
 fs_event_to_env = (event) ->
   return unless event
 
@@ -89,7 +96,6 @@ fs_event_to_env = (event) ->
   else
     log.debug "expected the event to have an action: ", event
 
-  S.unsetenv('SPOOK_MOVED_FROM')
   if event.action == 'moved'
     if event.from
       S.setenv('SPOOK_MOVED_FROM', event.from, true)
@@ -102,6 +108,7 @@ fs_event_to_env = (event) ->
 -- just the latest event, disregarding any previous ones).
 event_handler = =>
   seen_paths = {}
+  reset_env_fs_events!
   while #fs_events > 0
     event = pop fs_events
     continue unless event.path -- ignore events without a path
