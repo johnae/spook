@@ -3,6 +3,11 @@ S = require "syscall"
 Types = S.t
 fs = require "fs"
 gettimeofday = gettimeofday
+-- Unfortunate but on BSD we simply don't get certain kinds of
+-- events so we have to have a switch for testing slightly differently.
+-- At best this serves as a bit of documentation. See "file move" tests
+-- further down.
+on_linux = 'linux' == require('syscall').abi.os
 
 describe 'Event Loop', ->
 
@@ -205,6 +210,124 @@ describe 'Event Loop', ->
         }
       }
 
+    describe '"atomic save" behavior of common editors', ->
+
+      -- this is how most editors do "atomic saves"
+      it 'write to temp file, move to destination', ->
+        w = Watcher.new dir, 'create, delete, move, modify', recursive: true, callback: (w, events) ->
+          event_catcher events
+
+        create_file "#{subdir1}/README.md", "stuff"
+        w\start!
+
+        -- basically, write "new content" to temp file, move "new content" temp file to destination
+        create_file "#{subdir1}/README.md_tmp", "content"
+        S.rename "#{subdir1}/README.md_tmp", "#{subdir1}/README.md"
+
+        loop block_for: 50, loops: 3
+
+        -- TODO: improve this discrepancy
+        event_list = if on_linux
+          {
+            {
+              path: "#{subdir1}/README.md_tmp"
+              action: 'created'
+            },
+            {
+              path: "#{subdir1}/README.md_tmp"
+              action: 'modified'
+            },
+            {
+              from: "#{subdir1}/README.md_tmp"
+              to: "#{subdir1}/README.md"
+              path: "#{subdir1}/README.md"
+              action: 'moved'
+            }
+          }
+        else
+          {
+            {
+              path: "#{subdir1}/README.md"
+              action: "deleted"
+            },
+            {
+                path: "#{subdir1}/README.md"
+                action: "created"
+            },
+            {
+                path: "#{subdir1}/README.md"
+                action: "modified"
+            }
+          }
+
+        assert.spy(event_catcher).was.called_with event_list
+
+      -- this behavior reflects how Intellij IDEA does it
+      it 'write to temp file, move old out of the way, move new to destination, delete old file', ->
+        w = Watcher.new dir, 'create, delete, move, modify', recursive: true, callback: (w, events) ->
+          event_catcher events
+
+        create_file "#{subdir1}/README.md", "stuff"
+        w\start!
+
+        -- basically, write "new content" to temp file, move destination (eg. "old content") to a temp file,
+        -- move "new content" temp file to destination, remove the "old content" temp file
+        create_file "#{subdir1}/README.md_tmp", "content"
+        S.rename "#{subdir1}/README.md", "#{subdir1}/README.md_old"
+        S.rename "#{subdir1}/README.md_tmp", "#{subdir1}/README.md"
+        S.unlink "#{subdir1}/README.md_old"
+
+        loop block_for: 50, loops: 3
+
+        -- TODO: improve this discrepancy
+        event_list = if on_linux
+          {
+            {
+              path: "#{subdir1}/README.md_tmp"
+              action: 'created'
+            },
+            {
+              path: "#{subdir1}/README.md_tmp"
+              action: 'modified'
+            },
+            {
+              from: "#{subdir1}/README.md"
+              to: "#{subdir1}/README.md_old"
+              path: "#{subdir1}/README.md_old"
+              action: 'moved'
+            },
+            {
+              from: "#{subdir1}/README.md_tmp"
+              to: "#{subdir1}/README.md"
+              path: "#{subdir1}/README.md"
+              action: 'moved'
+            },
+            {
+              path: "#{subdir1}/README.md_old"
+              action: 'deleted'
+            }
+          }
+        else
+          {
+            {
+              path: "#{subdir1}/README.md"
+              action: "deleted"
+            },
+            {
+              path: "#{subdir1}/README.md"
+              action: "renamed"
+            },
+            {
+              path: "#{subdir1}/README.md"
+              action: "created"
+            },
+            {
+              path: "#{subdir1}/README.md"
+              action: "modified"
+            }
+          }
+
+        assert.spy(event_catcher).was.called_with event_list
 
   describe 'Signal', ->
 

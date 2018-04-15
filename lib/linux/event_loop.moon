@@ -19,50 +19,55 @@ Watcher = define 'Watcher', ->
     fdnum: => @fd\getfd!
     events: =>
       n = @fd\inotify_read!
+      cookies_handled = {}
       events = {}
-      if n and #n > 0
-        moves = [ev for ev in *n when ev.cookie != 0]
-        other = [ev for ev in *n when ev.cookie == 0]
-        for ev in *other
-          evname = switch true
-            when ev.create
-              'created'
-            when ev.delete
-              'deleted'
-            when ev.modify
-              'modified'
-            when ev.attrib
-              'attrib'
-            when ev.open
-              'opened'
-            else
-              'unknown'
-          wd = ev.wd
+      handle_move = (ev) ->
+        return if cookies_handled[ev.cookie]
+        cookies_handled[ev.cookie] = true
+        data = action: 'moved'
+        related = [rev for rev in *n when rev.cookie == ev.cookie]
+        for rev in *related
+          wd = rev.wd
           dir = @watchers[wd]
-          path = nil
-          unless evname == 'unknown'
-            ev_name = rawget ev, 'name'
-            path = "#{dir}/#{ev_name}"
-            while path\sub(1,2) == './'
-              path = path\gsub '^%./', ''
+          path = dir == '.' and rev.name or "#{dir}/#{rev.name}"
+          if rev.moved_from
+            data.from = path
+          else
+            data.to = path
+            data.path = path
+        append events, data
 
-          append events, {action: evname, :path}
+      handle_other = (ev) ->
+        evname = switch true
+          when ev.create
+            'created'
+          when ev.delete
+            'deleted'
+          when ev.modify
+            'modified'
+          when ev.attrib
+            'attrib'
+          when ev.open
+            'opened'
+          else
+            'unknown'
+        wd = ev.wd
+        dir = @watchers[wd]
+        path = nil
+        unless evname == 'unknown'
+          ev_name = rawget ev, 'name'
+          path = "#{dir}/#{ev_name}"
+          while path\sub(1,2) == './'
+            path = path\gsub '^%./', ''
 
-        if #moves > 0
-          cookies = {k.cookie, true for k in *moves}
-          for cookie, _ in pairs cookies
-            data = action: 'moved'
-            related = [ev for ev in *moves when ev.cookie == cookie]
-            for ev in *related
-              wd = ev.wd
-              dir = @watchers[wd]
-              path = dir == '.' and ev.name or "#{dir}/#{ev.name}"
-              if ev.moved_from
-                data.from = path
-              else
-                data.to = path
-                data.path = path
-            append events, data
+        append events, {action: evname, :path}
+
+      if n and #n > 0
+        for ev in *n
+          if ev.cookie != 0
+            handle_move ev
+          else
+            handle_other ev
       events
 
   instance
