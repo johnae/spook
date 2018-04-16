@@ -2,6 +2,14 @@
 
 ## 0.9.4 -- unreleased
 
+Rework kqueue implementation to not rely so much on paths as
+on BSD we watch inodes, not paths (which makes certain things
+difficult to impossible). File moves are not as well supported
+on BSD as on Linux. BSD includes OS X.
+
+To make stdin mode do the expected thing on BSD when an editor
+does an "atomic" save, spook now includes deletions as valid events.
+
 Also handle SIGPIPE and kill children as a result.
 
 Add a debug log level timing output for spook startup.
