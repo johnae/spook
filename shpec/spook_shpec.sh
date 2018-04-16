@@ -233,6 +233,15 @@ EOF
     mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
     assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
 
+    mv $TESTDIR/watchme/newname $TESTDIR/watchme/newfile ; nap ; nap ; nap
+    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newname"
+
+    mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
+    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
+
+    mv $TESTDIR/watchme/newname $TESTDIR/watchme/newfile ; nap ; nap ; nap
+    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newname"
+
     $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid" "(spook itself)"
 

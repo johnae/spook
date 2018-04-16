@@ -6,22 +6,24 @@ Constants = S.c
 :define = require 'classy'
 :is_callable = require 'utils'
 :concat, insert: append = table
-{:unique_subtrees, :is_present, :is_dir, :dirtree, :can_access} = require 'fs'
+{:unique_subtrees, :is_dir, :dirtree, :can_access} = require 'fs'
 
 abi_os = require('syscall').abi.os
 fd_evt_flag = abi_os == 'osx' and 'evtonly' or 'rdonly'
+-- fix on freebsd 12 but then ljsyscall itself needs fixes
+ino_t = abi_os == 'osx' and 'ino64_t' or 'ino_t'
 
--- define something that identifies a watcher + a path uniquely
-ffi.cdef [[
+-- define something that a "watch" points to
+ffi.cdef "
   typedef struct {
-    uint8_t id;
-    char path[1024];
-  } watch_path;
-]]
+    uint64_t id;
+    #{ino_t} ino;
+  } watch_data;
+"
 
-watch_path = ffi.typeof('watch_path')
+watch_data = ffi.typeof('watch_data')
 
-MAX_EVENTS = 64
+MAX_EVENTS = 512
 kqueue_fd = S.kqueue!
 
 _next_id = 0
@@ -152,27 +154,29 @@ kq_watch = (id, opts={}) ->
   flags = opts.flags or 'add, enable, clear'
   fflags = opts.fflags or 'delete, write, rename, attrib'
   watch = (path, attr, recursive) ->
-    udata = watch_path :id, :path
     file, err = S.open path, fd_evt_flag
     if err
       error "#{path}: #{tostring(err)}"
+    attr or= lfs.attributes path
+    udata = watch_data :id, ino: attr.ino
     kev = :filter, :flags, :udata, :fflags, fd: file\getfd!
     status = kqueue_fd\kevent Types.kevents({kev})
     assert status, "Failed to setup kqueue watch"
     {:modification, :access, :change, :size, :ino, :mode} = attr or lfs.attributes(path)
-    watches[path] = :modification, :access, :change, :size, :ino, :mode, :file, :udata
+    watches[ino] = :path, :modification, :access, :change, :size, :ino, :mode, :file, :udata
     if is_dir(path)
       for entry, eattr in dirtree(path)
         if not is_dir(entry) or recursive
           watch entry, eattr, recursive
     watches
-  unwatch = (path, recursive) ->
-    if w = watches[path]
+  unwatch = (ino, recursive) ->
+    if w = watches[ino]
+      path = w.path
       file = w.file
       S.close file
-      watches[path] = nil
+      watches[ino] = nil
       if is_dir(path) and recursive
-        unwatch entry, recursive for entry, _ in dirtree path
+        unwatch attr.ino, recursive for _, attr in dirtree path
   watch, unwatch, watches
 
 convert_to_bsd_flags = (input) ->
@@ -199,6 +203,7 @@ coalesce_events = Timer.new 0.050, (t) ->
     handle and handle(v)
   t\again!
 
+
 Watcher = define 'Watcher', ->
   properties
     stopped: => not @started
@@ -222,19 +227,22 @@ Watcher = define 'Watcher', ->
       :fflags, :flags = @
       @watch, @unwatch, @watches = kq_watch @watch_id, :fflags, :flags
       @started = false
+      @inodes = {}
 
     start: =>
       coalesce_events\start! unless coalesce_events.started
       @stop!
       EventHandlers["#{@filter_num}_#{@watch_id}"] = @
       for path in *@_paths
-        @.watch path, nil, @recursive
+        w = @.watch path, nil, @recursive
+        for inode in pairs w
+          @inodes[inode] = true
       @started = true
 
     stop: =>
       EventHandlers["#{@filter_num}_#{@watch_id}"] = nil
-      for path in *@_paths
-        @.unwatch path, @recursive
+      for inode in pairs @inodes
+        @.unwatch inode, @recursive
       @started = false
 
   meta
@@ -242,62 +250,59 @@ Watcher = define 'Watcher', ->
       events = {}
       has_rename = false
       for ev in *e
-        {:path, :event} = ev
+        {:event, :ino} = ev
+        unless @watches[ino]
+          -- we may have removed the watch
+          continue
+        path = @watches[ino].path
 
         if is_dir(path)
-          for entry, _ in dirtree(path)
-            unless @watches[entry]
+          for entry, attr in dirtree(path)
+            watches = [w for _, w in pairs @watches when w.path == entry]
+            if #watches == 0 or watches[1].ino != attr.ino
               if is_dir(entry)
                 if @recursive
-                  append events, {action: 'created', path: entry}
-                  @.watch entry, nil, @recursive
+                  append events, {action: 'created', path: entry, ino: attr.ino}
+                  @.watch entry, attr, @recursive
               else
-                append events, {action: 'created', path: entry}
-                append events, {action: 'modified', path: entry}
-                @.watch entry, nil, @recursive
+                append events, {action: 'created', path: entry, ino: attr.ino}
+                append events, {action: 'modified', path: entry, ino: attr.ino}
+                @.watch entry, attr, @recursive
         else
-          watch = @watches[path]
-          continue unless watch
 
           if event.DELETE
-            @.unwatch path
-            append events, {action: 'deleted', :path}
-            continue
+            @.unwatch ino
+            append events, {action: 'deleted', :path, :ino}
 
           if event.RENAME
             has_rename = true
-            append events, {action: 'renamed', :path, attr: @watches[path]}
+            append events, {action: 'renamed', :path, :ino, attr: @watches[ino]}
 
           if event.WRITE
-            append events, {action: 'modified', :path}
+            append events, {action: 'modified', :path, :ino}
 
           if event.ATTRIB
             attr = lfs.attributes path
             if attr
-              old = @watches[path]
+              old = @watches[ino]
               if not old or old.size != attr.size or old.modification != attr.modification or old.change != attr.change
-                append events, {action: 'attrib', :path}
+                append events, {action: 'attrib', :path, :ino}
               for key in *{'modification', 'access', 'change', 'size', 'ino', 'mode'}
-                @watches[path][key] = attr[key] if attr[key]
+                @watches[ino][key] = attr[key] if attr[key]
 
       if has_rename
         new_events = {}
         skip = {}
         moves = {}
-        ino = (ev) ->
-          if ev.action == 'renamed'
-            ev.attr.ino
-          else
-            if is_present ev.path
-              lfs.attributes(ev.path).ino
-            else
-              -1
-        renames = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'renamed']
-        creates = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'created']
-        modifies = [{idx, ino(ev)} for idx, ev in ipairs(events) when ev.action == 'modified']
+
+        renames = [{idx, ev.ino} for idx, ev in ipairs(events) when ev.action == 'renamed']
+        creates = [{idx, ev.ino} for idx, ev in ipairs(events) when ev.action == 'created']
+        modifies = [{idx, ev.ino} for idx, ev in ipairs(events) when ev.action == 'modified']
         for rename in *renames
           for create in *creates
+            continue if rename[2] == nil or create[2] == nil
             if rename[2] == create[2]
+              @watches[rename[2]].path = events[create[1]].path
               append moves, {
                 from: events[rename[1]].path
                 to: events[create[1]].path
@@ -316,6 +321,7 @@ Watcher = define 'Watcher', ->
           append events, move
 
       for ev in *events
+        ev.ino = nil
         while ev.path\sub(1,2) == './'
           ev.path = ev.path\gsub '^%./', ''
 
@@ -372,11 +378,11 @@ run_once = (opts={}) ->
   block_for = block_for / 1000
   for _, v in wait_for_events block_for
     if v.filter == Constants.EVFILT['vnode']
-      wp = ffi.cast('watch_path*', v.udata)
-      id, path = tonumber(wp.id), ffi.string(wp.path)
+      wp = ffi.cast('watch_data*', v.udata)
+      id, ino = tonumber(wp.id), tonumber(wp.ino)
       ev = watch_events["#{v.filter}_#{id}"] or {:id, filter: v.filter}
       watch_events["#{v.filter}_#{id}"] = ev
-      append ev, {:path, event: v}
+      append ev, {:ino, event: v}
     else
       handle = EventHandlers["#{v.filter}_#{v.fd}"]
       handle and handle!

@@ -347,6 +347,7 @@ watch_files_from_stdin = (files) ->
   log.debug "Matching events against #{#files} files..."
   spook\watchnr dirs, ->
     on_changed '(.*)', handler
+    on_deleted '(.*)', handler
 
   start!
 
