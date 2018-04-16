@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.4 -- unreleased
+## 0.9.5 -- unreleased
+
+## 0.9.4
 
 Rework kqueue implementation to not rely so much on paths as
 on BSD we watch inodes, not paths (which makes certain things
