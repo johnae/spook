@@ -62,7 +62,7 @@ lint: spook
 	$(LUAJIT_BIN) spec/support/run_linter.lua spec/*.moon
 
 install: all
-	install -d $(DESTDIR)/$(PREFIX)/bin
+	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 spook $(DESTDIR)$(PREFIX)/bin/spook
 
 lib/version.moon:
