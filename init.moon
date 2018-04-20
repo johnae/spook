@@ -209,7 +209,7 @@ _G.reload_spook = ->
   sargs = {original_args[0]}
   append sargs, a for a in *original_args
   cmd = args[1]
-  append args, concat(sargs, " ")
+  append args, "exec #{concat(sargs, ' ')}"
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
 stdin_input = ->

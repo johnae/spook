@@ -59,7 +59,7 @@ sigchld\start!
 -- used like:
 -- status = exec "ls -lah"
 exec = (cmdline, opts={}) ->
-  args = {"/bin/sh", "-c", cmdline}
+  args = {"/bin/sh", "-c", "exec #{cmdline}"}
   env = process_env(opts)
   cmd = args[1]
   thread, main = coroutine.running!
