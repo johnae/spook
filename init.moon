@@ -223,7 +223,7 @@ stdin_input = ->
   sel = S.select(readfds: {S.stdin}, wait)
   -- if there was no input, bail into normal spook mode
   if sel.count == 0
-    print "Waited for data on stdin for #{wait}s but got nothing."
+    io.stderr\write "waited for data on stdin for #{wait}s but got nothing.\n"
     return
   -- using a table because excessive string concatenation
   -- in Lua is the wrong approach and will be very slow here
