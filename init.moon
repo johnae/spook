@@ -28,6 +28,7 @@ moonscript = require "moonscript.base"
 colors = require 'ansicolors'
 {:index_of} = table
 arg = arg
+original_args = {k, v for k, v in pairs arg}
 log = _G.log
 timer = _G.timer
 log.level log.INFO
@@ -204,9 +205,11 @@ _G.load_spookfile = load_spookfile
 _G.reload_spook = ->
   signalreset!
   epoll_fd\close! if epoll_fd
-  args = {"/bin/sh", "-c", _G.arg[0]}
-  append args, anarg for anarg in *_G.arg
+  args = {"/bin/sh", "-c"}
+  sargs = {original_args[0]}
+  append sargs, a for a in *original_args
   cmd = args[1]
+  append args, concat(sargs, " ")
   S.execve cmd, args, ["#{k}=#{v}" for k, v in pairs S.environ!]
 
 stdin_input = ->
