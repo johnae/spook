@@ -1,12 +1,14 @@
 #!/bin/sh
 
+set -x
+
 URL=$1
 OUT=$2
 
 if command -v wget >/dev/null 2>&1; then
-    DOWNLOAD="wget -q -O"
+    DOWNLOAD="wget -O"
 elif command -v curl >/dev/null 2>&1; then
-    DOWNLOAD="curl -s -L -o"
+    DOWNLOAD="curl -L -o"
 else
     echo "Neither wget nor curl are available, please install one of them."
     exit 1
