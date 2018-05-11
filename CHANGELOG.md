@@ -8,6 +8,8 @@ Fix `reload_spook` (which re-executes spook) so it really does use the original 
 
 When executing commands prepending an interpreting shell, use the form "exec commandline -arg1 -arg2 ...".
 
+The build no longer depends on git and git submodules. NOTE: This may affect packaging somewhat.
+
 ## 0.9.4
 
 Rework kqueue implementation to not rely so much on paths as
