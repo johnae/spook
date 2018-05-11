@@ -13,7 +13,7 @@ else
 fi
 
 if ! command -v shasum >/dev/null 2>&1; then
-    echo "Please install sha256sum."
+    echo "Please install 'shasum'."
     exit 1
 fi
 
@@ -28,6 +28,7 @@ if [ -z "$OUT " ]; then
 fi
 
 if [ ! -e $OUT ]; then
+    echo "Downloading '$URL' to '$OUT'..."
     $DOWNLOAD $OUT $URL
 else
     echo "$OUT already present, skipping download"
