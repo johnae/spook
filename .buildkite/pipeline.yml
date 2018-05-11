@@ -4,11 +4,11 @@ steps:
       - ./.ci/ubuntu.sh
     agents:
       queue: ubuntu
-  - label: OSX build
-    command:
-      - ./.ci/osx.sh
-    agents:
-      queue: osx
+#  - label: OSX build
+#    command:
+#      - ./.ci/osx.sh
+#    agents:
+#      queue: osx
   - label: FreeBSD build
     command:
       - ./.ci/freebsd.sh
