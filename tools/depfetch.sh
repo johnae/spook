@@ -14,8 +14,20 @@ else
     exit 1
 fi
 
-if ! command -v shasum >/dev/null 2>&1; then
-    echo "Please install 'shasum'."
+if command -v sha256sum > /dev/null 2>&1; then
+    fileHash()  {
+        sha256sum -b "$1" | cut -c1-64
+    }
+elif command -v shasum > /dev/null 2>&1; then
+    fileHash()  {
+        shasum -a 256 -b "$1" | cut -c1-64
+    }
+elif command -v openssl > /dev/null 2>&1; then
+    fileHash()  {
+        openssl dgst -r -sha256 "$1" | cut -c1-64
+    }
+else
+    echo "Sorry, couldn't find 'sha256sum', 'shasum' or 'openssl' - I need one of them to verify '$OUT'"
     exit 1
 fi
 
@@ -39,8 +51,10 @@ fi
 DIR=$(dirname $OUT)
 NAME=$(basename $OUT)
 cd $DIR
-if ! shasum -a 256 -c $NAME.sha256 > /dev/null; then
-    echo "Bad SHA256 sum on $OUT, moving $OUT to $OUT.bad_sha256"
+expected_sha_sum=$(cat $NAME.sha256 | cut -c1-64)
+actual_sha_sum=$(fileHash $NAME)
+if [ "$expected_sha_sum" != "$actual_sha_sum" ]; then
+    echo "Expected checksum of file $NAME to be '$expected_sha_sum', was '$actual_sha_sum'"
     mv $OUT $OUT.bad_sha256
     exit 1
 fi
