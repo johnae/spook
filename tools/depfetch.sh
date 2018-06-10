@@ -55,6 +55,7 @@ expected_sha_sum=$(cat $NAME.sha256 | cut -c1-64)
 actual_sha_sum=$(fileHash $NAME)
 if [ "$expected_sha_sum" != "$actual_sha_sum" ]; then
     echo "Expected checksum of file $NAME to be '$expected_sha_sum', was '$actual_sha_sum'"
+    pwd
     ls -lah $OUT
     mv $OUT $OUT.bad_sha256
     exit 1
