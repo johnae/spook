@@ -69,9 +69,11 @@ lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
 	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
 
-$(LUAJIT):
-	@echo "BUILDING LUAJIT"
+deps/luajit/Makefile:
 	git submodule update --init deps/luajit
+
+$(LUAJIT): deps/luajit/Makefile
+	@echo "BUILDING LUAJIT"
 	$(MAKE) -C deps/luajit CC="$(CC)" XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
 	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
