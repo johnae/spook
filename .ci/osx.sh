@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo --- Install build requirements
-brew install tmux sha2
+brew install tmux
 echo --- Build spook
 make
 echo +++ Lint

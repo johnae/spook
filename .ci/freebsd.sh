@@ -4,7 +4,7 @@ export DEFAULT_ALWAYS_YES=true
 export ASSUME_ALWAYS_YES=true
 
 echo --- Install build requirements
-pkg install tmux sha256sum
+pkg install tmux
 echo --- Build spook
 gmake
 echo +++ Lint
