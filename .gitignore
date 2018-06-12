@@ -1,7 +1,6 @@
 *.o
 build
 tools/luajit
-deps/luajit.tar.gz
 lib.lua
 vendor.lua
 main.lua

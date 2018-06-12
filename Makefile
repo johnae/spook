@@ -23,15 +23,11 @@ CC = cc
 else ifeq ($(UNAME), openbsd)
 CC = gcc
 endif
-GITTAG := $(shell command -v git 2>&1 >/dev/null && git tag -l --contains HEAD)
-GITBRANCH := $(shell command -v git 2>&1 >/dev/null && git symbolic-ref --short HEAD)
-GITSHA := $(shell command -v git 2>&1 >/dev/null && git rev-parse --short HEAD)
+GITTAG := $(shell git tag -l --contains HEAD)
+GITBRANCH := $(shell git symbolic-ref --short HEAD)
+GITSHA := $(shell git rev-parse --short HEAD)
 ifeq ($(GITTAG), )
-ifeq ($(GITSHA), )
-SPOOK_VERSION := unknown
-else
 SPOOK_VERSION := $(GITSHA)-$(GITBRANCH)-untagged
-endif
 else
 SPOOK_VERSION := $(GITTAG)
 endif
@@ -73,13 +69,9 @@ lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
 	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
 
-deps/luajit:
-	@echo "Fetching luajit dependency..."
-	./tools/depfetch.sh $$(cat deps/luajit.dep) deps/luajit.tar.gz
-	cd deps && rm -rf luajit && mkdir luajit && tar zxf luajit.tar.gz --strip-components 1 -C luajit
-
-$(LUAJIT): deps/luajit
+$(LUAJIT):
 	@echo "BUILDING LUAJIT"
+	git submodule update --init deps/luajit
 	$(MAKE) -C deps/luajit CC="$(CC)" XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
 	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
 	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
