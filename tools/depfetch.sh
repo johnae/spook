@@ -36,7 +36,7 @@ fi
 DIR=$(dirname $OUT)
 NAME=$(basename $OUT)
 cd $DIR
-if ! shasum -a 256 -c $NAME.sha256 > /dev/null; then
+if ! sha256sum -c $NAME.sha256 > /dev/null; then
     echo "Bad SHA256 sum on $OUT, moving $OUT to $OUT.bad_sha256"
     mv $OUT $OUT.bad_sha256
     exit 1
