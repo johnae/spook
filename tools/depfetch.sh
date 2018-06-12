@@ -12,7 +12,7 @@ else
     exit 1
 fi
 
-if ! command -v shasum >/dev/null 2>&1; then
+if ! command -v sha256sum >/dev/null 2>&1; then
     echo "Please install sha256sum."
     exit 1
 fi
