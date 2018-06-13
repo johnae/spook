@@ -27,9 +27,13 @@ GITTAG := $(shell git tag -l --contains HEAD)
 GITBRANCH := $(shell git symbolic-ref --short HEAD)
 GITSHA := $(shell git rev-parse --short HEAD)
 ifeq ($(GITTAG), )
-SPOOK_VERSION := $(GITSHA)-$(GITBRANCH)-untagged
+ifeq ($(GITSHA), )
+SPOOK_VERSION ?= unknown
 else
-SPOOK_VERSION := $(GITTAG)
+SPOOK_VERSION ?= $(GITSHA)-$(GITBRANCH)-untagged
+endif
+else
+SPOOK_VERSION ?= $(GITTAG)
 endif
 LUAJIT_INCLUDE := tools/luajit/include/luajit-2.1
 LUAJIT_ARCHIVE := tools/luajit/lib/libluajit-5.1.a
