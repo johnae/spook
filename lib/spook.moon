@@ -11,6 +11,20 @@ to_coro_fs = (spook) ->
   return to_coro unless spook.one_fs_handler_at_a_time
   (fun) -> fun
 
+get_watch_opts = (args, default_opts) ->
+  default_opts or= {}
+  local dirs
+  if type(args[1]) == 'table'
+    dirs = args[1]
+  else
+    dirs = [d for i, d in ipairs args when i<#args and type(d) != 'table']
+  opts = {k,v for k, v in pairs default_opts}
+  if type(args[#args-1]) == 'table' and #args > 2
+    for k, v in pairs args[#args-1]
+      opts[k] = v
+  opts.func = args[#args]
+  dirs, opts
+
 define 'Spook', ->
   properties
     log_level:
@@ -81,10 +95,10 @@ define 'Spook', ->
       if type(dirs) == 'table'
         dirmap = {lfs.attributes(dir).ino, dir for dir in *dirs}
         dirs = [dir for _, dir in pairs dirmap]
-      :recursive, :func = opts
+      :recursive, :follow_links, :func = opts
       unless type(func) == 'function'
         error 'last argument to watch must be a setup function'
-      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', :recursive, callback: (w, events) ->
+      new_watcher = Watcher.new dirs, 'create, delete, modify, move, attrib', :recursive, :follow_links, callback: (w, events) ->
         append @fs_events, Event.new('fs', e) for e in *events
       append @watchers, new_watcher
       @num_dirs += #new_watcher.paths
@@ -94,16 +108,14 @@ define 'Spook', ->
 
     watchnr: (...) =>
       args = {...}
-      dirs = [d for i, d in ipairs args when i<#args]
-      func = args[#args]
-      @_watch dirs, recursive: false, :func
+      dirs, opts = get_watch_opts args, recursive: false
+      @_watch dirs, opts
 
     -- defines recursive watchers (eg. all directories underneath given directories)
     watch: (...) =>
       args = {...}
-      dirs = [d for i, d in ipairs args when i<#args]
-      func = args[#args]
-      @_watch dirs, recursive: true, :func
+      dirs, opts = get_watch_opts args, recursive: true
+      @_watch dirs, opts
 
     watch_file: (file, func) =>
       dir = '.'

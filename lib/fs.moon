@@ -64,13 +64,19 @@ dirtree = (dir, recursive) ->
 
   coroutine.wrap -> yieldtree dir
 
-unique_subtrees = (paths) ->
+unique_subtrees = (paths, follow_links = true) ->
+  filter = -> true
+  if not follow_links
+    filter = (entry, attr) ->
+      lattr, _ = lfs.symlinkattributes(entry)
+      return lattr.mode != "link"
   accessible_dir = (entry, attr) ->
     can_access(entry) and
       ((attr or lfs.attributes(entry)).mode == 'directory')
   recursive_dirmap = (dir) ->
     return {} unless accessible_dir(dir)
-    map = { attr.ino, entry for entry, attr in dirtree(dir, true) when accessible_dir(entry, attr) }
+    return {} unless filter(dir)
+    map = { attr.ino, entry for entry, attr in dirtree(dir, true) when ( accessible_dir(entry, attr) and filter(entry, attr) )}
     map[lfs.attributes(dir).ino] = dir
     map
 
