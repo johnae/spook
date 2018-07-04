@@ -11,7 +11,7 @@ describe 'spook', ->
 
   count_dirs_in = (dir) ->
     num = 1 -- incoming dir
-    for _, attr in fs.dirtree(dir, true)
+    for _, attr in fs.dirtree dir, recursive: true
       num += 1 if attr.mode == 'directory'
     num
 

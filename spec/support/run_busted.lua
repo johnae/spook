@@ -21,7 +21,7 @@ assert(moonscript.loadfile(base_dir .. '/../spec_helper.moon'))()
 -- unload everything preloaded
 local fs = require("fs")
 local entry, attr
-for entry, attr in fs.dirtree("lib", true) do
+for entry, attr in fs.dirtree("lib", {recursive = true}) do
   if entry:match("[^.].moon$") then
     local hndl = (entry:gsub( "%.moon$", "" ):gsub( "^%./", "" ):gsub( "/", "." ):gsub( "\\", "." )):gsub( "%.init$", "" ):gsub("lib%.", "")
     package.preload[hndl] = nil

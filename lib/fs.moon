@@ -2,7 +2,7 @@ require 'globals'
 lfs = require "syscall.lfs"
 S = require 'syscall'
 log = require'log'
-:remove = table
+insert: append, :remove = table
 
 is_dir = (dir) ->
   return false unless type(dir) == "string"
@@ -19,6 +19,11 @@ is_file = (path) ->
     true
   else
     false
+
+is_symlink = (path) ->
+  lattr, err = lfs.symlinkattributes(entry)
+  return false if err
+  lattr.mode == "link"
 
 is_present = (path) ->
   is_dir(path) or is_file(path)
@@ -42,21 +47,28 @@ remove_trailing_slash = (path) ->
     path = path\sub 1, #path - 1
   path
 
-dirtree = (dir, recursive) ->
+dirtree = (dir, opts={}) ->
   assert dir and dir != "", "directory parameter is missing or empty"
   dir = remove_trailing_slash dir
   dir = "/" if dir == "" -- was /
+  recursive = opts.recursive or false
+  filters = {can_access}
+  if opts.filters
+    for filter in *opts.filters
+      append filters, filter
+  path_filter = (path) ->
+    for filter in *filters
+      unless filter(path)
+        log.debug "#{path} is skipped because of filter"
+        return false
+    true
 
   yieldtree = (current_dir) ->
-    unless can_access(current_dir)
-      log.debug "No access to #{dir}, skipping"
-      return
+    return unless path_filter(current_dir)
     for entry in lfs.dir current_dir
       if entry != "." and entry != ".."
         entry = "#{remove_trailing_slash(current_dir)}/#{entry}"
-        unless can_access(entry)
-          log.debug "No access to #{entry}, skipping"
-          continue
+        continue unless path_filter(entry)
         attr = lfs.attributes entry
         coroutine.yield entry, attr
         if recursive and attr.mode == "directory"
@@ -65,18 +77,16 @@ dirtree = (dir, recursive) ->
   coroutine.wrap -> yieldtree dir
 
 unique_subtrees = (paths, follow_links = true) ->
-  filter = -> true
-  if not follow_links
-    filter = (entry, attr) ->
-      lattr, _ = lfs.symlinkattributes(entry)
-      return lattr.mode != "link"
+  is_not_symlink = (path) -> not is_symlink(path)
+  filters = {}
+  unless follow_links
+    append filters, is_not_symlink
   accessible_dir = (entry, attr) ->
     can_access(entry) and
       ((attr or lfs.attributes(entry)).mode == 'directory')
   recursive_dirmap = (dir) ->
     return {} unless accessible_dir(dir)
-    return {} unless filter(dir)
-    map = { attr.ino, entry for entry, attr in dirtree(dir, true) when ( accessible_dir(entry, attr) and filter(entry, attr) )}
+    map = { attr.ino, entry for entry, attr in dirtree(dir, :filters, recursive: true) when accessible_dir(entry, attr) }
     map[lfs.attributes(dir).ino] = dir
     map
 
@@ -102,7 +112,7 @@ mkdir_p = (path) ->
 rm_rf = (path, attr) ->
     attr = attr or lfs.attributes path
     if attr and attr.mode == "directory"
-      for entry, nattr in dirtree path, false
+      for entry, nattr in dirtree path, recursive: false
         rm_rf entry, nattr
       os.remove path
     else if attr
@@ -116,6 +126,7 @@ rm_rf = (path, attr) ->
   :is_dir,
   :is_file,
   :is_present,
+  :is_symlink,
   :name_ext,
   :basename,
   :dirname,

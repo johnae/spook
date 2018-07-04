@@ -44,7 +44,7 @@ end
 function files_with_ext(dir, ext)
   local entry, attr
   local found = {}
-  for entry, attr in fs.dirtree(dir, true) do
+  for entry, attr in fs.dirtree(dir, {recursive = true}) do
     if entry:match("[^.]."..ext.."$") then
       insert(found, entry)
     end

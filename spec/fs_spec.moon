@@ -57,7 +57,7 @@ describe 'fs', ->
       f\write("spec")
       f\close!
       contents = {}
-      for entry in fs.dirtree tmpdir, true
+      for entry in fs.dirtree tmpdir, recursive: true
         insert contents, entry
       expected = {
         tmpdir .. '/my',
