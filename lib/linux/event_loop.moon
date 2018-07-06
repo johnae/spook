@@ -83,7 +83,8 @@ Watcher = define 'Watcher', ->
       if #@paths == 0
         error "None of the given paths (#{concat ["'#{path}'" for path in *paths], ', '}) were accessible"
       if @recursive
-        @paths = unique_subtrees @paths
+        {:ignore} = opts
+        @paths = unique_subtrees @paths, :ignore
       @watch_for = watch_for
       @watchers = {}
       @started = false
