@@ -80,7 +80,7 @@ lint = (file) ->
 
 -- Watching for changes underneath . and matching them to handlers using
 -- lua patterns (see: http://lua-users.org/wiki/PatternsTutorial for example).
-watch ".", ->
+watch ".", ignore: {'.git', '.direnv'}, ->
 
   on_changed "^spec/spec_helper%.moon", (event) ->
     test event, task_list(
