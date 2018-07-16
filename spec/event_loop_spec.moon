@@ -384,7 +384,7 @@ describe 'Event Loop', ->
         after_each -> schld\stop!
 
         it 'receives sigchld on child exit', ->
-          os.execute "/bin/sleep 0.01"
+          os.execute "sleep 0.01"
           loop block_for: 50, loops: 2
           assert.spy(chld).was.called(1)
 
