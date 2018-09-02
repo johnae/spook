@@ -1,12 +1,16 @@
 # Changelog
 
-## 0.9.5 -- unreleased
+## 0.9.6 -- unreleased
+
+## 0.9.5
 
 Don't print to stdout after timing out waiting for data on stdin (rather print to stderr).
 
 Fix `reload_spook` (which re-executes spook) so it really does use the original arguments. This was likely always broken.
 
 When executing commands prepending an interpreting shell, use the form "exec commandline -arg1 -arg2 ...".
+
+Make spook buildable on [NixOS](http://nixos.org).
 
 ## 0.9.4
 
