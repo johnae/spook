@@ -4,8 +4,8 @@ stage("Test") {
   node {
     deleteDir()
     stage("Install dependencies") {
-      sh "apt-get update"
-      sh "apt-get install -y tmux git"
+      sh "sudo apt-get update"
+      sh "sudo apt-get install -y tmux git"
     }
     stage("Checkout") {
       checkout scm
