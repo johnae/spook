@@ -17,7 +17,7 @@ def getContainerWorkspaceVolume() {
 }
 
 def dockerRun(image, cmdline) {
-  sh "docker run --rm -v ${getContainerWorkspaceVolume()}:/home/jenkins -w \$(pwd) ${image} /bin/sh -c \"${cmdline}\""
+  sh "docker run --rm -v ${getContainerWorkspaceVolume()}:/home/jenkins -w \$(pwd) ${image} /bin/sh -c '${cmdline}'"
 }
 
 stage("Test") {
@@ -27,9 +27,9 @@ stage("Test") {
       checkout scm
     }
     stage("Build") {
-      dockerRun "nixos/nix" '''
+      dockerRun("nixos/nix", '''
         nix-shell --run "make lint && make test"
-      '''
+      ''')
     }
   }
 }
