@@ -221,7 +221,8 @@ Watcher = define 'Watcher', ->
         error "None of the given paths (#{concat ["'#{path}'" for path in *paths], ', '}) were accessible"
       @paths = @_paths
       if @recursive
-        @paths = unique_subtrees @_paths
+        {:ignore} = opts
+        @paths = unique_subtrees @_paths, :ignore
       @fflags = convert_to_bsd_flags(watch_for)
       @watch_id = next_id!
       :fflags, :flags = @
