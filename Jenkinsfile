@@ -23,14 +23,7 @@ stage("Test") {
       checkout scm
     }
     stage("Build") {
-      sh "ls -lah"
-      sh "env"
-      sh "docker inspect ${getContainerID()}"
-      sh "pwd"
-      echo getContainerWorkspaceVolume()
-      echo "waiting 10 minutes..."
-      sh "sleep 600"
-      sh "docker run --rm -v ${getContainerWorkspaceVolume()}:/checkout -w /checkout nixos/nix /bin/sh -c \"nix-shell --run 'make lint && make test'\""
+      sh "docker run --rm -v ${getContainerWorkspaceVolume()}:/home/jenkins -w \$(pwd) nixos/nix /bin/sh -c \"nix-shell --run 'make lint && make test'\""
     }
   }
 }
