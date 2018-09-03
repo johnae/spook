@@ -1,4 +1,4 @@
-[![Build Status](https://ci.insane.se/buildStatus/icon?job=blah)](https://ci.insane.se/job/spook)
+[![Build Status](https://ci.insane.se/buildStatus/icon?job=spook/master)](https://ci.insane.se/job/spook/job/master/)
 
 ## Spook - react to change
 
