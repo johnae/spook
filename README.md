@@ -1,4 +1,4 @@
-[![Buildkite CI](https://badge.buildkite.com/41c70ee26c601a323ea26103e67674cae9bdcbaa8fc17786ae.svg?branch=master)](https://buildkite.com/insane/spook) (tests currently run on Linux, macOS and FreeBSD)
+[![Build Status](https://ci.insane.se/buildStatus/icon?job=blah)](https://ci.insane.se/job/spook)
 
 ## Spook - react to change
 
