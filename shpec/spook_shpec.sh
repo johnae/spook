@@ -183,66 +183,12 @@ EOF
     grandchildpid=$(cat $TESTDIR/grandchildpid)
     assert pid_running "$grandchildpid" "(grand child pid)"
 
-    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-    assert pid_running "$spid"
+    $TMUX send-keys -t $window C-c ; nap ; nap ; # ctrl-c / SIGINT
+    assert pid_running "$spid" "(spook itself)"
     assert pid_not_running "$childpid" "(child pid)"
     assert pid_not_running "$grandchildpid" "(grand child pid)"
 
-    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
-    assert pid_not_running "$spid" "(spook itself)"
-
-    teardown
-
-  end
-
-  it "sets environment variables for the detected change"
-    setup
-    mkdir -p $TESTDIR/watchme
-    cat<<EOF>$TESTDIR/watchme/getenv.sh
-#!/bin/sh
-echo "SPOOK_CHANGE_PATH: \$SPOOK_CHANGE_PATH" >> $LOG
-echo "SPOOK_CHANGE_ACTION: \$SPOOK_CHANGE_ACTION" >> $LOG
-echo "SPOOK_MOVED_FROM: \$SPOOK_MOVED_FROM" >> $LOG
-EOF
-    chmod +x $TESTDIR/watchme/getenv.sh
-
-    cat<<EOF>$TESTDIR/Spookfile
-log_level "INFO"
-:execute = require "process"
-S = require "syscall"
-notify.add 'terminal_notifier'
-watch "watchme", ->
-  on_changed "^watchme/(.*)", (event) ->
-    execute "watchme/getenv.sh"
-
-pidfile = assert(io.open("pid", "w"))
-pidfile\write S.getpid!
-pidfile\close!
-EOF
-
-    window=$(new_tmux_window)
-    $TMUX send-keys -t $window "$SPOOK -w $TESTDIR" Enter; nap ; nap
-    spid=$(cat $TESTDIR/pid)
-    assert pid_running "$spid" "(spook itself)"
-
-    echo "CONTENT" >> $TESTDIR/watchme/newfile ; nap ; nap ; nap
-    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: modified\nSPOOK_MOVED_FROM: "
-
-    nap
-
-    mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
-    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
-
-    mv $TESTDIR/watchme/newname $TESTDIR/watchme/newfile ; nap ; nap ; nap
-    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newname"
-
-    mv $TESTDIR/watchme/newfile $TESTDIR/watchme/newname ; nap ; nap ; nap
-    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newname\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newfile"
-
-    mv $TESTDIR/watchme/newname $TESTDIR/watchme/newfile ; nap ; nap ; nap
-    assert last_log_eq 3 "SPOOK_CHANGE_PATH: watchme/newfile\nSPOOK_CHANGE_ACTION: moved\nSPOOK_MOVED_FROM: watchme/newname"
-
-    $TMUX send-keys -t $window C-c ; nap ; nap # ctrl-c / SIGINT
+    $TMUX send-keys -t $window C-c ; nap ; nap ; nap # ctrl-c / SIGINT
     assert pid_not_running "$spid" "(spook itself)"
 
     teardown
@@ -361,9 +307,6 @@ EOF
 
       touch $TESTDIR/file ; nap ; nap
       assert equal "$TESTDIR/file changed" "$(log)"
-
-      nap ; echo "content" >> $TESTDIR/file ; nap ; nap
-      assert equal "$TESTDIR/file changed\n$TESTDIR/file changed" "$(log)"
 
       kill -INT $spid 2>/dev/null
 

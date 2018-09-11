@@ -70,7 +70,7 @@ describe 'spook', ->
           spook -> watch dir, ->
           spook\start!
           os.remove file
-          loop block_for: 50, loops: 3
+          loop block_for: 50, loops: 5
           assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
@@ -84,7 +84,7 @@ describe 'spook', ->
           spook -> watch dir, ->
           spook\start!
           create_file file, "some content"
-          loop block_for: 50, loops: 3
+          loop block_for: 50, loops: 5
           assert.equal 2, #spook.fs_events
           assert.same {
             type: 'fs'
@@ -105,7 +105,7 @@ describe 'spook', ->
           spook\start!
 
           S.rename "#{file}", "#{dir}/newname.txt"
-          loop block_for: 50, loops: 3
+          loop block_for: 50, loops: 5
           assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
@@ -126,7 +126,7 @@ describe 'spook', ->
           f\write "content"
           f\close!
 
-          loop block_for: 50, loops: 3
+          loop block_for: 50, loops: 5
           assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
@@ -137,7 +137,7 @@ describe 'spook', ->
           pop spook.fs_events
 
           os.remove file
-          loop block_for: 50, loops: 3
+          loop block_for: 50, loops: 5
           assert.equal 1, #spook.fs_events
           assert.same {
             type: 'fs'
