@@ -50,7 +50,7 @@ describe 'Event Loop', ->
       t\start!
       loop block_for: 150, loops: 2 -- block for a little longer than timer trigger interval
       assert.not.nil ended
-      assert.is.near 111, (ended - started), 50 -- allow +-50ms (REALLY shouldn't be that long)
+      assert.is.near 111, (ended - started), 100 -- allow +-100ms (REALLY shouldn't be that long)
 
     it 'is called once by default', ->
       s = spy.new ->
@@ -61,12 +61,14 @@ describe 'Event Loop', ->
       assert.spy(s).was.called(1)
 
     it 'can be rearmed by call to #again', ->
+      c = 0
       s = spy.new ->
       t = Timer.new 0.01, (t) ->
         s!
-        t\again!
+        c += 1
+        t\again! if c < 2
       t\start!
-      loop block_for: 30, loops: 2
+      loop block_for: 20, loops: 5
       assert.spy(s).was.called(2)
 
     it 'is not called again if stopped even if rearmed', ->
@@ -76,7 +78,7 @@ describe 'Event Loop', ->
         t\again!
         t\stop!
       t\start!
-      loop block_for: 30, loops: 2
+      loop block_for: 30, loops: 3
       assert.spy(s).was.called(1)
 
     describe 'a recurring timer', ->
@@ -86,12 +88,14 @@ describe 'Event Loop', ->
         timer\stop! unless timer.stopped
 
       it 'is called every given tick', ->
+        c = 0
         s = spy.new ->
-        timer = Timer.new 0.01, s
+          c += 1
+          timer\stop! if c == 2
+        timer = Timer.new 0.1, s
         timer.recurring = true
         timer\start!
-        loop block_for: 21, 1
-        loop block_for: 21, 1
+        loop block_for: 100, loops: 5
         assert.spy(s).was.called(2)
 
   describe 'Watcher', ->
@@ -129,7 +133,7 @@ describe 'Event Loop', ->
       -- this shouldn't be reported - non-recursive
       create_file "#{subdir1}/testfile.txt", "some content"
 
-      loop block_for: 50, loops: 3
+      loop block_for: 50, loops: 4
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -146,7 +150,7 @@ describe 'Event Loop', ->
       -- this shouldn't be reported - non-recursive
       os.remove "#{subdir1}/testfile.txt"
 
-      loop block_for: 50, loops: 3
+      loop block_for: 50, loops: 4
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -163,7 +167,7 @@ describe 'Event Loop', ->
 
       create_file "#{subdir1}/testfile.txt", "some content"
 
-      loop block_for: 50, loops: 3
+      loop block_for: 50, loops: 4
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -177,7 +181,7 @@ describe 'Event Loop', ->
       }
       create_file "#{subdir2}/testfile.txt", "some content"
 
-      loop block_for: 50, loops: 3
+      loop block_for: 50, loops: 4
 
       assert.spy(event_catcher).was.called_with {
         {
@@ -277,7 +281,7 @@ describe 'Event Loop', ->
         S.rename "#{subdir1}/README.md_tmp", "#{subdir1}/README.md"
         S.unlink "#{subdir1}/README.md_old"
 
-        loop block_for: 50, loops: 3
+        loop block_for: 50, loops: 5
 
         -- TODO: improve this discrepancy
         event_list = if on_linux

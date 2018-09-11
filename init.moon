@@ -78,44 +78,16 @@ cli = require "arguments"
 Spook = require 'spook'
 local spook, fs_events
 
-reset_env_fs_events = ->
-  S.unsetenv(ev) for ev in *{
-    'SPOOK_CHANGE_PATH',
-    'SPOOK_CHANGE_ACTION',
-    'SPOOK_MOVED_FROM'
-  }
-
-fs_event_to_env = (event) ->
-  return unless event
-
-  if event.path
-    S.setenv('SPOOK_CHANGE_PATH', event.path, true)
-  else
-    log.debug "expected the event to have a path: ", event
-
-  if event.action
-    S.setenv('SPOOK_CHANGE_ACTION', event.action, true)
-  else
-    log.debug "expected the event to have an action: ", event
-
-  if event.action == 'moved'
-    if event.from
-      S.setenv('SPOOK_MOVED_FROM', event.from, true)
-    else
-      log.debug "expected the event to have a from field: ", event
-
 -- to prevent multiple events happening very quickly
 -- on a specific file we need to run a handler on some
 -- interval which coalesces the events into one (here it's
 -- just the latest event, disregarding any previous ones).
 event_handler = =>
   seen_paths = {}
-  reset_env_fs_events!
   while #fs_events > 0
     event = pop fs_events
     continue unless event.path -- ignore events without a path
     continue if seen_paths[event.path] -- ignore events we've already seen
-    fs_event_to_env event
     seen_paths[event.path] = true
     matching = spook\match event
     if matching and #matching > 0

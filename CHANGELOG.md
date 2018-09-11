@@ -2,6 +2,14 @@
 
 ## 0.9.6 -- unreleased
 
+Moved to building / testing on Jenkins + slaves on Kubernetes.
+
+Removed the feature where environment variables SPOOK_CHANGE_PATH, SPOOK_CHANGE_ACTION and SPOOK_MOVED_FROM
+were set as this wasn't entirely deterministic from a test pov. Likely, that feature would need more work
+to work as intended. I didn't use it anyway, hopefully noone else did either.
+
+Improve reliability of tests on both OS X and Linux. Still may have some work to do here though.
+
 ## 0.9.5
 
 Don't print to stdout after timing out waiting for data on stdin (rather print to stderr).

@@ -1,35 +1,43 @@
 #!/usr/bin/groovy
 
-// gets the id of self (eg. the container we are executing within at the moment)
-def getContainerID() {
-  return sh(script: 'cat /proc/self/cgroup | head -n 1 | awk -F \'/\' \'{print $NF}\'', returnStdout: true).trim()
+def hasCmd(cmd) { "command -v ${cmd} >/dev/null 2>&1" }
+
+def shell(cmd) {
+  def nixInitPath = '$HOME/.nix-profile/etc/profile.d/nix.sh'
+  sh """
+     if ! ${hasCmd('nix-shell')}; then
+        if [ -e ${nixInitPath} ]; then
+           . ${nixInitPath}
+        else
+           curl https://nixos.org/nix/install | sh
+           . ${nixInitPath}
+        fi
+     fi
+     ${cmd}
+     """
 }
 
-// this will return the actual path to the directory containing the workspace of the running slave
-// since a slave is itself a container, it is slightly more involved mounting things in other
-// containers from here so we use a helper that queries the docker daemon for information
-// on where the mount is on the host
-def getContainerWorkspaceVolume() {
-  return sh(
-    script: "docker inspect -f '{{ range .Mounts }}{{ if eq .Destination \"/home/jenkins\" }}{{ .Source }}{{ end }}{{ end }}' ${getContainerID()}",
-    returnStdout: true
-  ).trim()
-}
+def nixShell(cmd) { shell """ nix-shell --run "${cmd}" """ }
 
-def dockerRun(image, cmdline) {
-  sh "docker run --rm -v ${getContainerWorkspaceVolume()}:/home/jenkins -w \$(pwd) ${image} /bin/sh -c '${cmdline}'"
-}
+def labels = ['linux', 'osx']
+def builders = [:]
 
-stage("Test") {
-  node {
-    deleteDir()
-    stage("Checkout") {
-      checkout scm
-    }
-    stage("Build") {
-      dockerRun("nixos/nix", '''
-        nix-shell --run "make lint && make test"
-      ''')
+for (x in labels) {
+    def label = x
+    builders[label] = {
+      node(label) {
+
+        stage("Prerequisites") { shell """ nix-env -iA nixpkgs.git """ }
+
+        stage("Checkout") { checkout scm }
+
+        stage("Build") { nixShell "make" }
+
+        stage("Lint") { nixShell "make lint" }
+
+        stage("Test") { nixShell "make test" }
     }
   }
 }
+
+parallel builders
