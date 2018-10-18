@@ -19,7 +19,8 @@ def shell(cmd) {
 
 def nixShell(cmd) { shell """ nix-shell --run "${cmd}" """ }
 
-def labels = ['linux', 'osx']
+//def labels = ['linux', 'osx']
+def labels = ['linux']
 def builders = [:]
 
 for (x in labels) {
