@@ -35,9 +35,12 @@ log.level log.INFO
 
 loadfail = (file, result) ->
   print colors "%{red}FATAL: Failed to load '#{file}'"
-  print colors "%{white}#{result}" if result
-  print ""
-  print colors "%{dim}This may indicate a syntax error or that some logic failed"
+  if fs.is_file file
+    print colors "%{white}#{result}" if result
+    print ""
+    print colors "%{dim}This may indicate a syntax error"
+  else
+    print colors "%{white}No such file '#{file}'"
   os.exit 1
 
 -- if there is an argument "-f" on the commandline
