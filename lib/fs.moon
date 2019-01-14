@@ -53,11 +53,12 @@ dirtree = (dir, opts={}) ->
 
   :recursive, :ignore = opts
 
-  ignores = {'.', '..'}
+  ignores = {'^%.$', '^%.%.$'}
   append(ignores, ign) for ign in *ignore
   ignored = (entry) ->
     for ign in *ignores
-      return true if entry == ign
+      matches = {entry\match ign}
+      return true if #matches > 0
     false
 
   yieldtree = (current_dir) ->

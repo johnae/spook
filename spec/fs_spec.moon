@@ -69,6 +69,41 @@ describe 'fs', ->
       table.sort(contents)
       assert.same expected, contents
 
+    it 'dirtree yields contents of a directory recursively, ignoring given patterns when specified', ->
+      fs.mkdir_p tmpdir .. '/my/dir/structure'
+      f = assert(io.open(tmpdir .. '/my/dir/file.txt', "w"))
+      f\write("spec")
+      f\close!
+      f = assert(io.open(tmpdir .. '/my/dir/.hidden.txt', "w"))
+      f\write("hidden")
+      f\close!
+      contents = {}
+      for entry in fs.dirtree tmpdir, true
+        insert contents, entry
+      expected = {
+        tmpdir .. '/my',
+        tmpdir .. '/my/dir',
+        tmpdir .. '/my/dir/structure',
+        tmpdir .. '/my/dir/file.txt'
+        tmpdir .. '/my/dir/.hidden.txt'
+      }
+      table.sort(expected)
+      table.sort(contents)
+      assert.same expected, contents
+
+      contents = {}
+      for entry in fs.dirtree tmpdir, recursive: true, ignore: {'^%.hidden%.txt$'}
+        insert contents, entry
+      expected = {
+        tmpdir .. '/my',
+        tmpdir .. '/my/dir',
+        tmpdir .. '/my/dir/structure',
+        tmpdir .. '/my/dir/file.txt'
+      }
+      table.sort(expected)
+      table.sort(contents)
+      assert.same expected, contents
+
   describe 'name_ext', ->
 
     it 'returns the filename and extension as two parameters', ->
