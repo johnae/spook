@@ -2,6 +2,7 @@
 
 S = require 'syscall'
 ffi = require 'ffi'
+insert: append, :concat = table
 
 pattern_escapes = {
   "(": "%(",
@@ -93,3 +94,17 @@ timer = (name) ->
   (func) ->
     func or= print
     func "#{name} completed in #{gettimeofday!-ts}ms"
+
+moonscript = require "moonscript.base"
+fileload = (file) ->
+  is_lua = file\match "[^.]%.lua$"
+  lines = {}
+  shebang = true
+  for line in io.lines(file)
+    continue if shebang and line\match '^#!.*$'
+    shebang = false
+    append lines, line
+  if is_lua
+    pcall loadstring, (concat lines, "\n")
+  else
+    pcall moonscript.loadstring, (concat lines, "\n")

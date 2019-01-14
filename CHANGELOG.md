@@ -2,6 +2,9 @@
 
 ## 0.9.7 -- unreleased
 
+Allow usage from shebang line (as a glorified luajit/moonscript interpreter)- eg. treat first argument as file
+to run.
+
 ## 0.9.6
 
 Added the ability to give watch a list of ignore patterns, those would then not be watched. For example:

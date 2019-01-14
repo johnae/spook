@@ -51,17 +51,21 @@ loadfail = (file, result) ->
 -- that here it is run within the spook context and all
 -- that comes built-in is available (including moonscript, so
 -- moonscript files can be run as well as lua files).
+local file
+local fi
 if fi = index_of arg, "-f"
   file = arg[fi + 1]
-  new_args = [a for i, a in ipairs arg when i>(fi + 1)]
   unless file
     log.error "The -f option requires an argument"
     os.exit 1
+else if #arg == 1
+  if fs.is_file arg[#arg]
+    file = arg[#arg]
+    fi = #arg
+if file
+  new_args = [a for i, a in ipairs arg when i>(fi + 1)]
   _G.arg = new_args
-  success, chunk = if file\match("[^.]%.lua$")
-    pcall loadfile, file
-  else
-    pcall moonscript.loadfile, file
+  success, chunk = fileload file
   loadfail file, chunk unless success
   return chunk!
 
