@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.6 -- unreleased
+## 0.9.7 -- unreleased
+
+## 0.9.6
 
 Added the ability to give watch a list of ignore patterns, those would then not be watched. For example:
 
