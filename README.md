@@ -271,6 +271,17 @@ watch '.', ->
     print "something changed"
 ```
 
+Ignoring certain paths is supported as of spook 0.9.6. You would just give a list of patterns as the second argument to `watch`, like this:
+
+```moonscript
+watch '.', {'^%.git$', '%.env.*'}, ->
+  on_changed '^lib/(.*)%.moon', (event, name) ->
+    run_spec "spec/#{name}_spec.moon"
+```
+
+The above would ignore any file or directory called exactly '.git' and any file or directory having '.env' in it's name. This is applied recursively.
+
+
 ### Pipelining with spook (eg. watch files given on stdin)
 
 As mentioned up top, spook (since version 0.8.1) has gained the basic functionality of [entr](http://entrproject.org/). Using it in this mode is as simple as:
