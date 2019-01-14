@@ -2,7 +2,14 @@
 
 ## 0.9.6 -- unreleased
 
-Moved to building / testing on Jenkins + slaves on Kubernetes.
+Added the ability to give watch a list of ignore patterns, those would then not be watched. For example:
+
+```moonscript
+watch ".", ignore: {'^%.git$'}, ->
+  on_changed ... etc
+```
+
+The above would ignore the ".git" directory and anything underneath it.
 
 Removed the feature where environment variables SPOOK_CHANGE_PATH, SPOOK_CHANGE_ACTION and SPOOK_MOVED_FROM
 were set as this wasn't entirely deterministic from a test pov. Likely, that feature would need more work
