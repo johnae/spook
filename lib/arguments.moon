@@ -112,7 +112,7 @@ parser\option("-w", "Expects the path to working directory - overrides the defau
     print "#{dir} is not a directory"
     os.exit 1
 
-parser\option("-f", "Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely.\nAny arguments following the path to the file will be given to the file itself.")\args(1)
+parser\option("-f", "Expects a path to a MoonScript or Lua file - runs the script within the context of spook, skipping the default behavior completely.\nAny arguments following the path to the file will be given to the file itself.\nThis option can also be omitted if the first argument is the path to the file. Eg. `spook path/to/file.moon` also works.")\args(1)
 
 parser\flag("-s", "Stdin mode only: start the given utility immediately without waiting for changes first. \nThe utility to run should be given as the last arg(s) on the commandline. Without a utility spook will output the changed file path.")
 

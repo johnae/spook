@@ -58,10 +58,9 @@ if fi = index_of arg, "-f"
   unless file
     log.error "The -f option requires an argument"
     os.exit 1
-else if #arg == 1
-  if fs.is_file arg[#arg]
-    file = arg[#arg]
-    fi = #arg
+else if not arg[1]\match('^-')
+    file = arg[1]
+    fi = 0 -- since logic below assumes > fi + 1
 if file
   new_args = [a for i, a in ipairs arg when i>(fi + 1)]
   _G.arg = new_args
