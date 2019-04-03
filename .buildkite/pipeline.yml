@@ -2,12 +2,17 @@ steps:
   - command: |
         echo --- Setup the Nix Package Manager
         nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
+        echo ^^^ +++
+
         echo --- Restore Cached Nix Packages
         test -d /nixcache/store && cp -pur /nixcache/store /nix/
         test -d /nixcache/var && cp -pur /nixcache/var /nix/
+        echo ^^^ +++
+
         nix-shell --run bash <<'NIXSH'
           echo --- Build spook
           make
+          echo ^^^ +++
 
           echo +++ Lint
           make lint
@@ -15,8 +20,11 @@ steps:
           echo +++ Test
           make test
         NIXSH
+
         echo --- Save Nix Cache
         cp -pur /nix/* /nixcache/
+        echo ^^^ +++
+
     timeout: 600
     plugins:
       - docker#v3.0.1:
