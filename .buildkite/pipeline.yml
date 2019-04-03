@@ -1,16 +1,21 @@
 steps:
   - command: |
-        ls -lah
-        ls -lah /
-        ls -lah /nixcache/
-        pwd
+        echo --- Setup the Nix Package Manager
         nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
+        echo --- Restore Cached Nix Packages
         test -d /nixcache/store && cp -pur /nixcache/store /nix/
         test -d /nixcache/var && cp -pur /nixcache/var /nix/
         nix-shell --run bash <<'NIXSH'
+          echo --- Build spook
           make
+
+          echo +++ Lint
+          make lint
+
+          echo +++ Test
           make test
         NIXSH
+        echo --- Save Nix Cache
         cp -pur /nix/* /nixcache/
     timeout: 600
     plugins:
