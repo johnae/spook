@@ -74,7 +74,7 @@ For more see https://github.com/johnae/spook
 
 ### MacOS
 
-Check your ulimits (max open files seems to be set to 256 by default on MacOS). It will likely make spook crash if watching more than a few hundred files. Setting it higher looks something like:
+Check your ulimits (max open files seem to be set to 256 by default on MacOS). It will likely make spook crash if watching more than a few hundred files. Setting it higher looks something like:
 
 ```sh
 ulimit -n 4096
