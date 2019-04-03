@@ -1,16 +1,20 @@
 steps:
-  - label: Ubuntu build
-    command:
-      - ./.ci/ubuntu.sh
-    agents:
-      queue: ubuntu
-  - label: OSX build
-    command:
-      - ./.ci/osx.sh
-    agents:
-      queue: osx
-  - label: FreeBSD build
-    command:
-      - ./.ci/freebsd.sh
-    agents:
-      queue: freebsd
+  - command: |
+        ls -lah
+        ls -lah /
+        ls -lah /nixcache/
+        pwd
+        nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
+        test -d /nixcache/store && cp -pur /nixcache/store /nix/
+        test -d /nixcache/var && cp -pur /nixcache/var /nix/
+        nix-shell --run bash <<'NIXSH'
+          make
+          make test
+        NIXSH
+        cp -pur /nix/* /nixcache/
+    timeout: 600
+    plugins:
+      - docker#v3.0.1:
+          image: "nixorg/nix:latest"
+          volumes:
+            - "/var/lib/buildkite/nixcache:/nixcache"
