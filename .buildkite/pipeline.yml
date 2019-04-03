@@ -2,17 +2,23 @@ steps:
   - command: |
         echo --- Setup the Nix Package Manager
         nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
-        echo ^^^ +++
+        if [[ $? -ne 0 ]]; then
+          echo ^^^ +++
+        fi
 
         echo --- Restore Cached Nix Packages
-        test -d /nixcache/store && cp -pur /nixcache/store /nix/
-        test -d /nixcache/var && cp -pur /nixcache/var /nix/
-        echo ^^^ +++
+        test -d /nixcache/store && cp -pur /nixcache/store /nix/ && \
+          test -d /nixcache/var && cp -pur /nixcache/var /nix/
+        if [[ $? -ne 0 ]]; then
+          echo ^^^ +++
+        fi
 
         nix-shell --run bash <<'NIXSH'
           echo --- Build spook
           make
-          echo ^^^ +++
+          if [[ $? -ne 0 ]]; then
+            echo ^^^ +++
+          fi
 
           echo +++ Lint
           make lint
