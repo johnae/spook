@@ -5,6 +5,7 @@ steps:
         cp -pur /nix/* /nixstore/
       fi
     timeout: 60
+    label: ":pipeline: Prepopulate Nix Store"
     plugins:
       - docker#v3.0.1:
           image: "nixorg/nix:latest"
@@ -33,6 +34,7 @@ steps:
         #echo --- Save Nix Cache
         #cp -pur /nix/* /nixcache/
 
+    label: ":pipeline: Build and Test"
     timeout: 600
     plugins:
       - docker#v3.0.1:
