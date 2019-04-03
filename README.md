@@ -1,4 +1,4 @@
-[![Build Status](https://ci.insane.se/buildStatus/icon?job=spook/master)](https://ci.insane.se/job/spook/job/master/)
+[![Build Status](https://badge.buildkite.com/41c70ee26c601a323ea26103e67674cae9bdcbaa8fc17786ae.svg)](https://buildkite.com/insane/spook)
 
 ## Spook - react to change
 
