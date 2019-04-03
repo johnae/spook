@@ -1,11 +1,23 @@
 steps:
   - command: |
+      ## prepopulate if necessary
+      if [ ! -d /nixstore/store ]; then
+        cp -pur /nix/* /nixstore/
+      fi
+    timeout: 60
+    plugins:
+      - docker#v3.0.1:
+          image: "nixorg/nix:latest"
+          volumes:
+            - "/var/lib/buildkite/nix:/nixstore"
+  - wait
+  - command: |
         echo --- Setup the Nix Package Manager
         nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
 
-        echo --- Restore Cached Nix Packages
-        test -d /nixcache/store && cp -pur /nixcache/store /nix/
-        test -d /nixcache/var && cp -pur /nixcache/var /nix/
+        #echo --- Restore Cached Nix Packages
+        #test -d /nixcache/store && cp -pur /nixcache/store /nix/
+        #test -d /nixcache/var && cp -pur /nixcache/var /nix/
 
         nix-shell --run bash <<'NIXSH'
           echo --- Build spook
@@ -18,12 +30,12 @@ steps:
           make test
         NIXSH
 
-        echo --- Save Nix Cache
-        cp -pur /nix/* /nixcache/
+        #echo --- Save Nix Cache
+        #cp -pur /nix/* /nixcache/
 
     timeout: 600
     plugins:
       - docker#v3.0.1:
           image: "nixorg/nix:latest"
           volumes:
-            - "/var/lib/buildkite/nixcache:/nixcache"
+            - "/var/lib/buildkite/nix:/nix"
