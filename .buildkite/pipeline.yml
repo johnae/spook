@@ -6,6 +6,8 @@ steps:
       fi
     timeout: 60
     label: ":pipeline: Prepopulate Nix Store"
+    agents:
+    - "queue=linux"
     plugins:
       - docker#v3.0.1:
           image: "nixorg/nix:latest"
@@ -15,10 +17,6 @@ steps:
   - command: |
         echo --- Setup the Nix Package Manager
         nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs && nix-channel --update
-
-        #echo --- Restore Cached Nix Packages
-        #test -d /nixcache/store && cp -pur /nixcache/store /nix/
-        #test -d /nixcache/var && cp -pur /nixcache/var /nix/
 
         nix-shell --run bash <<'NIXSH'
           echo --- Build spook
@@ -31,10 +29,9 @@ steps:
           make test
         NIXSH
 
-        #echo --- Save Nix Cache
-        #cp -pur /nix/* /nixcache/
-
     label: ":pipeline: Build and Test"
+    agents:
+    - "queue=linux"
     timeout: 600
     plugins:
       - docker#v3.0.1:
