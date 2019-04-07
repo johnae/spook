@@ -30,8 +30,9 @@ let
     plugins ? [
       {
         "docker#v3.0.1" = {
-          image = "nixpkgs/nix";
+          image = builtins.getEnv "NIXIMAGE";
           mount-buildkite-agent = false;
+          entrypoint = "/usr/bin/bash";
           inherit environment volumes;
         };
       }
@@ -43,22 +44,16 @@ let
          (toLower (
            replaceStrings [" "] ["-"] (
              replaceStrings [ ":" ] [""] (toString label)))) ''
-               export PATH=${makeSearchPath "bin" withPkgs }:$PATH
+               export PATH=${if length withPkgs > 0 then
+               ''${makeSearchPath "bin" withPkgs }:$PATH''
+               else
+               ''$PATH''
+               }
                ${command}
              '';
       };
 
-    steps = {
-      populate_nix_cache = queue:
-        step ":pipeline: Pre-populate Nix Store" {
-          agents = [ "queue=${queue}" "nix=true" ];
-          plugins = null;
-          command = ''
-            cp -pur /nix/* /nixstore/
-          '';
-        };
-      wait = "wait";
-    };
+   wait = "wait";
 
    pipeline = s:
      writeTextFile {
@@ -70,5 +65,5 @@ let
 in
 
   {
-    inherit pkgs lib pipeline step steps;
+    inherit pkgs lib pipeline step wait;
   }
