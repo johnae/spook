@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-## always build this before running command
-## this way we ensure parallel jobs have all
-## they need
-nix-build .buildkite/pipeline.nix
