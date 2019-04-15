@@ -12,3 +12,4 @@ lib/version.moon
 tools/github-release
 playground
 tmp
+.buildkite/result
