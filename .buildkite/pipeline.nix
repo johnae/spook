@@ -1,4 +1,5 @@
 with import ./buildkite.nix;
+with pkgs.callPackage ./tools.nix { };
 with builtins;
 with lib;
 
@@ -11,12 +12,12 @@ let
 
 in
 
-   flatten (map (agents: [
+  { pipeline = flatten (map (agents: [
 
      (step ":pipeline: Lint" {
        inherit agents;
        command = ''
-         nix-shell --run bash <<'NIXSH'
+         nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
            echo +++ Lint
            make lint
          NIXSH
@@ -26,7 +27,7 @@ in
     (step ":pipeline: Test" {
        inherit agents;
        command = ''
-         nix-shell --run bash <<'NIXSH'
+         nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
            echo +++ Test
            make test
          NIXSH
@@ -44,18 +45,16 @@ in
          inherit agents;
          environment = [ "CACHIX_SIGNING_KEY" ];
          command = ''
-           echo --- Populate cachix cache
-           if [ -z "$CACHIX_SIGNING_KEY" ]; then
-              echo "Missing environment variable CACHIX_SIGNING_KEY"
-              exit 1
-           fi
-           nix-env -iA cachix -f https://cachix.org/api/v1/install
-           nix-store -qR --include-outputs "$(nix-instantiate build.nix)" | \
-           tee /dev/tty | \
-           cachix push insane
+           nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
+             echo --- Populate cachix cache
+             nix-env -iA cachix -f https://cachix.org/api/v1/install
+             nix-store -qR --include-outputs "$(nix-instantiate build.nix)" | \
+             tee /dev/tty | \
+             cachix push insane
+           NIXSH
          '';
          })
      ]
     else [])
     )
-   run-on-agents)
+  run-on-agents); }
