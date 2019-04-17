@@ -15,15 +15,8 @@ let
 
   wait = "wait";
 
-  pipeline = s:
-    writeTextFile {
-     name = "pipeline.json";
-     text = builtins.toJSON (s);
-    };
-
-
 in
 
   {
-    inherit pkgs lib pipeline step wait;
+    inherit pkgs lib step wait;
   }

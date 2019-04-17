@@ -11,8 +11,6 @@ let
 
 in
 
-  pipeline (
-
    flatten (map (agents: [
 
      (step ":pipeline: Lint" {
@@ -60,6 +58,4 @@ in
      ]
     else [])
     )
-   run-on-agents ## map
-  )
-)
+   run-on-agents)
