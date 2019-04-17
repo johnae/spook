@@ -17,7 +17,7 @@ in
      (step ":pipeline: Lint" {
        inherit agents;
        command = ''
-         nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
+         nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
            echo +++ Lint
            make lint
          NIXSH
@@ -27,7 +27,7 @@ in
     (step ":pipeline: Test" {
        inherit agents;
        command = ''
-         nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
+         nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
            echo +++ Test
            make test
          NIXSH
@@ -45,7 +45,7 @@ in
          inherit agents;
          environment = [ "CACHIX_SIGNING_KEY" ];
          command = ''
-           nix-shell ./buildkite/build.nix --run strict-bash <<'NIXSH'
+           nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
              echo --- Populate cachix cache
              nix-env -iA cachix -f https://cachix.org/api/v1/install
              nix-store -qR --include-outputs "$(nix-instantiate build.nix)" | \
