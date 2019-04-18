@@ -3,19 +3,10 @@ with pkgs.callPackage ./tools.nix { };
 with builtins;
 with lib;
 
-let
-
-  ## build on macos as well when infra is in place
-  #run-on-agents = [["queue=linux" "nix=true"]
-  #          ["queue=macos" "nix=true"]];
-  run-on-agents = [[ "queue=linux" "nix=true" ]];
-
-in
-
-  { pipeline = flatten (map (agents: [
+{
+  steps = agents [[ "queue=linux" "nix=true" ]] ([
 
      (step ":pipeline: Lint" {
-       inherit agents;
        command = ''
          nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
            echo +++ Lint
@@ -24,25 +15,21 @@ in
        '';
      })
 
-    (step ":pipeline: Test" {
-       inherit agents;
-       command = ''
-         nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-           echo +++ Test
-           make test
-         NIXSH
-       '';
-    })
+     (step ":pipeline: Test" {
+        command = ''
+          nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
+            echo +++ Test
+            make test
+          NIXSH
+        '';
+     })
 
-   ]
+    ] ++ (if getEnv "BUILDKITE_BRANCH" == "master" then
+    [
 
-   ++
-
-   (if getEnv "BUILDKITE_BRANCH" == "master" then
-     [
        wait
+
        (step ":pipeline: Populate cachix cache" {
-         inherit agents;
          environment = [ "CACHIX_SIGNING_KEY" ];
          command = ''
            nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
@@ -53,8 +40,7 @@ in
              cachix push insane
            NIXSH
          '';
-         })
-     ]
-    else [])
-    )
-  run-on-agents); }
+       })
+
+    ] else []));
+}

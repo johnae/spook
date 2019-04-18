@@ -15,8 +15,16 @@ let
 
   wait = "wait";
 
+  agents = a: s:
+    flatten (map (step:
+      (unique (map (agents:
+        (if isAttrs step then step // { inherit agents; }
+        else step)
+      ) a))
+    ) s);
+
 in
 
   {
-    inherit pkgs lib step wait;
+    inherit pkgs lib step wait agents;
   }
