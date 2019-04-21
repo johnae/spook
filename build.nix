@@ -14,7 +14,7 @@ stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
-  buildInputs = [ gnumake gcc wget perl cacert ];
+  buildInputs = [ wget perl cacert ];
 
   meta = {
     description = "Lightweight evented utility for monitoring file changes and more";
