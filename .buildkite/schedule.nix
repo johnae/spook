@@ -13,6 +13,12 @@ let
         linuxjobs=$(($linuxjobs - 1))
         kubectl create -f /jobs/linuxjob.yaml
       done
+      macosjobs=$((2 - $(kubectl get pods | grep macos-buildkite-job | grep Running | wc -l)))
+      while [ "$macosjobs" -gt 0 ]
+      do
+        macosjobs=$(($macosjobs - 1))
+        kubectl create -f /jobs/macosjob.yaml
+      done
     NIXSH
   '';
 
