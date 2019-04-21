@@ -4,7 +4,7 @@ with builtins;
 with lib;
 
 {
-  steps = agents [[ "queue=linux" "nix=true" ]] ([
+  steps = agents [[ "queue=linux" "nix=true" ] [ "queue=macos" "nix=true" ]] ([
 
      (step ":pipeline: Lint" {
        command = ''
