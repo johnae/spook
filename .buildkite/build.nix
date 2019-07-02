@@ -1,7 +1,12 @@
-with import <nixpkgs> { };
-with pkgs.callPackage ./tools.nix { };
+with import <insanepkgs> { };
+with pkgs;
 stdenv.mkDerivation {
   name = "build";
-
-  buildInputs = [ gnumake gcc wget perl cacert tmux git glibcLocales ps gawk gnugrep strict-bash ];
+  buildInputs = [
+                  insane-lib.strict-bash
+                  gnumake gcc wget perl
+                  cacert tmux git
+                  glibcLocales ps gawk
+                  gnugrep
+                ];
 }

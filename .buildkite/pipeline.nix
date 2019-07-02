@@ -1,46 +1,36 @@
-with import ./buildkite.nix;
-with pkgs.callPackage ./tools.nix { };
+## To generate the buildkite json, run this on the command line:
+##
+## nix eval -f .buildkite/pipeline.nix --json steps
+
+with import <insanepkgs> { };
 with builtins;
 with lib;
+with buildkite-pipeline;
 
 {
-  steps = agents [[ "queue=linux" "nix=true" ] [ "queue=macos" "nix=true" ]] ([
 
-     (step ":pipeline: Lint" {
+  steps = pipeline ([
+
+    (step ":pipeline: Lint" {
+      agents = { queue = "linux"; };
+      command = ''
+        nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
+          echo +++ Lint
+          make lint
+        NIXSH
+      '';
+    })
+
+
+    (step ":pipeline: Test" {
+       agents = { queue = "linux"; };
        command = ''
          nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-           echo +++ Lint
-           make lint
+           echo +++ Test
+           make test
          NIXSH
        '';
-     })
+    })
 
-     (step ":pipeline: Test" {
-        command = ''
-          nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-            echo +++ Test
-            make test
-          NIXSH
-        '';
-     })
-
-    ] ++ (if getEnv "BUILDKITE_BRANCH" == "master" then
-    [
-
-       wait
-
-       (step ":pipeline: Populate cachix cache" {
-         environment = [ "CACHIX_SIGNING_KEY" ];
-         command = ''
-           nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-             echo --- Populate cachix cache
-             nix-env -iA cachix -f https://cachix.org/api/v1/install
-             nix-store -qR --include-outputs "$(nix-instantiate build.nix)" | \
-             tee /dev/tty | \
-             cachix push insane
-           NIXSH
-         '';
-       })
-
-    ] else []));
+  ]);
 }
