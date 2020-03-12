@@ -2,35 +2,22 @@
 ##
 ## nix eval -f .buildkite/pipeline.nix --json steps
 
-with import <insanepkgs> { };
+with import <insanepkgs> {};
 with builtins;
 with lib;
-with buildkite-pipeline;
+with buildkite;
 
-{
-
-  steps = pipeline ([
-
-    (step ":pipeline: Lint" {
-      agents = { queue = "linux"; };
-      command = ''
-        nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-          echo +++ Lint
-          make lint
-        NIXSH
-      '';
-    })
-
-
-    (step ":pipeline: Test" {
-       agents = { queue = "linux"; };
-       command = ''
-         nix-shell .buildkite/build.nix --run strict-bash <<'NIXSH'
-           echo +++ Test
-           make test
-         NIXSH
-       '';
-    })
-
-  ]);
-}
+pipeline [
+  (run ":pipeline: Lint" {
+    command = ''
+      echo +++ Lint
+      make lint
+    '';
+  })
+  (run ":pipeline: Test" {
+    command = ''
+      echo +++ Test
+      make test
+    '';
+  })
+]
