@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.9.7 -- unreleased
+## 0.9.8 -- unreleased
+
+## 0.9.7
+
+Just build infrastructure changes really + wanted to get a release out after such a long time.
 
 ## 0.9.6
 
