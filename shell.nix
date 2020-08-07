@@ -1,5 +1,18 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ nixpkgs ? import <nixpkgs> { } }:
 
-with pkgs; mkShell {
-   buildInputs = [ gnumake gcc wget perl cacert tmux git glibcLocales ps gawk gnugrep ];
+nixpkgs.mkShell {
+  buildInputs = [
+    nixpkgs.strict-bash
+    nixpkgs.gnumake
+    nixpkgs.gcc
+    nixpkgs.wget
+    nixpkgs.perl
+    nixpkgs.cacert
+    nixpkgs.tmux
+    nixpkgs.git
+    nixpkgs.glibcLocales
+    nixpkgs.ps
+    nixpkgs.gawk
+    nixpkgs.gnugrep
+  ];
 }

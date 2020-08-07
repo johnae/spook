@@ -1,23 +1,23 @@
-## To generate the buildkite json, run this on the command line:
+{ config, pkgs, lib, ... }:
+## Generate the buildkite json like this on the command line:
 ##
-## nix eval -f .buildkite/pipeline.nix --json steps
-
-with import <insanepkgs> {};
-with builtins;
-with lib;
-with buildkite;
-
-pipeline [
-  (run ":pipeline: Lint" {
-    command = ''
-      echo +++ Lint
-      make lint
-    '';
-  })
-  (run ":pipeline: Test" {
-    command = ''
-      echo +++ Test
-      make test
-    '';
-  })
-]
+## nix eval .#buildkite.pipeline --json
+let
+  withBuildEnv = cmd: ''
+    eval "$(nix print-dev-env)"
+    strict-bash <<'NIXSH'
+    set -eou pipefail
+    ${cmd}
+    NIXSH
+  '';
+in
+{
+  steps.commands.lint.command = withBuildEnv ''
+    echo +++ Lint
+    make lint
+  '';
+  steps.commands.test.command = withBuildEnv ''
+    echo +++ Test
+    make test
+  '';
+}

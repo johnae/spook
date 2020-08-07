@@ -35,9 +35,10 @@ endif
 else
 SPOOK_VERSION ?= $(GITTAG)
 endif
-LUAJIT_INCLUDE := tools/luajit/include/luajit-2.1
-LUAJIT_ARCHIVE := tools/luajit/lib/libluajit-5.1.a
-LUAJIT := tools/luajit/bin/luajit
+LUAJIT_SRC ?= deps/luajit
+LUAJIT_INCLUDE ?= tools/luajit/include/luajit-2.1
+LUAJIT_ARCHIVE ?= tools/luajit/lib/libluajit-5.1.a
+LUAJIT ?= tools/luajit/bin/luajit
 TOOLS := $(realpath tools)
 BIN := $(realpath bin)
 ## this has to be expanded dynamically since luajit
@@ -73,13 +74,13 @@ lib/version.moon:
 	@echo "VERSION TAGGING: $(SPOOK_VERSION)"
 	@echo "'$(SPOOK_VERSION)'" > lib/version.moon
 
-deps/luajit/Makefile:
+$(LUAJIT_SRC)/Makefile:
 	git submodule update --init deps/luajit
 
-$(LUAJIT): deps/luajit/Makefile
+$(LUAJIT): $(LUAJIT_SRC)/Makefile
 	@echo "BUILDING LUAJIT"
-	$(MAKE) -C deps/luajit CC="$(CC)" XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
-	$(MAKE) -C deps/luajit install PREFIX=$(TOOLS)/luajit
+	$(MAKE) -C $(LUAJIT_SRC) CC="$(CC)" XCFLAGS="$(LJXCFLAGS)" PREFIX=$(TOOLS)/luajit
+	$(MAKE) -C $(LUAJIT_SRC) install PREFIX=$(TOOLS)/luajit
 	ln -sf $(TOOLS)/luajit/bin/luajit-2.1.0-beta3 $(TOOLS)/luajit/bin/luajit
 
 init.lua: $(LUAJIT)
