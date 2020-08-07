@@ -14,10 +14,16 @@ in
 {
   steps.commands.lint.command = withBuildEnv ''
     echo +++ Lint
-    make lint
+    nix build
+    SPOOK=$(pwd)/result/bin/spook
+    export SPOOK
+    spook-lint
   '';
   steps.commands.test.command = withBuildEnv ''
     echo +++ Test
-    make test
+    nix build
+    SPOOK=$(pwd)/result/bin/spook
+    export SPOOK
+    spook-test
   '';
 }
