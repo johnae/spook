@@ -1,11 +1,15 @@
 { nixpkgs ? import <nixpkgs> { } }:
 let
   spook-lint = nixpkgs.writeStrictShellScriptBin "spook-lint" ''
-    export LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit";
+    LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit"
+    LUAJIT_SRC="${nixpkgs.luajit_2_1.src}"
+    export LUAJIT LUAJIT_SRC
     make lint
   '';
   spook-test = nixpkgs.writeStrictShellScriptBin "spook-test" ''
-    export LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit";
+    LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit"
+    LUAJIT_SRC="${nixpkgs.luajit_2_1.src}"
+    export LUAJIT LUAJIT_SRC
     make test
   '';
 in
