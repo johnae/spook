@@ -14,10 +14,9 @@ in
 {
   steps.commands.test = {
     command = withBuildEnv ''
-
       echo +++ Build
       nix build
-      SPOOK=$(pwd)/result/bin/spook
+      SPOOK="$(pwd)"/result/bin/spook
       export SPOOK
 
       echo +++ Lint
@@ -27,6 +26,9 @@ in
       echo +++ Test
       $SPOOK -f spec/support/run_busted.lua spec
       ./bin/shpec
+
+      echo +++ Cache
+      readlink "$(pwd)"/result | cachix push insane
     '';
   };
 }
