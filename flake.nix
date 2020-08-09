@@ -26,14 +26,13 @@
           inherit version;
           name = "spook-${version}";
           SPOOK_VERSION = version;
+
           src = self;
 
           LUAJIT_SRC = final.luajit_2_1.src;
           LUAJIT_INCLUDE = "${final.luajit_2_1}/include/luajit-2.1";
           LUAJIT_ARCHIVE = "${final.luajit_2_1}/lib/libluajit-5.1.a";
           LUAJIT = "${final.luajit_2_1}/bin/luajit";
-
-          buildInputs = [ final.git final.wget final.perl final.cacert ];
 
           installPhase = ''
             mkdir -p $out/bin

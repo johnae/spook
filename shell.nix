@@ -17,6 +17,7 @@ nixpkgs.mkShell {
   buildInputs = [
     spook-lint
     spook-test
+    nixpkgs.luajit_2_1
     nixpkgs.strict-bash
     nixpkgs.gnumake
     nixpkgs.gcc
