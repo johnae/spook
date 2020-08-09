@@ -36,7 +36,6 @@
           buildInputs = [ final.git final.wget final.perl final.cacert ];
 
           installPhase = ''
-            echo hello2
             mkdir -p $out/bin
             make install PREFIX=$out
           '';
