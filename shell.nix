@@ -1,34 +1,51 @@
-{ nixpkgs ? import <nixpkgs> { } }:
+{ mkDevShell
+, writeStrictShellScriptBin
+, luajit_2_1
+, strict-bash
+, gnumake
+, gcc
+, wget
+, perl
+, cacert
+, tmux
+, git
+, glibcLocales
+, ps
+, gawk
+, gnugrep
+}:
+
 let
-  spook-lint = nixpkgs.writeStrictShellScriptBin "spook-lint" ''
-    LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit"
-    LUAJIT_SRC="${nixpkgs.luajit_2_1.src}"
+  spook-lint = writeStrictShellScriptBin "spook-lint" ''
+    LUAJIT="${luajit_2_1}/bin/luajit"
+    LUAJIT_SRC="${luajit_2_1.src}"
     export LUAJIT LUAJIT_SRC
     make lint
   '';
-  spook-test = nixpkgs.writeStrictShellScriptBin "spook-test" ''
-    LUAJIT="${nixpkgs.luajit_2_1}/bin/luajit"
-    LUAJIT_SRC="${nixpkgs.luajit_2_1.src}"
+  spook-test = writeStrictShellScriptBin "spook-test" ''
+    LUAJIT="${luajit_2_1}/bin/luajit"
+    LUAJIT_SRC="${luajit_2_1.src}"
     export LUAJIT LUAJIT_SRC
     make test
   '';
 in
-nixpkgs.mkShell {
-  buildInputs = [
+mkDevShell {
+  name = "spook";
+  packages = [
     spook-lint
     spook-test
-    nixpkgs.luajit_2_1
-    nixpkgs.strict-bash
-    nixpkgs.gnumake
-    nixpkgs.gcc
-    nixpkgs.wget
-    nixpkgs.perl
-    nixpkgs.cacert
-    nixpkgs.tmux
-    nixpkgs.git
-    nixpkgs.glibcLocales
-    nixpkgs.ps
-    nixpkgs.gawk
-    nixpkgs.gnugrep
+    luajit_2_1
+    strict-bash
+    gnumake
+    gcc
+    wget
+    perl
+    cacert
+    tmux
+    git
+    glibcLocales
+    ps
+    gawk
+    gnugrep
   ];
 }

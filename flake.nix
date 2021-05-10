@@ -2,25 +2,23 @@
   description = "Spook - react to change";
 
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
-    nixkite = {
-      url = "github:johnae/nixkite/flakes";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-    };
     nix-misc = {
       url = "github:johnae/nix-misc";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, flake-utils, nixkite, nix-misc, nixpkgs }:
+  outputs = { self, nix-misc, nixpkgs }:
     let
-      genAttrs' = values: f: builtins.listToAttrs (map f values);
       version = "0.9.7.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
+      supportedSystems = [ "x86_64-linux" "x86_64-darwin" ];
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems f;
+      pkgs = forAllSystems (system: import nixpkgs {
+        inherit system;
+        overlays = [ nix-misc.overlay self.overlay ];
+      });
     in
     {
-
       overlay = final: prev: {
         spook = final.stdenv.mkDerivation {
           inherit version;
@@ -41,38 +39,9 @@
         };
       };
 
-    } // flake-utils.lib.eachDefaultSystem
-      (system:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ nix-misc.overlay ];
-          };
-        in
-        {
-          defaultPackage =
-            (import nixpkgs {
-              inherit system;
-              overlays = [ self.overlay nix-misc.overlay ];
-            }).spook;
+      defaultPackage = forAllSystems (system: pkgs.${system}.spook);
 
-          devShell = import ./shell.nix { nixpkgs = pkgs; };
+      devShell = forAllSystems (system: pkgs.${system}.callPackage ./shell.nix {});
 
-          packages = pkgs // {
-            buildkite =
-              let
-                pipelineDir = ./.buildkite;
-                fullPath = name: pipelineDir + "/${name}";
-                pipelinePaths = map fullPath (builtins.attrNames (builtins.readDir pipelineDir));
-              in
-              genAttrs' pipelinePaths (path: {
-                name = nixpkgs.lib.removeSuffix ".nix" (builtins.baseNameOf path);
-                value = import nixkite {
-                  inherit pkgs;
-                  pipeline = path;
-                };
-              });
-          };
-        }
-      );
+    };
 }
